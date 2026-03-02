@@ -2507,934 +2507,952 @@
 
     <!-- JavaScript -->
     <script>
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // CONFIGURATION
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        const CONFIG = {
-            API_BASE: '', // Empty for same origin
-            FAREWELL_DATE: new Date('2025-03-15T18:00:00'),
-            REFRESH_INTERVAL: 60000, // 60 seconds
-            MAX_FILE_SIZE: 100 * 1024 * 1024, // 100MB
-            MAX_TOTAL_SIZE: 200 * 1024 * 1024, // 200MB
-            ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm']
-        };
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // CONFIGURATION
+  // ═══════════════════════════════════════════════════════════════════════════════
 
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // STATE MANAGEMENT
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        let state = {
-            selectedFiles: [],
-            memories: [],
-            adminToken: localStorage.getItem('adminToken') || null,
-            currentFilter: 'all',
-            currentAdminFilter: 'all',
-            currentSort: 'newest',
-            lightboxIndex: 0,
-            logoClickCount: 0,
-            logoClickTimer: null
-        };
+  const CONFIG = {
+    // Backend VM (change to https://yourdomain.com later if you add SSL)
+    API_BASE: 'http://140.245.193.185:3000',
+    FAREWELL_DATE: new Date('2025-03-15T18:00:00'),
+    REFRESH_INTERVAL: 60000, // 60 seconds
+    MAX_FILE_SIZE: 100 * 1024 * 1024, // 100MB
+    MAX_TOTAL_SIZE: 200 * 1024 * 1024, // 200MB
+    ALLOWED_TYPES: [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'video/mp4', 'video/quicktime', 'video/webm'
+    ]
+  };
 
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // INITIALIZATION
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            initParticles();
-            initNavbar();
-            initCountdown();
-            initUpload();
-            initMemoryWall();
-            initAdminTrigger();
-            checkAdminSession();
-            
-            // Auto-refresh memories
-            setInterval(loadMemories, CONFIG.REFRESH_INTERVAL);
-        });
+  // Helper: make /uploads/... and /api/... URLs absolute to the backend
+  function apiUrl(path) {
+    // path should start with "/"
+    return `${CONFIG.API_BASE}${path}`;
+  }
 
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // PARTICLES BACKGROUND
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        function initParticles() {
-            const container = document.getElementById('particles-container');
-            const particleCount = 50;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 8 + 's';
-                particle.style.animationDuration = (8 + Math.random() * 4) + 's';
-                container.appendChild(particle);
-            }
+  function mediaUrl(url) {
+    if (!url) return url;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    // backend returns /uploads/...
+    if (url.startsWith('/')) return `${CONFIG.API_BASE}${url}`;
+    return `${CONFIG.API_BASE}/${url}`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // STATE MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  let state = {
+    selectedFiles: [],
+    memories: [],
+    adminToken: localStorage.getItem('adminToken') || null,
+    currentFilter: 'all',
+    currentAdminFilter: 'all',
+    currentSort: 'newest',
+    lightboxIndex: 0,
+    logoClickCount: 0,
+    logoClickTimer: null
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // INITIALIZATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initParticles();
+    initNavbar();
+    initCountdown();
+    initUpload();
+    initMemoryWall();
+    initAdminTrigger();
+    checkAdminSession();
+
+    // Auto-refresh memories
+    setInterval(loadMemories, CONFIG.REFRESH_INTERVAL);
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PARTICLES BACKGROUND
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  function initParticles() {
+    const container = document.getElementById('particles-container');
+    const particleCount = 50;
+
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 8 + 's';
+      particle.style.animationDuration = (8 + Math.random() * 4) + 's';
+      container.appendChild(particle);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // NAVBAR
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  function initNavbar() {
+    const navbar = document.getElementById('navbar');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    // Scroll effect
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) navbar.classList.add('scrolled');
+      else navbar.classList.remove('scrolled');
+    });
+
+    // Mobile menu toggle
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenuBtn.classList.toggle('active');
+      navLinks.classList.toggle('active');
+    });
+
+    // Close mobile menu on link click
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenuBtn.classList.remove('active');
+        navLinks.classList.remove('active');
+      });
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // COUNTDOWN
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  function initCountdown() {
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  }
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = CONFIG.FAREWELL_DATE - now;
+
+    if (diff <= 0) {
+      document.getElementById('days').textContent = '🎉';
+      document.getElementById('hours').textContent = 'IT\'S';
+      document.getElementById('minutes').textContent = 'TIME';
+      document.getElementById('seconds').textContent = '🎓';
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    document.getElementById('days').textContent = String(days).padStart(2, '0');
+    document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+    document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+    document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // FILE UPLOAD
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  function initUpload() {
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const caption = document.getElementById('caption');
+    const charCount = document.getElementById('charCount');
+
+    // Dropzone events
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('drag-over');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('drag-over');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag-over');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      handleFiles(e.target.files);
+    });
+
+    // Character counter
+    caption.addEventListener('input', () => {
+      const count = caption.value.length;
+      charCount.textContent = count;
+      charCount.parentElement.classList.toggle('warning', count > 450);
+    });
+
+    // Submit button
+    document.getElementById('submitUpload').addEventListener('click', submitUpload);
+  }
+
+  function handleFiles(files) {
+    const fileArray = Array.from(files);
+    let totalSize = 0;
+    const validFiles = [];
+
+    for (const file of fileArray) {
+      // Check file type
+      if (!CONFIG.ALLOWED_TYPES.includes(file.type)) {
+        showNotification('error', 'Invalid File Type', `${file.name} is not supported.`);
+        continue;
+      }
+
+      // Check individual file size
+      if (file.size > CONFIG.MAX_FILE_SIZE) {
+        showNotification('error', 'File Too Large', `${file.name} exceeds 100MB limit.`);
+        continue;
+      }
+
+      totalSize += file.size;
+      validFiles.push(file);
+    }
+
+    // Check total size
+    if (totalSize > CONFIG.MAX_TOTAL_SIZE) {
+      showNotification('error', 'Total Size Exceeded', 'Total upload size cannot exceed 200MB.');
+      return;
+    }
+
+    state.selectedFiles = validFiles;
+    updateFilePreview();
+  }
+
+  function updateFilePreview() {
+    const container = document.getElementById('filePreviewContainer');
+    const grid = document.getElementById('filePreviewGrid');
+    const info = document.getElementById('fileInfo');
+    const formFields = document.getElementById('uploadFormFields');
+
+    grid.innerHTML = '';
+
+    if (state.selectedFiles.length === 0) {
+      container.classList.remove('has-files');
+      formFields.style.display = 'none';
+      return;
+    }
+
+    container.classList.add('has-files');
+    formFields.style.display = 'block';
+
+    let totalSize = 0;
+
+    state.selectedFiles.forEach((file, index) => {
+      totalSize += file.size;
+
+      const item = document.createElement('div');
+      item.className = 'file-preview-item';
+
+      if (file.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        item.appendChild(img);
+      } else {
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(file);
+        item.appendChild(video);
+
+        const indicator = document.createElement('div');
+        indicator.className = 'video-indicator';
+        indicator.textContent = '▶';
+        item.appendChild(indicator);
+      }
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-file';
+      removeBtn.textContent = '✕';
+      removeBtn.onclick = () => removeFile(index);
+      item.appendChild(removeBtn);
+
+      grid.appendChild(item);
+    });
+
+    info.textContent = `${state.selectedFiles.length} file(s) selected • ${formatFileSize(totalSize)}`;
+  }
+
+  function removeFile(index) {
+    state.selectedFiles.splice(index, 1);
+    updateFilePreview();
+  }
+
+  async function submitUpload() {
+    const name = document.getElementById('studentName').value.trim();
+    const caption = document.getElementById('caption').value.trim();
+    const type = document.getElementById('memoryType').value;
+
+    // Validation
+    if (!name) {
+      showNotification('error', 'Missing Name', 'Please enter your name.');
+      return;
+    }
+    if (!caption) {
+      showNotification('error', 'Missing Caption', 'Please add a caption to your memory.');
+      return;
+    }
+    if (!type) {
+      showNotification('error', 'Missing Category', 'Please select a memory category.');
+      return;
+    }
+    if (state.selectedFiles.length === 0) {
+      showNotification('error', 'No Files', 'Please select at least one file to upload.');
+      return;
+    }
+
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('caption', caption);
+    formData.append('type', type);
+
+    state.selectedFiles.forEach(file => {
+      formData.append('files', file);
+    });
+
+    // Show progress
+    const progressDiv = document.getElementById('uploadProgress');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const submitBtn = document.getElementById('submitUpload');
+
+    progressDiv.classList.add('active');
+    submitBtn.disabled = true;
+
+    try {
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressFill.style.width = percent + '%';
+          progressText.textContent = `Uploading... ${percent}%`;
         }
+      });
 
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // NAVBAR
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        function initNavbar() {
-            const navbar = document.getElementById('navbar');
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const navLinks = document.getElementById('navLinks');
-
-            // Scroll effect
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 50) {
-                    navbar.classList.add('scrolled');
-                } else {
-                    navbar.classList.remove('scrolled');
-                }
-            });
-
-            // Mobile menu toggle
-            mobileMenuBtn.addEventListener('click', () => {
-                mobileMenuBtn.classList.toggle('active');
-                navLinks.classList.toggle('active');
-            });
-
-            // Close mobile menu on link click
-            navLinks.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', () => {
-                    mobileMenuBtn.classList.remove('active');
-                    navLinks.classList.remove('active');
-                });
-            });
-        }
-
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // COUNTDOWN
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        function initCountdown() {
-            updateCountdown();
-            setInterval(updateCountdown, 1000);
-        }
-
-        function updateCountdown() {
-            const now = new Date();
-            const diff = CONFIG.FAREWELL_DATE - now;
-
-            if (diff <= 0) {
-                document.getElementById('days').textContent = '🎉';
-                document.getElementById('hours').textContent = 'IT\'S';
-                document.getElementById('minutes').textContent = 'TIME';
-                document.getElementById('seconds').textContent = '🎓';
-                return;
-            }
-
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-            document.getElementById('days').textContent = String(days).padStart(2, '0');
-            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
-        }
-
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // FILE UPLOAD
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        function initUpload() {
-            const dropzone = document.getElementById('dropzone');
-            const fileInput = document.getElementById('file-input');
-            const caption = document.getElementById('caption');
-            const charCount = document.getElementById('charCount');
-
-            // Dropzone events
-            dropzone.addEventListener('click', () => fileInput.click());
-            
-            dropzone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropzone.classList.add('drag-over');
-            });
-
-            dropzone.addEventListener('dragleave', () => {
-                dropzone.classList.remove('drag-over');
-            });
-
-            dropzone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropzone.classList.remove('drag-over');
-                handleFiles(e.dataTransfer.files);
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                handleFiles(e.target.files);
-            });
-
-            // Character counter
-            caption.addEventListener('input', () => {
-                const count = caption.value.length;
-                charCount.textContent = count;
-                charCount.parentElement.classList.toggle('warning', count > 450);
-            });
-
-            // Submit button
-            document.getElementById('submitUpload').addEventListener('click', submitUpload);
-        }
-
-        function handleFiles(files) {
-            const fileArray = Array.from(files);
-            let totalSize = 0;
-            const validFiles = [];
-
-            for (const file of fileArray) {
-                // Check file type
-                if (!CONFIG.ALLOWED_TYPES.includes(file.type)) {
-                    showNotification('error', 'Invalid File Type', `${file.name} is not supported.`);
-                    continue;
-                }
-
-                // Check individual file size
-                if (file.size > CONFIG.MAX_FILE_SIZE) {
-                    showNotification('error', 'File Too Large', `${file.name} exceeds 100MB limit.`);
-                    continue;
-                }
-
-                totalSize += file.size;
-                validFiles.push(file);
-            }
-
-            // Check total size
-            if (totalSize > CONFIG.MAX_TOTAL_SIZE) {
-                showNotification('error', 'Total Size Exceeded', 'Total upload size cannot exceed 200MB.');
-                return;
-            }
-
-            state.selectedFiles = validFiles;
-            updateFilePreview();
-        }
-
-        function updateFilePreview() {
-            const container = document.getElementById('filePreviewContainer');
-            const grid = document.getElementById('filePreviewGrid');
-            const info = document.getElementById('fileInfo');
-            const formFields = document.getElementById('uploadFormFields');
-
-            grid.innerHTML = '';
-
-            if (state.selectedFiles.length === 0) {
-                container.classList.remove('has-files');
-                formFields.style.display = 'none';
-                return;
-            }
-
-            container.classList.add('has-files');
-            formFields.style.display = 'block';
-
-            let totalSize = 0;
-
-            state.selectedFiles.forEach((file, index) => {
-                totalSize += file.size;
-
-                const item = document.createElement('div');
-                item.className = 'file-preview-item';
-
-                if (file.type.startsWith('image/')) {
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(file);
-                    item.appendChild(img);
-                } else {
-                    const video = document.createElement('video');
-                    video.src = URL.createObjectURL(file);
-                    item.appendChild(video);
-                    
-                    const indicator = document.createElement('div');
-                    indicator.className = 'video-indicator';
-                    indicator.textContent = '▶';
-                    item.appendChild(indicator);
-                }
-
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'remove-file';
-                removeBtn.textContent = '✕';
-                removeBtn.onclick = () => removeFile(index);
-                item.appendChild(removeBtn);
-
-                grid.appendChild(item);
-            });
-
-            info.textContent = `${state.selectedFiles.length} file(s) selected • ${formatFileSize(totalSize)}`;
-        }
-
-        function removeFile(index) {
-            state.selectedFiles.splice(index, 1);
-            updateFilePreview();
-        }
-
-        async function submitUpload() {
-            const name = document.getElementById('studentName').value.trim();
-            const caption = document.getElementById('caption').value.trim();
-            const type = document.getElementById('memoryType').value;
-
-            // Validation
-            if (!name) {
-                showNotification('error', 'Missing Name', 'Please enter your name.');
-                return;
-            }
-            if (!caption) {
-                showNotification('error', 'Missing Caption', 'Please add a caption to your memory.');
-                return;
-            }
-            if (!type) {
-                showNotification('error', 'Missing Category', 'Please select a memory category.');
-                return;
-            }
-            if (state.selectedFiles.length === 0) {
-                showNotification('error', 'No Files', 'Please select at least one file to upload.');
-                return;
-            }
-
-            // Prepare form data
-            const formData = new FormData();
-            formData.append('name', name);
-            formData.append('caption', caption);
-            formData.append('type', type);
-            
-            state.selectedFiles.forEach(file => {
-                formData.append('files', file);
-            });
-
-            // Show progress
-            const progressDiv = document.getElementById('uploadProgress');
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
-            const submitBtn = document.getElementById('submitUpload');
-
-            progressDiv.classList.add('active');
-            submitBtn.disabled = true;
-
-            try {
-                const xhr = new XMLHttpRequest();
-                
-                xhr.upload.addEventListener('progress', (e) => {
-                    if (e.lengthComputable) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        progressFill.style.width = percent + '%';
-                        progressText.textContent = `Uploading... ${percent}%`;
-                    }
-                });
-
-                xhr.addEventListener('load', () => {
-                    if (xhr.status === 200) {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            // Show success
-                            document.getElementById('uploadForm').style.display = 'none';
-                            document.getElementById('uploadSuccess').classList.add('active');
-                            triggerConfetti();
-                            loadMemories();
-                        } else {
-                            showNotification('error', 'Upload Failed', response.error || 'Unknown error');
-                        }
-                    } else {
-                        const response = JSON.parse(xhr.responseText);
-                        showNotification('error', 'Upload Failed', response.error || 'Server error');
-                    }
-                    progressDiv.classList.remove('active');
-                    submitBtn.disabled = false;
-                });
-
-                xhr.addEventListener('error', () => {
-                    showNotification('error', 'Upload Failed', 'Network error. Please try again.');
-                    progressDiv.classList.remove('active');
-                    submitBtn.disabled = false;
-                });
-
-                xhr.open('POST', '/api/upload');
-                xhr.send(formData);
-
-            } catch (error) {
-                showNotification('error', 'Upload Failed', error.message);
-                progressDiv.classList.remove('active');
-                submitBtn.disabled = false;
-            }
-        }
-
-        function resetUploadForm() {
-            state.selectedFiles = [];
-            document.getElementById('uploadForm').style.display = 'block';
-            document.getElementById('uploadSuccess').classList.remove('active');
-            document.getElementById('studentName').value = '';
-            document.getElementById('caption').value = '';
-            document.getElementById('memoryType').value = '';
-            document.getElementById('charCount').textContent = '0';
-            document.getElementById('file-input').value = '';
-            document.getElementById('progressFill').style.width = '0%';
-            updateFilePreview();
-        }
-
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // MEMORY WALL
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        function initMemoryWall() {
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          const response = JSON.parse(xhr.responseText);
+          if (response.success) {
+            // Show success
+            document.getElementById('uploadForm').style.display = 'none';
+            document.getElementById('uploadSuccess').classList.add('active');
+            triggerConfetti();
             loadMemories();
-
-            // Filter buttons
-            document.querySelectorAll('.memory-filters .filter-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.memory-filters .filter-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    state.currentFilter = btn.dataset.filter;
-                    renderMemories();
-                });
-            });
+          } else {
+            showNotification('error', 'Upload Failed', response.error || 'Unknown error');
+          }
+        } else {
+          let response = {};
+          try { response = JSON.parse(xhr.responseText); } catch (e) {}
+          showNotification('error', 'Upload Failed', response.error || 'Server error');
         }
+        progressDiv.classList.remove('active');
+        submitBtn.disabled = false;
+      });
 
-        async function loadMemories() {
-            try {
-                const response = await fetch('/api/memories');
-                const data = await response.json();
-                
-                if (data.success) {
-                    state.memories = data.memories;
-                    renderMemories();
-                }
-            } catch (error) {
-                console.error('Failed to load memories:', error);
-            }
-        }
+      xhr.addEventListener('error', () => {
+        showNotification('error', 'Upload Failed', 'Network error. Please try again.');
+        progressDiv.classList.remove('active');
+        submitBtn.disabled = false;
+      });
 
-        function renderMemories() {
-            const grid = document.getElementById('memoryGrid');
-            
-            let filteredMemories = state.memories;
-            if (state.currentFilter !== 'all') {
-                filteredMemories = state.memories.filter(m => m.memory_type === state.currentFilter);
-            }
+      xhr.open('POST', apiUrl('/api/upload'));
+      xhr.send(formData);
 
-            if (filteredMemories.length === 0) {
-                grid.innerHTML = `
-                    <div class="memory-empty" style="grid-column: 1/-1;">
-                        <div class="memory-empty-icon">📸</div>
-                        <h3>No Memories Yet</h3>
-                        <p>Be the first to share a memory!</p>
-                    </div>
-                `;
-                return;
-            }
+    } catch (error) {
+      showNotification('error', 'Upload Failed', error.message);
+      progressDiv.classList.remove('active');
+      submitBtn.disabled = false;
+    }
+  }
 
-            grid.innerHTML = filteredMemories.map((memory, index) => `
-                <div class="memory-card" data-index="${index}">
-                    <div class="memory-media" onclick="openLightbox(${index})">
-                        ${memory.file_type === 'video' ? `
-                            <video src="${memory.file_url}" preload="metadata"></video>
-                            <div class="play-button">▶</div>
-                        ` : `
-                            <img src="${memory.file_url}" alt="${memory.caption}" loading="lazy">
-                        `}
-                        <span class="memory-type-badge">${memory.memory_type}</span>
-                    </div>
-                    <div class="memory-content">
-                        <div class="memory-author">
-                            <div class="memory-avatar">${memory.student_name.charAt(0).toUpperCase()}</div>
-                            <div class="memory-author-info">
-                                <div class="memory-author-name">${escapeHtml(memory.student_name)}</div>
-                                <div class="memory-time">${timeAgo(memory.created_at)}</div>
-                            </div>
-                        </div>
-                        <p class="memory-caption">${escapeHtml(memory.caption)}</p>
-                        <div class="memory-actions">
-                            <button class="like-btn ${isLiked(memory.id) ? 'liked' : ''}" onclick="likeMemory(${memory.id}, this)">
-                                <span class="heart-icon">${isLiked(memory.id) ? '❤️' : '🤍'}</span>
-                                <span class="like-count">${memory.likes}</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
+  function resetUploadForm() {
+    state.selectedFiles = [];
+    document.getElementById('uploadForm').style.display = 'block';
+    document.getElementById('uploadSuccess').classList.remove('active');
+    document.getElementById('studentName').value = '';
+    document.getElementById('caption').value = '';
+    document.getElementById('memoryType').value = '';
+    document.getElementById('charCount').textContent = '0';
+    document.getElementById('file-input').value = '';
+    document.getElementById('progressFill').style.width = '0%';
+    updateFilePreview();
+  }
 
-        function isLiked(id) {
-            const liked = JSON.parse(localStorage.getItem('likedMemories') || '[]');
-            return liked.includes(id);
-        }
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // MEMORY WALL
+  // ═══════════════════════════════════════════════════════════════════════════════
 
-        async function likeMemory(id, btn) {
-            if (isLiked(id)) return;
+  function initMemoryWall() {
+    loadMemories();
 
-            try {
-                const response = await fetch(`/api/like/${id}`, { method: 'POST' });
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Update UI
-                    btn.classList.add('liked');
-                    btn.querySelector('.heart-icon').textContent = '❤️';
-                    btn.querySelector('.like-count').textContent = data.likes;
-                    
-                    // Save to localStorage
-                    const liked = JSON.parse(localStorage.getItem('likedMemories') || '[]');
-                    liked.push(id);
-                    localStorage.setItem('likedMemories', JSON.stringify(liked));
-                    
-                    // Update state
-                    const memory = state.memories.find(m => m.id === id);
-                    if (memory) memory.likes = data.likes;
-                }
-            } catch (error) {
-                console.error('Failed to like memory:', error);
-            }
-        }
+    // Filter buttons
+    document.querySelectorAll('.memory-filters .filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.memory-filters .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.currentFilter = btn.dataset.filter;
+        renderMemories();
+      });
+    });
+  }
 
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // LIGHTBOX
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        function openLightbox(index) {
-            state.lightboxIndex = index;
-            updateLightbox();
-            document.getElementById('lightbox').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
+  async function loadMemories() {
+    try {
+      const response = await fetch(apiUrl('/api/memories'));
+      const data = await response.json();
 
-        function closeLightbox() {
-            document.getElementById('lightbox').classList.remove('active');
-            document.body.style.overflow = '';
-            
-            // Pause any playing videos
-            const video = document.querySelector('#lightboxContent video');
-            if (video) video.pause();
-        }
+      if (data.success) {
+        // IMPORTANT: fix file_url so it points to backend VM
+        state.memories = (data.memories || []).map(m => ({
+          ...m,
+          file_url: mediaUrl(m.file_url)
+        }));
+        renderMemories();
+      }
+    } catch (error) {
+      console.error('Failed to load memories:', error);
+    }
+  }
 
-        function navigateLightbox(direction) {
-            let filteredMemories = state.memories;
-            if (state.currentFilter !== 'all') {
-                filteredMemories = state.memories.filter(m => m.memory_type === state.currentFilter);
-            }
-            
-            state.lightboxIndex += direction;
-            if (state.lightboxIndex < 0) state.lightboxIndex = filteredMemories.length - 1;
-            if (state.lightboxIndex >= filteredMemories.length) state.lightboxIndex = 0;
-            
-            updateLightbox();
-        }
+  function renderMemories() {
+    const grid = document.getElementById('memoryGrid');
 
-        function updateLightbox() {
-            let filteredMemories = state.memories;
-            if (state.currentFilter !== 'all') {
-                filteredMemories = state.memories.filter(m => m.memory_type === state.currentFilter);
-            }
-            
-            const memory = filteredMemories[state.lightboxIndex];
-            if (!memory) return;
+    let filteredMemories = state.memories;
+    if (state.currentFilter !== 'all') {
+      filteredMemories = state.memories.filter(m => m.memory_type === state.currentFilter);
+    }
 
-            const content = document.getElementById('lightboxContent');
-            
-            content.innerHTML = `
-                ${memory.file_type === 'video' ? `
-                    <video src="${memory.file_url}" controls autoplay></video>
-                ` : `
-                    <img src="${memory.file_url}" alt="${memory.caption}">
-                `}
-                <div class="lightbox-info">
-                    <div class="lightbox-author">${escapeHtml(memory.student_name)}</div>
-                    <div class="lightbox-caption">${escapeHtml(memory.caption)}</div>
-                    <a href="${memory.file_url}" download class="lightbox-download">
-                        📥 Download
-                    </a>
-                </div>
-            `;
-        }
+    if (filteredMemories.length === 0) {
+      grid.innerHTML = `
+        <div class="memory-empty" style="grid-column: 1/-1;">
+          <div class="memory-empty-icon">📸</div>
+          <h3>No Memories Yet</h3>
+          <p>Be the first to share a memory!</p>
+        </div>
+      `;
+      return;
+    }
 
-        // Close lightbox on escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeLightbox();
-                closeAdminLogin();
-            }
-            if (e.key === 'ArrowLeft') navigateLightbox(-1);
-            if (e.key === 'ArrowRight') navigateLightbox(1);
-        });
+    grid.innerHTML = filteredMemories.map((memory, index) => `
+      <div class="memory-card" data-index="${index}">
+        <div class="memory-media" onclick="openLightbox(${index})">
+          ${memory.file_type === 'video' ? `
+            <video src="${memory.file_url}" preload="metadata"></video>
+            <div class="play-button">▶</div>
+          ` : `
+            <img src="${memory.file_url}" alt="${memory.caption}" loading="lazy">
+          `}
+          <span class="memory-type-badge">${memory.memory_type}</span>
+        </div>
+        <div class="memory-content">
+          <div class="memory-author">
+            <div class="memory-avatar">${memory.student_name.charAt(0).toUpperCase()}</div>
+            <div class="memory-author-info">
+              <div class="memory-author-name">${escapeHtml(memory.student_name)}</div>
+              <div class="memory-time">${timeAgo(memory.created_at)}</div>
+            </div>
+          </div>
+          <p class="memory-caption">${escapeHtml(memory.caption)}</p>
+          <div class="memory-actions">
+            <button class="like-btn ${isLiked(memory.id) ? 'liked' : ''}" onclick="likeMemory(${memory.id}, this)">
+              <span class="heart-icon">${isLiked(memory.id) ? '❤️' : '🤍'}</span>
+              <span class="like-count">${memory.likes}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
 
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // ADMIN PANEL
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        function initAdminTrigger() {
-            const logo = document.getElementById('logo');
-            
-            logo.addEventListener('click', () => {
-                state.logoClickCount++;
-                
-                clearTimeout(state.logoClickTimer);
-                state.logoClickTimer = setTimeout(() => {
-                    state.logoClickCount = 0;
-                }, 2000);
-                
-                if (state.logoClickCount >= 5) {
-                    state.logoClickCount = 0;
-                    openAdminLogin();
-                }
-            });
+  function isLiked(id) {
+    const liked = JSON.parse(localStorage.getItem('likedMemories') || '[]');
+    return liked.includes(id);
+  }
 
-            // Check URL hash
-            if (window.location.hash === '#admin') {
-                openAdminLogin();
-            }
+  async function likeMemory(id, btn) {
+    if (isLiked(id)) return;
 
-            // Admin password enter key
-            document.getElementById('adminPassword').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') adminLogin();
-            });
+    try {
+      const response = await fetch(apiUrl(`/api/like/${id}`), { method: 'POST' });
+      const data = await response.json();
 
-            // Admin search
-            document.getElementById('adminSearch').addEventListener('input', debounce(loadAdminMemories, 300));
+      if (data.success) {
+        // Update UI
+        btn.classList.add('liked');
+        btn.querySelector('.heart-icon').textContent = '❤️';
+        btn.querySelector('.like-count').textContent = data.likes;
 
-            // Admin filter buttons
-            document.querySelectorAll('[data-admin-filter]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('[data-admin-filter]').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    state.currentAdminFilter = btn.dataset.adminFilter;
-                    loadAdminMemories();
-                });
-            });
+        // Save to localStorage
+        const liked = JSON.parse(localStorage.getItem('likedMemories') || '[]');
+        liked.push(id);
+        localStorage.setItem('likedMemories', JSON.stringify(liked));
 
-            // Admin sort
-            document.getElementById('adminSort').addEventListener('change', (e) => {
-                state.currentSort = e.target.value;
-                loadAdminMemories();
-            });
-        }
+        // Update state
+        const memory = state.memories.find(m => m.id === id);
+        if (memory) memory.likes = data.likes;
+      }
+    } catch (error) {
+      console.error('Failed to like memory:', error);
+    }
+  }
 
-        function openAdminLogin() {
-            if (state.adminToken) {
-                openAdminDashboard();
-            } else {
-                document.getElementById('adminOverlay').classList.add('active');
-            }
-        }
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LIGHTBOX
+  // ═══════════════════════════════════════════════════════════════════════════════
 
-        function closeAdminLogin() {
-            document.getElementById('adminOverlay').classList.remove('active');
-            document.getElementById('adminPassword').value = '';
-            document.getElementById('adminLoginError').classList.remove('active');
-        }
+  function openLightbox(index) {
+    state.lightboxIndex = index;
+    updateLightbox();
+    document.getElementById('lightbox').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
 
-        async function adminLogin() {
-            const password = document.getElementById('adminPassword').value;
-            
-            try {
-                const response = await fetch('/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    state.adminToken = data.token;
-                    localStorage.setItem('adminToken', data.token);
-                    closeAdminLogin();
-                    openAdminDashboard();
-                } else {
-                    document.getElementById('adminLoginError').classList.add('active');
-                }
-            } catch (error) {
-                showNotification('error', 'Login Failed', error.message);
-            }
-        }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+    document.body.style.overflow = '';
 
-        function checkAdminSession() {
-            if (state.adminToken && window.location.hash === '#admin') {
-                verifyAdminToken();
-            }
-        }
+    // Pause any playing videos
+    const video = document.querySelector('#lightboxContent video');
+    if (video) video.pause();
+  }
 
-        async function verifyAdminToken() {
-            try {
-                const response = await fetch('/api/admin/verify', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${state.adminToken}` }
-                });
-                
-                const data = await response.json();
-                
-                if (data.valid) {
-                    openAdminDashboard();
-                } else {
-                    adminLogout();
-                }
-            } catch (error) {
-                adminLogout();
-            }
-        }
+  function navigateLightbox(direction) {
+    let filteredMemories = state.memories;
+    if (state.currentFilter !== 'all') {
+      filteredMemories = state.memories.filter(m => m.memory_type === state.currentFilter);
+    }
 
-        function openAdminDashboard() {
-            document.getElementById('adminDashboard').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            loadAdminMemories();
-        }
+    state.lightboxIndex += direction;
+    if (state.lightboxIndex < 0) state.lightboxIndex = filteredMemories.length - 1;
+    if (state.lightboxIndex >= filteredMemories.length) state.lightboxIndex = 0;
 
-        function closeAdminDashboard() {
-            document.getElementById('adminDashboard').classList.remove('active');
-            document.body.style.overflow = '';
-        }
+    updateLightbox();
+  }
 
-        async function adminLogout() {
-            try {
-                await fetch('/api/admin/logout', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${state.adminToken}` }
-                });
-            } catch (e) {}
-            
-            state.adminToken = null;
-            localStorage.removeItem('adminToken');
-            closeAdminDashboard();
-            window.location.hash = '';
-        }
+  function updateLightbox() {
+    let filteredMemories = state.memories;
+    if (state.currentFilter !== 'all') {
+      filteredMemories = state.memories.filter(m => m.memory_type === state.currentFilter);
+    }
 
-        async function loadAdminMemories() {
-            const search = document.getElementById('adminSearch').value;
-            
-            try {
-                const params = new URLSearchParams({
-                    filter: state.currentAdminFilter,
-                    sort: state.currentSort,
-                    search: search
-                });
-                
-                const response = await fetch(`/api/admin/memories?${params}`, {
-                    headers: { 'Authorization': `Bearer ${state.adminToken}` }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    updateAdminStats(data.stats);
-                    renderAdminGrid(data.memories);
-                } else if (response.status === 401) {
-                    adminLogout();
-                }
-            } catch (error) {
-                console.error('Failed to load admin memories:', error);
-            }
-        }
+    const memory = filteredMemories[state.lightboxIndex];
+    if (!memory) return;
 
-        function updateAdminStats(stats) {
-            document.getElementById('statTotal').textContent = stats.total;
-            document.getElementById('statApproved').textContent = stats.approved;
-            document.getElementById('statPending').textContent = stats.pending;
-            document.getElementById('statStorage').textContent = stats.totalSizeFormatted;
-        }
+    const content = document.getElementById('lightboxContent');
 
-        function renderAdminGrid(memories) {
-            const grid = document.getElementById('adminGrid');
-            
-            if (memories.length === 0) {
-                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">No memories found.</p>';
-                return;
-            }
+    content.innerHTML = `
+      ${memory.file_type === 'video' ? `
+        <video src="${memory.file_url}" controls autoplay></video>
+      ` : `
+        <img src="${memory.file_url}" alt="${memory.caption}">
+      `}
+      <div class="lightbox-info">
+        <div class="lightbox-author">${escapeHtml(memory.student_name)}</div>
+        <div class="lightbox-caption">${escapeHtml(memory.caption)}</div>
+        <a href="${memory.file_url}" download class="lightbox-download">
+          📥 Download
+        </a>
+      </div>
+    `;
+  }
 
-            grid.innerHTML = memories.map(memory => `
-                <div class="admin-memory-card" data-id="${memory.id}">
-                    <div class="admin-memory-media">
-                        ${memory.file_type === 'video' ? `
-                            <video src="${memory.file_url}" preload="metadata"></video>
-                        ` : `
-                            <img src="${memory.file_url}" alt="">
-                        `}
-                        <span class="admin-memory-status ${memory.approved ? 'status-approved' : 'status-pending'}">
-                            ${memory.approved ? 'Approved' : 'Pending'}
-                        </span>
-                    </div>
-                    <div class="admin-memory-info">
-                        <div class="admin-memory-name">${escapeHtml(memory.student_name)}</div>
-                        <div class="admin-memory-caption">${escapeHtml(memory.caption)}</div>
-                        <div class="admin-memory-meta">
-                            <span>${memory.memory_type}</span>
-                            <span>${memory.file_size_formatted}</span>
-                        </div>
-                        <div class="admin-memory-meta">
-                            <span>❤️ ${memory.likes} likes</span>
-                            <span>${timeAgo(memory.created_at)}</span>
-                        </div>
-                        <div class="admin-memory-actions">
-                            ${!memory.approved ? `
-                                <button class="approve-btn" onclick="approveMemory(${memory.id})">✅ Approve</button>
-                            ` : ''}
-                            <button class="download-btn" onclick="window.open('${memory.file_url}', '_blank')">📥</button>
-                            <button class="delete-btn" onclick="deleteMemory(${memory.id})">🗑️</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
+  // Close lightbox on escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeLightbox();
+      closeAdminLogin();
+    }
+    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+    if (e.key === 'ArrowRight') navigateLightbox(1);
+  });
 
-        async function approveMemory(id) {
-            try {
-                const response = await fetch(`/api/admin/approve/${id}`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${state.adminToken}` }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('success', 'Approved', 'Memory has been approved.');
-                    loadAdminMemories();
-                    loadMemories();
-                }
-            } catch (error) {
-                showNotification('error', 'Error', error.message);
-            }
-        }
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ADMIN PANEL
+  // ═══════════════════════════════════════════════════════════════════════════════
 
-        async function deleteMemory(id) {
-            if (!confirm('Are you sure you want to delete this memory? This cannot be undone.')) return;
-            
-            try {
-                const response = await fetch(`/api/admin/delete/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${state.adminToken}` }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('success', 'Deleted', 'Memory has been deleted.');
-                    loadAdminMemories();
-                    loadMemories();
-                }
-            } catch (error) {
-                showNotification('error', 'Error', error.message);
-            }
-        }
+  function initAdminTrigger() {
+    const logo = document.getElementById('logo');
 
-        async function approveAllPending() {
-            if (!confirm('Approve all pending memories?')) return;
-            
-            try {
-                const response = await fetch('/api/admin/approve-all', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${state.adminToken}` }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification('success', 'Approved All', `${data.count} memories approved.`);
-                    loadAdminMemories();
-                    loadMemories();
-                }
-            } catch (error) {
-                showNotification('error', 'Error', error.message);
-            }
-        }
+    logo.addEventListener('click', () => {
+      state.logoClickCount++;
 
-        function downloadAllApproved() {
-            const downloadUrl = `/api/admin/download-all?token=${state.adminToken}`;
-            window.location.href = downloadUrl;
-            showNotification('info', 'Downloading', 'Preparing ZIP file...');
-        }
+      clearTimeout(state.logoClickTimer);
+      state.logoClickTimer = setTimeout(() => {
+        state.logoClickCount = 0;
+      }, 2000);
 
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // NOTIFICATIONS
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        function showNotification(type, title, message) {
-            const notification = document.getElementById('notification');
-            const icon = document.getElementById('notificationIcon');
-            const titleEl = document.getElementById('notificationTitle');
-            const messageEl = document.getElementById('notificationMessage');
-            
-            notification.className = 'notification ' + type + ' active';
-            icon.textContent = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
-            titleEl.textContent = title;
-            messageEl.textContent = message;
-            
-            setTimeout(hideNotification, 5000);
-        }
+      if (state.logoClickCount >= 5) {
+        state.logoClickCount = 0;
+        openAdminLogin();
+      }
+    });
 
-        function hideNotification() {
-            document.getElementById('notification').classList.remove('active');
-        }
+    // Check URL hash
+    if (window.location.hash === '#admin') {
+      openAdminLogin();
+    }
 
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // CONFETTI
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        function triggerConfetti() {
-            const container = document.getElementById('confettiContainer');
-            const colors = ['#D4AF37', '#F4E5B2', '#e94560', '#7B2D8E', '#4CAF50', '#2196F3'];
-            
-            for (let i = 0; i < 100; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + '%';
-                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.animationDelay = Math.random() * 2 + 's';
-                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-                container.appendChild(confetti);
-                
-                setTimeout(() => confetti.remove(), 5000);
-            }
-        }
+    // Admin password enter key
+    document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') adminLogin();
+    });
 
-        // ═══════════════════════════════════════════════════════════════════════════════
-        // UTILITY FUNCTIONS
-        // ═══════════════════════════════════════════════════════════════════════════════
-        
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
+    // Admin search
+    document.getElementById('adminSearch').addEventListener('input', debounce(loadAdminMemories, 300));
 
-        function timeAgo(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const seconds = Math.floor((now - date) / 1000);
-            
-            const intervals = [
-                { label: 'year', seconds: 31536000 },
-                { label: 'month', seconds: 2592000 },
-                { label: 'week', seconds: 604800 },
-                { label: 'day', seconds: 86400 },
-                { label: 'hour', seconds: 3600 },
-                { label: 'minute', seconds: 60 }
-            ];
-            
-            for (const interval of intervals) {
-                const count = Math.floor(seconds / interval.seconds);
-                if (count >= 1) {
-                    return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
-                }
-            }
-            
-            return 'Just now';
-        }
+    // Admin filter buttons
+    document.querySelectorAll('[data-admin-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-admin-filter]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.currentAdminFilter = btn.dataset.adminFilter;
+        loadAdminMemories();
+      });
+    });
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+    // Admin sort
+    document.getElementById('adminSort').addEventListener('change', (e) => {
+      state.currentSort = e.target.value;
+      loadAdminMemories();
+    });
+  }
 
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-    </script>
+  function openAdminLogin() {
+    if (state.adminToken) openAdminDashboard();
+    else document.getElementById('adminOverlay').classList.add('active');
+  }
+
+  function closeAdminLogin() {
+    document.getElementById('adminOverlay').classList.remove('active');
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('adminLoginError').classList.remove('active');
+  }
+
+  async function adminLogin() {
+    const password = document.getElementById('adminPassword').value;
+
+    try {
+      const response = await fetch(apiUrl('/api/admin/login'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        state.adminToken = data.token;
+        localStorage.setItem('adminToken', data.token);
+        closeAdminLogin();
+        openAdminDashboard();
+      } else {
+        document.getElementById('adminLoginError').classList.add('active');
+      }
+    } catch (error) {
+      showNotification('error', 'Login Failed', error.message);
+    }
+  }
+
+  function checkAdminSession() {
+    if (state.adminToken && window.location.hash === '#admin') {
+      verifyAdminToken();
+    }
+  }
+
+  async function verifyAdminToken() {
+    try {
+      const response = await fetch(apiUrl('/api/admin/verify'), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${state.adminToken}` }
+      });
+
+      const data = await response.json();
+
+      if (data.valid) openAdminDashboard();
+      else adminLogout();
+    } catch (error) {
+      adminLogout();
+    }
+  }
+
+  function openAdminDashboard() {
+    document.getElementById('adminDashboard').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    loadAdminMemories();
+  }
+
+  function closeAdminDashboard() {
+    document.getElementById('adminDashboard').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  async function adminLogout() {
+    try {
+      await fetch(apiUrl('/api/admin/logout'), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${state.adminToken}` }
+      });
+    } catch (e) { }
+
+    state.adminToken = null;
+    localStorage.removeItem('adminToken');
+    closeAdminDashboard();
+    window.location.hash = '';
+  }
+
+  async function loadAdminMemories() {
+    const search = document.getElementById('adminSearch').value;
+
+    try {
+      const params = new URLSearchParams({
+        filter: state.currentAdminFilter,
+        sort: state.currentSort,
+        search: search
+      });
+
+      const response = await fetch(apiUrl(`/api/admin/memories?${params}`), {
+        headers: { 'Authorization': `Bearer ${state.adminToken}` }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        updateAdminStats(data.stats);
+        const fixedMemories = (data.memories || []).map(m => ({
+          ...m,
+          file_url: mediaUrl(m.file_url)
+        }));
+        renderAdminGrid(fixedMemories);
+      } else if (response.status === 401) {
+        adminLogout();
+      }
+    } catch (error) {
+      console.error('Failed to load admin memories:', error);
+    }
+  }
+
+  function updateAdminStats(stats) {
+    document.getElementById('statTotal').textContent = stats.total;
+    document.getElementById('statApproved').textContent = stats.approved;
+    document.getElementById('statPending').textContent = stats.pending;
+    document.getElementById('statStorage').textContent = stats.totalSizeFormatted;
+  }
+
+  function renderAdminGrid(memories) {
+    const grid = document.getElementById('adminGrid');
+
+    if (memories.length === 0) {
+      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">No memories found.</p>';
+      return;
+    }
+
+    grid.innerHTML = memories.map(memory => `
+      <div class="admin-memory-card" data-id="${memory.id}">
+        <div class="admin-memory-media">
+          ${memory.file_type === 'video' ? `
+            <video src="${memory.file_url}" preload="metadata"></video>
+          ` : `
+            <img src="${memory.file_url}" alt="">
+          `}
+          <span class="admin-memory-status ${memory.approved ? 'status-approved' : 'status-pending'}">
+            ${memory.approved ? 'Approved' : 'Pending'}
+          </span>
+        </div>
+        <div class="admin-memory-info">
+          <div class="admin-memory-name">${escapeHtml(memory.student_name)}</div>
+          <div class="admin-memory-caption">${escapeHtml(memory.caption)}</div>
+          <div class="admin-memory-meta">
+            <span>${memory.memory_type}</span>
+            <span>${memory.file_size_formatted}</span>
+          </div>
+          <div class="admin-memory-meta">
+            <span>❤️ ${memory.likes} likes</span>
+            <span>${timeAgo(memory.created_at)}</span>
+          </div>
+          <div class="admin-memory-actions">
+            ${!memory.approved ? `
+              <button class="approve-btn" onclick="approveMemory(${memory.id})">✅ Approve</button>
+            ` : ''}
+            <button class="download-btn" onclick="window.open('${memory.file_url}', '_blank')">📥</button>
+            <button class="delete-btn" onclick="deleteMemory(${memory.id})">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function approveMemory(id) {
+    try {
+      const response = await fetch(apiUrl(`/api/admin/approve/${id}`), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${state.adminToken}` }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showNotification('success', 'Approved', 'Memory has been approved.');
+        loadAdminMemories();
+        loadMemories();
+      }
+    } catch (error) {
+      showNotification('error', 'Error', error.message);
+    }
+  }
+
+  async function deleteMemory(id) {
+    if (!confirm('Are you sure you want to delete this memory? This cannot be undone.')) return;
+
+    try {
+      const response = await fetch(apiUrl(`/api/admin/delete/${id}`), {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${state.adminToken}` }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showNotification('success', 'Deleted', 'Memory has been deleted.');
+        loadAdminMemories();
+        loadMemories();
+      }
+    } catch (error) {
+      showNotification('error', 'Error', error.message);
+    }
+  }
+
+  async function approveAllPending() {
+    if (!confirm('Approve all pending memories?')) return;
+
+    try {
+      const response = await fetch(apiUrl('/api/admin/approve-all'), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${state.adminToken}` }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showNotification('success', 'Approved All', `${data.count} memories approved.`);
+        loadAdminMemories();
+        loadMemories();
+      }
+    } catch (error) {
+      showNotification('error', 'Error', error.message);
+    }
+  }
+
+  function downloadAllApproved() {
+    const downloadUrl = apiUrl(`/api/admin/download-all?token=${state.adminToken}`);
+    window.location.href = downloadUrl;
+    showNotification('info', 'Downloading', 'Preparing ZIP file...');
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // NOTIFICATIONS
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  function showNotification(type, title, message) {
+    const notification = document.getElementById('notification');
+    const icon = document.getElementById('notificationIcon');
+    const titleEl = document.getElementById('notificationTitle');
+    const messageEl = document.getElementById('notificationMessage');
+
+    notification.className = 'notification ' + type + ' active';
+    icon.textContent = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+
+    setTimeout(hideNotification, 5000);
+  }
+
+  function hideNotification() {
+    document.getElementById('notification').classList.remove('active');
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // CONFETTI
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  function triggerConfetti() {
+    const container = document.getElementById('confettiContainer');
+    const colors = ['#D4AF37', '#F4E5B2', '#e94560', '#7B2D8E', '#4CAF50', '#2196F3'];
+
+    for (let i = 0; i < 100; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + '%';
+      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.animationDelay = Math.random() * 2 + 's';
+      confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+      container.appendChild(confetti);
+
+      setTimeout(() => confetti.remove(), 5000);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // UTILITY FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  function timeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    const intervals = [
+      { label: 'year', seconds: 31536000 },
+      { label: 'month', seconds: 2592000 },
+      { label: 'week', seconds: 604800 },
+      { label: 'day', seconds: 86400 },
+      { label: 'hour', seconds: 3600 },
+      { label: 'minute', seconds: 60 }
+    ];
+
+    for (const interval of intervals) {
+      const count = Math.floor(seconds / interval.seconds);
+      if (count >= 1) {
+        return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
+      }
+    }
+
+    return 'Just now';
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+</script>
 </body>
 </html>
