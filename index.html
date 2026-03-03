@@ -1473,6 +1473,86 @@
 
   <div class="confetti-container" id="confettiContainer"></div>
     <script>
+
+        function renderTeachersEditor(){
+  const wrap = document.getElementById('teachersEditor');
+  if (!wrap) return;
+  const arr = Array.isArray(state.settings.teachers) ? state.settings.teachers : [];
+  wrap.innerHTML = arr.map((t, i) => teacherRowHtml(t, i)).join('') ||
+    `<div class="mini-pill">No teachers yet. Click “Add Teacher”.</div>`;
+}
+
+function renderTimelineEditor(){
+  const wrap = document.getElementById('timelineEditor');
+  if (!wrap) return;
+  const arr = Array.isArray(state.settings.timeline) ? state.settings.timeline : [];
+  wrap.innerHTML = arr.map((x, i) => timelineRowHtml(x, i)).join('') ||
+    `<div class="mini-pill">No timeline items yet. Click “Add Timeline Item”.</div>`;
+}
+
+function addTeacherRow(){
+  if (!Array.isArray(state.settings.teachers)) state.settings.teachers = [];
+  state.settings.teachers.push({ name:'', subject:'', quote:'', imageUrl:'' });
+  renderTeachersEditor();
+}
+
+function removeTeacherRow(idx){
+  if (!Array.isArray(state.settings.teachers)) return;
+  state.settings.teachers.splice(idx, 1);
+  renderTeachersEditor();
+}
+
+function addTimelineRow(){
+  if (!Array.isArray(state.settings.timeline)) state.settings.timeline = [];
+  state.settings.timeline.push({ year:'', title:'', description:'' });
+  renderTimelineEditor();
+}
+
+function removeTimelineRow(idx){
+  if (!Array.isArray(state.settings.timeline)) return;
+  state.settings.timeline.splice(idx, 1);
+  renderTimelineEditor();
+}
+
+function readTeachersFromEditor(){
+  const inputs = Array.from(document.querySelectorAll('[data-teacher-idx]'));
+  const arr = [];
+  for (const el of inputs){
+    const idx = Number(el.dataset.teacherIdx);
+    const field = el.dataset.teacherField;
+    arr[idx] = arr[idx] || { name:'', subject:'', quote:'', imageUrl:'' };
+    arr[idx][field] = el.value;
+  }
+  // cleanup + trim
+  return (arr || [])
+    .filter(Boolean)
+    .map(t => ({
+      name: String(t.name || '').trim(),
+      subject: String(t.subject || '').trim(),
+      quote: String(t.quote || '').trim(),
+      imageUrl: String(t.imageUrl || '').trim()
+    }))
+    .filter(t => t.name); // require name
+}
+
+function readTimelineFromEditor(){
+  const inputs = Array.from(document.querySelectorAll('[data-timeline-idx]'));
+  const arr = [];
+  for (const el of inputs){
+    const idx = Number(el.dataset.timelineIdx);
+    const field = el.dataset.timelineField;
+    arr[idx] = arr[idx] || { year:'', title:'', description:'' };
+    arr[idx][field] = el.value;
+  }
+  return (arr || [])
+    .filter(Boolean)
+    .map(x => ({
+      year: String(x.year || '').trim(),
+      title: String(x.title || '').trim(),
+      description: String(x.description || '').trim()
+    }))
+    .filter(x => x.year || x.title || x.description);
+}
     // =========================
     // CONFIG
     // =========================

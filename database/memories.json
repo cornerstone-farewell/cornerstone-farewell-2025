@@ -185,13 +185,13 @@
       "file_type": "image",
       "file_size": 1322572,
       "sha256": "bc687adcabb7feb4ab961f9a53bf75519959066e6f9e34a930004eb4ae986f8e",
-      "approved": 0,
+      "approved": 1,
       "featured": 0,
       "likes": 0,
       "deletedAt": null,
       "purgedAt": null,
       "created_at": "2026-03-03T15:00:41.261Z",
-      "updated_at": "2026-03-03T15:00:41.261Z"
+      "updated_at": "2026-03-03T15:03:32.644Z"
     }
   ],
   "nextId": 16
