@@ -1,4 +1,122 @@
 {
-  "memories": [],
-  "nextId": 1
+  "memories": [
+    {
+      "id": 3,
+      "student_name": "Vedansh",
+      "caption": "ebghuerwgbrjekgnrjgbtr",
+      "memory_type": "Fun Moments",
+      "file_path": "1772460989752-141705931-134092352851490023.jpg",
+      "file_name": "134092352851490023.jpg",
+      "file_type": "image",
+      "file_size": 2071324,
+      "approved": 1,
+      "likes": 5,
+      "created_at": "2026-03-02T14:16:29.880Z"
+    },
+    {
+      "id": 4,
+      "student_name": "G RANADEEP REDDY",
+      "caption": "Bottle",
+      "memory_type": "Other",
+      "file_path": "1772461455048-230475410-17724614145059071390811721633431.jpg",
+      "file_name": "17724614145059071390811721633431.jpg",
+      "file_type": "image",
+      "file_size": 5855160,
+      "approved": 1,
+      "likes": 7,
+      "created_at": "2026-03-02T14:24:15.236Z"
+    },
+    {
+      "id": 5,
+      "student_name": "Saanvi",
+      "caption": "forest",
+      "memory_type": "Other",
+      "file_path": "1772461553857-908791896-Screenshot_2026-03-02_195454.jpg",
+      "file_name": "Screenshot 2026-03-02 195454.jpg",
+      "file_type": "image",
+      "file_size": 143699,
+      "approved": 1,
+      "likes": 3,
+      "created_at": "2026-03-02T14:25:53.873Z"
+    },
+    {
+      "id": 6,
+      "student_name": "srisha",
+      "caption": "lakes",
+      "memory_type": "Academics",
+      "file_path": "1772461568588-947776095-Lakes_of_India-_CT_3_map_markers_2025-26___1_.png",
+      "file_name": "Lakes of India- CT 3 map markers(2025-26) (1).png",
+      "file_type": "image",
+      "file_size": 246037,
+      "approved": 1,
+      "likes": 3,
+      "created_at": "2026-03-02T14:26:08.605Z"
+    },
+    {
+      "id": 7,
+      "student_name": "jaswanth",
+      "caption": "ntg",
+      "memory_type": "Friends",
+      "file_path": "1772461617365-775720818-random_picture.jpg",
+      "file_name": "random picture.jpg",
+      "file_type": "image",
+      "file_size": 5759,
+      "approved": 1,
+      "likes": 4,
+      "created_at": "2026-03-02T14:26:57.369Z"
+    },
+    {
+      "id": 8,
+      "student_name": "Sailesh",
+      "caption": "6njutyhkuyjhtvgrcfhgbfvdcyjvthbgcvfc",
+      "memory_type": "Other",
+      "file_path": "1772471702516-562574701-worksheet__34__long_image.jpg",
+      "file_name": "worksheet (34)_long_image.jpg",
+      "file_type": "image",
+      "file_size": 4521672,
+      "approved": 1,
+      "likes": 0,
+      "created_at": "2026-03-02T17:15:02.912Z"
+    },
+    {
+      "id": 9,
+      "student_name": "sailesh",
+      "caption": "sfvdjghf",
+      "memory_type": "Sports",
+      "file_path": "1772471756851-668322681-worksheet__34__long_image.jpg",
+      "file_name": "worksheet (34)_long_image.jpg",
+      "file_type": "image",
+      "file_size": 4521672,
+      "approved": 1,
+      "likes": 0,
+      "created_at": "2026-03-02T17:15:57.074Z"
+    },
+    {
+      "id": 10,
+      "student_name": "sAILESH",
+      "caption": "somehting",
+      "memory_type": "Sports",
+      "file_path": "1772507612650-851743684-underwater.png",
+      "file_name": "underwater.png",
+      "file_type": "image",
+      "file_size": 17913,
+      "approved": 1,
+      "likes": 0,
+      "created_at": "2026-03-03T03:13:32.651Z"
+    },
+    {
+      "id": 11,
+      "student_name": "vhj",
+      "caption": "jghgvbv",
+      "memory_type": "Events",
+      "file_path": "1772507810593-522000783-underwater.png",
+      "file_name": "underwater.png",
+      "file_type": "image",
+      "file_size": 17913,
+      "approved": 1,
+      "likes": 0,
+      "created_at": "2026-03-03T03:16:50.594Z"
+    }
+  ],
+  "nextId": 12
 }
