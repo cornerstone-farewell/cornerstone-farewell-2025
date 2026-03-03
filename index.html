@@ -1551,7 +1551,14 @@
         errorRed: "#f44336"
       }
     };
-
+function safeParse(v){
+  try{
+    if (!v || v === 'undefined') return null;
+    return JSON.parse(v);
+  }catch{
+    return null;
+  }
+}
     // =========================
     // STATE
     // =========================
@@ -1570,10 +1577,10 @@
       // lightbox + comments
       lightboxIndex: 0,
       replyingTo: null, // commentId
-
+    
       // admin
       adminToken: localStorage.getItem('adminToken') || null,
-      adminUser: JSON.parse(localStorage.getItem('adminUser') || 'null'),
+      adminUser: safeParse(localStorage.getItem('adminUser')),
       adminFilter: 'all',
       adminSort: 'newest',
       adminSearch: '',
