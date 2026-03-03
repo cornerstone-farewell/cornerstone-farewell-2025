@@ -2,6 +2,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  * CORNERSTONE INTERNATIONAL SCHOOL - FAREWELL 2025
  * Backend Server - Node.js + Express + SQLite (sql.js)
+ * (Currently uses JSON file-based storage for reliability)
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -59,6 +60,10 @@ const logsDir = path.join(__dirname, 'logs');
 const dbPath = path.join(databaseDir, 'memories.json');
 const sessionsPath = path.join(databaseDir, 'sessions.json');
 
+// NEW: Settings + Admin storage (for editable content + change password)
+const settingsPath = path.join(databaseDir, 'settings.json');
+const adminPath = path.join(databaseDir, 'admin.json');
+
 // Initialize database files
 function initDatabase() {
     if (!fs.existsSync(dbPath)) {
@@ -68,6 +73,18 @@ function initDatabase() {
     if (!fs.existsSync(sessionsPath)) {
         fs.writeFileSync(sessionsPath, JSON.stringify({ sessions: [] }, null, 2));
         console.log('💾 Created sessions database');
+    }
+
+    // NEW: settings database
+    if (!fs.existsSync(settingsPath)) {
+        fs.writeFileSync(settingsPath, JSON.stringify({ settings: {} }, null, 2));
+        console.log('💾 Created settings database');
+    }
+
+    // NEW: admin database (stores current password)
+    if (!fs.existsSync(adminPath)) {
+        fs.writeFileSync(adminPath, JSON.stringify({ password: ADMIN_PASSWORD }, null, 2));
+        console.log('💾 Created admin database');
     }
 }
 
@@ -95,6 +112,30 @@ function writeSessions(data) {
     fs.writeFileSync(sessionsPath, JSON.stringify(data, null, 2));
 }
 
+// NEW: settings helpers
+function readSettings() {
+    try {
+        return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    } catch (e) {
+        return { settings: {} };
+    }
+}
+function writeSettings(data) {
+    fs.writeFileSync(settingsPath, JSON.stringify(data, null, 2));
+}
+
+// NEW: admin helpers
+function readAdmin() {
+    try {
+        return JSON.parse(fs.readFileSync(adminPath, 'utf8'));
+    } catch (e) {
+        return { password: ADMIN_PASSWORD };
+    }
+}
+function writeAdmin(data) {
+    fs.writeFileSync(adminPath, JSON.stringify(data, null, 2));
+}
+
 initDatabase();
 console.log(`💾 Database initialized: ${dbPath}`);
 
@@ -118,7 +159,7 @@ const fileFilter = (req, file, cb) => {
     const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     const allowedVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'];
     const allowedTypes = [...allowedImageTypes, ...allowedVideoTypes];
-    
+
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
@@ -169,6 +210,16 @@ function validateAdminToken(token) {
     return !!session;
 }
 
+// NEW: small helper for admin-only endpoints (keeps existing behavior intact)
+function requireAdmin(req, res) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!validateAdminToken(token)) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return null;
+    }
+    return token;
+}
+
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -186,6 +237,17 @@ function getFileType(mimetype) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // API ENDPOINTS - PUBLIC
 // ═══════════════════════════════════════════════════════════════════════════════
+
+// NEW: Get Site Settings (public)
+app.get('/api/settings', (req, res) => {
+    try {
+        const data = readSettings();
+        res.json({ success: true, settings: data.settings || {} });
+    } catch (error) {
+        console.error('Get settings error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 // Upload Memory
 app.post('/api/upload', upload.array('files', MAX_FILES), checkTotalSize, (req, res) => {
@@ -273,7 +335,7 @@ app.post('/api/like/:id', (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const db = readDB();
-        
+
         const memory = db.memories.find(m => m.id === id && m.approved === 1);
         if (!memory) {
             return res.status(404).json({ success: false, error: 'Memory not found' });
@@ -281,7 +343,7 @@ app.post('/api/like/:id', (req, res) => {
 
         memory.likes++;
         writeDB(db);
-        
+
         res.json({ success: true, likes: memory.likes });
 
     } catch (error) {
@@ -320,7 +382,10 @@ app.post('/api/admin/login', (req, res) => {
     try {
         const { password } = req.body;
 
-        if (password !== ADMIN_PASSWORD) {
+        // NEW: read current password from admin.json (created on first run)
+        const admin = readAdmin();
+
+        if (password !== admin.password) {
             console.log('❌ Failed admin login attempt');
             return res.status(401).json({ success: false, error: 'Invalid password' });
         }
@@ -360,6 +425,68 @@ app.post('/api/admin/verify', (req, res) => {
     }
 });
 
+// NEW: Save Site Settings (admin)
+app.post('/api/admin/settings', (req, res) => {
+    try {
+        if (!requireAdmin(req, res)) return;
+
+        const incoming = req.body?.settings;
+        if (!incoming || typeof incoming !== 'object') {
+            return res.status(400).json({ success: false, error: 'Missing settings object' });
+        }
+
+        // Basic validation (frontend uses this format)
+        if (incoming.farewellIST && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(incoming.farewellIST)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid farewellIST format. Use YYYY-MM-DDTHH:mm'
+            });
+        }
+
+        writeSettings({ settings: incoming });
+        console.log('⚙️ Site settings updated by admin');
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Save settings error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// NEW: Change Admin Password (admin)
+app.post('/api/admin/change-password', (req, res) => {
+    try {
+        if (!requireAdmin(req, res)) return;
+
+        const { oldPassword, newPassword } = req.body || {};
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ success: false, error: 'Missing oldPassword or newPassword' });
+        }
+
+        if (String(newPassword).length < 8) {
+            return res.status(400).json({ success: false, error: 'Password must be at least 8 characters' });
+        }
+
+        const admin = readAdmin();
+        if (oldPassword !== admin.password) {
+            return res.status(400).json({ success: false, error: 'Old password is incorrect' });
+        }
+
+        // Save new password
+        writeAdmin({ password: String(newPassword) });
+
+        // Invalidate all sessions (recommended for security)
+        writeSessions({ sessions: [] });
+
+        console.log('🔐 Admin password changed (all sessions invalidated)');
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Get All Memories (Admin)
 app.get('/api/admin/memories', (req, res) => {
     try {
@@ -370,7 +497,7 @@ app.get('/api/admin/memories', (req, res) => {
 
         const { filter, sort, search } = req.query;
         const db = readDB();
-        
+
         let memories = [...db.memories];
 
         // Filter
@@ -383,7 +510,7 @@ app.get('/api/admin/memories', (req, res) => {
         // Search
         if (search) {
             const searchLower = search.toLowerCase();
-            memories = memories.filter(m => 
+            memories = memories.filter(m =>
                 m.student_name.toLowerCase().includes(searchLower) ||
                 m.caption.toLowerCase().includes(searchLower)
             );
@@ -437,7 +564,7 @@ app.post('/api/admin/approve/:id', (req, res) => {
 
         const id = parseInt(req.params.id);
         const db = readDB();
-        
+
         const memory = db.memories.find(m => m.id === id);
         if (!memory) {
             return res.status(404).json({ success: false, error: 'Memory not found' });
@@ -445,7 +572,7 @@ app.post('/api/admin/approve/:id', (req, res) => {
 
         memory.approved = 1;
         writeDB(db);
-        
+
         console.log(`✅ Approved memory #${id}`);
 
         res.json({ success: true, message: 'Memory approved' });
@@ -466,20 +593,20 @@ app.post('/api/admin/approve-all', (req, res) => {
 
         const db = readDB();
         let count = 0;
-        
+
         db.memories.forEach(m => {
             if (m.approved === 0) {
                 m.approved = 1;
                 count++;
             }
         });
-        
+
         writeDB(db);
-        
+
         console.log(`✅ Approved ${count} memories`);
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: `Approved ${count} memories`,
             count: count
         });
@@ -500,7 +627,7 @@ app.delete('/api/admin/delete/:id', (req, res) => {
 
         const id = parseInt(req.params.id);
         const db = readDB();
-        
+
         const memoryIndex = db.memories.findIndex(m => m.id === id);
         if (memoryIndex === -1) {
             return res.status(404).json({ success: false, error: 'Memory not found' });
@@ -517,7 +644,7 @@ app.delete('/api/admin/delete/:id', (req, res) => {
         // Remove from database
         db.memories.splice(memoryIndex, 1);
         writeDB(db);
-        
+
         console.log(`🗑️ Deleted memory #${id}`);
 
         res.json({ success: true, message: 'Memory deleted' });
@@ -611,7 +738,7 @@ app.get('*', (req, res) => {
 
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
-    
+
     if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
             return res.status(400).json({
@@ -626,7 +753,7 @@ app.use((err, req, res, next) => {
             });
         }
     }
-    
+
     res.status(500).json({ success: false, error: err.message || 'Internal server error' });
 });
 
@@ -643,8 +770,10 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🌐 Network access: http://0.0.0.0:${PORT}`);
     console.log(`📁 Uploads folder: ${uploadsDir}`);
     console.log(`💾 Database: ${dbPath}`);
-    console.log(`🔐 Admin password: ${ADMIN_PASSWORD}`);
+    console.log(`🔐 Admin password (initial/default): ${ADMIN_PASSWORD}`);
     console.log(`📊 Max upload size: ${MAX_TOTAL_SIZE / 1024 / 1024}MB total`);
+    console.log(`⚙️ Settings file: ${settingsPath}`);
+    console.log(`🔐 Admin file: ${adminPath}`);
     console.log('═══════════════════════════════════════════════════════════════════');
     console.log('');
 });
