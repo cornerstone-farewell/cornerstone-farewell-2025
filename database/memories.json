@@ -129,7 +129,20 @@
       "approved": 0,
       "likes": 0,
       "created_at": "2026-03-03T11:41:24.398Z"
+    },
+    {
+      "id": 13,
+      "student_name": "JASWANTH",
+      "caption": "PLAY HOT POTATO",
+      "memory_type": "Friends",
+      "file_path": "1772547489539-859965559-random_picture.jpg",
+      "file_name": "random picture.jpg",
+      "file_type": "image",
+      "file_size": 5759,
+      "approved": 0,
+      "likes": 0,
+      "created_at": "2026-03-03T14:18:09.541Z"
     }
   ],
-  "nextId": 13
+  "nextId": 14
 }

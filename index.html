@@ -1477,7 +1477,7 @@
     // CONFIG
     // =========================
     const CONFIG = {
-      API_BASE: window.location.origin,
+      API_BASE: "https://basketball-keep-nest-charming.trycloudflare.com",
       REFRESH_INTERVAL: 60000,
       MAX_FILE_SIZE: 100 * 1024 * 1024,
       MAX_TOTAL_SIZE: 200 * 1024 * 1024,
@@ -2438,9 +2438,10 @@
     // =========================
     function connectWS(){
       try{
-        const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-        const wsUrl = `${proto}://${location.host}`;
-        state.ws = new WebSocket(wsUrl);
+        const base = new URL(CONFIG.API_BASE);
+    const wsProto = base.protocol === 'https:' ? 'wss' : 'ws';
+    const wsUrl = `${wsProto}://${base.host}`;
+    state.ws = new WebSocket(wsUrl);
 
         state.ws.onopen = () => {
           state.wsConnected = true;
