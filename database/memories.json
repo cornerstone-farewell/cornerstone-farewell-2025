@@ -37,7 +37,9 @@
       "file_size": 143699,
       "approved": 1,
       "likes": 4,
-      "created_at": "2026-03-02T14:25:53.873Z"
+      "created_at": "2026-03-02T14:25:53.873Z",
+      "deletedAt": "2026-03-03T14:56:36.811Z",
+      "updated_at": "2026-03-03T14:56:36.811Z"
     },
     {
       "id": 6,
@@ -50,7 +52,9 @@
       "file_size": 246037,
       "approved": 1,
       "likes": 4,
-      "created_at": "2026-03-02T14:26:08.605Z"
+      "created_at": "2026-03-02T14:26:08.605Z",
+      "deletedAt": "2026-03-03T14:56:34.910Z",
+      "updated_at": "2026-03-03T14:56:34.910Z"
     },
     {
       "id": 7,
@@ -63,7 +67,9 @@
       "file_size": 5759,
       "approved": 1,
       "likes": 5,
-      "created_at": "2026-03-02T14:26:57.369Z"
+      "created_at": "2026-03-02T14:26:57.369Z",
+      "deletedAt": "2026-03-03T14:57:06.433Z",
+      "updated_at": "2026-03-03T14:57:06.433Z"
     },
     {
       "id": 8,
@@ -76,7 +82,9 @@
       "file_size": 4521672,
       "approved": 1,
       "likes": 1,
-      "created_at": "2026-03-02T17:15:02.912Z"
+      "created_at": "2026-03-02T17:15:02.912Z",
+      "deletedAt": "2026-03-03T14:56:23.938Z",
+      "updated_at": "2026-03-03T14:56:23.938Z"
     },
     {
       "id": 9,
@@ -89,7 +97,9 @@
       "file_size": 4521672,
       "approved": 1,
       "likes": 1,
-      "created_at": "2026-03-02T17:15:57.074Z"
+      "created_at": "2026-03-02T17:15:57.074Z",
+      "deletedAt": "2026-03-03T14:57:02.848Z",
+      "updated_at": "2026-03-03T14:57:02.848Z"
     },
     {
       "id": 10,
@@ -102,7 +112,9 @@
       "file_size": 17913,
       "approved": 1,
       "likes": 1,
-      "created_at": "2026-03-03T03:13:32.651Z"
+      "created_at": "2026-03-03T03:13:32.651Z",
+      "deletedAt": "2026-03-03T14:56:31.950Z",
+      "updated_at": "2026-03-03T14:56:31.950Z"
     },
     {
       "id": 11,
@@ -115,7 +127,9 @@
       "file_size": 17913,
       "approved": 1,
       "likes": 1,
-      "created_at": "2026-03-03T03:16:50.594Z"
+      "created_at": "2026-03-03T03:16:50.594Z",
+      "deletedAt": "2026-03-03T14:56:48.342Z",
+      "updated_at": "2026-03-03T14:56:48.342Z"
     },
     {
       "id": 12,
@@ -126,9 +140,11 @@
       "file_name": "random picture.jpg",
       "file_type": "image",
       "file_size": 5759,
-      "approved": 0,
+      "approved": 1,
       "likes": 0,
-      "created_at": "2026-03-03T11:41:24.398Z"
+      "created_at": "2026-03-03T11:41:24.398Z",
+      "updated_at": "2026-03-03T14:56:28.729Z",
+      "deletedAt": "2026-03-03T14:56:28.729Z"
     },
     {
       "id": 13,
@@ -139,10 +155,44 @@
       "file_name": "random picture.jpg",
       "file_type": "image",
       "file_size": 5759,
-      "approved": 0,
+      "approved": 1,
       "likes": 0,
-      "created_at": "2026-03-03T14:18:09.541Z"
+      "created_at": "2026-03-03T14:18:09.541Z",
+      "updated_at": "2026-03-03T14:56:43.278Z",
+      "deletedAt": "2026-03-03T14:56:43.278Z"
+    },
+    {
+      "id": 14,
+      "student_name": "...",
+      "caption": "...",
+      "memory_type": "Other",
+      "file_path": "1772548809210-923276750-RobloxScreenShot20250527_151323916.png",
+      "file_name": "RobloxScreenShot20250527_151323916.png",
+      "file_type": "image",
+      "file_size": 1846970,
+      "approved": 1,
+      "likes": 1,
+      "created_at": "2026-03-03T14:40:09.330Z",
+      "updated_at": "2026-03-03T14:51:16.507Z"
+    },
+    {
+      "id": 15,
+      "student_name": ".",
+      "caption": ".",
+      "memory_type": "Friends",
+      "file_path": "1772550041167-632710281-RobloxScreenShot20250916_165420967.png",
+      "file_name": "RobloxScreenShot20250916_165420967.png",
+      "file_type": "image",
+      "file_size": 1322572,
+      "sha256": "bc687adcabb7feb4ab961f9a53bf75519959066e6f9e34a930004eb4ae986f8e",
+      "approved": 0,
+      "featured": 0,
+      "likes": 0,
+      "deletedAt": null,
+      "purgedAt": null,
+      "created_at": "2026-03-03T15:00:41.261Z",
+      "updated_at": "2026-03-03T15:00:41.261Z"
     }
   ],
-  "nextId": 14
+  "nextId": 16
 }

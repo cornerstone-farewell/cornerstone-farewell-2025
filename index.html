@@ -3058,7 +3058,23 @@ function safeParse(v){
               </div>
               <div class="form-group"><label>Footer Copyright</label><input class="form-input" id="setFooterCopyright"/></div>
 
-              <div class="mini-pill">Teachers + Timeline editors are not included here (kept simple). Add them in settings JSON manually or ask me to add editors.</div>
+              <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+    <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Teachers Editor</h4>
+    <button class="admin-btn admin-btn-secondary" type="button" onclick="addTeacherRow()">+ Add Teacher</button>
+  </div>
+  <div class="mini-pill">Fields: name, subject, quote, imageUrl (optional)</div>
+  <div id="teachersEditor" style="margin-top:12px; display:grid; gap:12px;"></div>
+</div>
+
+<div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+    <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Timeline Editor</h4>
+    <button class="admin-btn admin-btn-secondary" type="button" onclick="addTimelineRow()">+ Add Timeline Item</button>
+  </div>
+  <div class="mini-pill">Fields: year, title, description</div>
+  <div id="timelineEditor" style="margin-top:12px; display:grid; gap:12px;"></div>
+</div>
             </div>
           </div>
         </div>
@@ -3100,6 +3116,9 @@ function safeParse(v){
       setVal('setFooterContactNote', s.footerContactNote);
       setVal('setFooterMadeBy', s.footerMadeBy);
       setVal('setFooterCopyright', s.footerCopyright);
+
+      renderTeachersEditor();
+renderTimelineEditor();
     }
 
     function readSettingsFromEditor(){
@@ -3143,8 +3162,12 @@ function safeParse(v){
     async function saveSettingsFromEditor(){
       const newSettings = readSettingsFromEditor();
       // keep existing teachers/timeline/theme if not changed
-      newSettings.teachers = state.settings.teachers || [];
-      newSettings.timeline = state.settings.timeline || [];
+      renderTeachers();
+renderTimeline();
+renderTeachersEditor();
+renderTimelineEditor();
+      newSettings.teachers = readTeachersFromEditor();
+newSettings.timeline = readTimelineFromEditor();
       newSettings.theme = state.settings.theme || {};
 
       try{
@@ -3175,6 +3198,8 @@ function safeParse(v){
       renderTeachers();
       renderTimeline();
       showNotification('success','Reloaded','Settings loaded from server.');
+      renderTeachersEditor();
+renderTimelineEditor();
     }
 
     // =========================
@@ -3377,6 +3402,8 @@ function safeParse(v){
               ${permToggle('editMemory','Edit Memory',true)}
               ${permToggle('bulk','Bulk Actions',false)}
               ${permToggle('featured','Feature controls',false)}
+              ${permToggle('teachers','Teachers Editor',false)}
+${permToggle('timeline','Timeline Editor',false)}
             </div>
 
             <div style="display:flex; justify-content:flex-end; margin-top:12px;">
@@ -3404,8 +3431,8 @@ function safeParse(v){
     function wireUsersPanel(){ loadUsers(); }
 
     function gatherPermsFromCreateForm(){
-      const ids = ['moderation','settings','theme','export','users','trash','replaceFile','editMemory','bulk','featured'];
-      const p = {};
+      const ids = ['moderation','settings','theme','export','users','trash','replaceFile','editMemory','bulk','featured','teachers','timeline'];
+        const p = {};
       ids.forEach(k => p[k] = !!document.getElementById(`perm_${k}`)?.checked);
       return p;
     }

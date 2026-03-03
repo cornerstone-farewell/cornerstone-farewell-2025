@@ -5,7 +5,7 @@
     "logoText": "🎓",
     "contactEmail": "farewell2025@cornerstone.edu",
     "locationLine": "Cornerstone School",
-    "farewellIST": "2026-03-15T18:00",
+    "farewellIST": "2026-03-15T15:00",
     "heroBadge": "Class of 2026",
     "heroTitle": "Farewell {year}",
     "heroSubtitle": "Where Memories Become Eternal",
@@ -16,6 +16,15 @@
     "footerContactNote": "Contact School Office",
     "footerMadeBy": "Made with ♥ by the Class of 2025",
     "footerCopyright": "© 2026 Cornerstone International School. All rights reserved.",
+    "uploadsEnabled": true,
+    "commentsEnabled": true,
+    "profanityFilterEnabled": false,
+    "uploadWindowEnabled": false,
+    "uploadWindowStartIST": "",
+    "uploadWindowEndIST": "",
+    "autoApproveEnabled": false,
+    "autoApproveStartIST": "",
+    "autoApproveEndIST": "",
     "teachers": [
       {
         "name": "Mr. Principal",
@@ -73,6 +82,22 @@
         "title": "New Beginnings",
         "description": "As we close this chapter, new adventures await. Forever Cornerstone!"
       }
-    ]
+    ],
+    "theme": {
+      "primaryGold": "#D4AF37",
+      "primaryGoldLight": "#F4E5B2",
+      "primaryGoldDark": "#B8860B",
+      "navyDark": "#1a1a2e",
+      "navyMedium": "#16213e",
+      "navyLight": "#0f3460",
+      "accentRose": "#e94560",
+      "accentPurple": "#7B2D8E",
+      "textLight": "#ffffff",
+      "textMuted": "rgba(255, 255, 255, 0.7)",
+      "glassBg": "rgba(255, 255, 255, 0.1)",
+      "glassBorder": "rgba(255, 255, 255, 0.2)",
+      "successGreen": "#4CAF50",
+      "errorRed": "#f44336"
+    }
   }
 }
