@@ -367,7 +367,21 @@
         "memoryId": 16
       },
       "createdAt": "2026-03-03T15:12:04.517Z"
+    },
+    {
+      "id": 49,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-04T13:19:33.866Z"
+    },
+    {
+      "id": 50,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-04T13:20:00.875Z"
     }
   ],
-  "nextId": 49
+  "nextId": 51
 }
