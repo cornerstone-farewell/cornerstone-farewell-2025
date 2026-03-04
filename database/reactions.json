@@ -84,6 +84,11 @@
       "memoryId": 4,
       "type": "sad",
       "createdAt": "2026-03-03T14:54:13.509Z"
+    },
+    {
+      "memoryId": 15,
+      "type": "like",
+      "createdAt": "2026-03-03T15:09:46.802Z"
     }
   ]
 }

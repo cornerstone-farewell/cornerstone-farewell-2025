@@ -187,12 +187,30 @@
       "sha256": "bc687adcabb7feb4ab961f9a53bf75519959066e6f9e34a930004eb4ae986f8e",
       "approved": 1,
       "featured": 0,
-      "likes": 0,
+      "likes": 1,
       "deletedAt": null,
       "purgedAt": null,
       "created_at": "2026-03-03T15:00:41.261Z",
-      "updated_at": "2026-03-03T15:03:32.644Z"
+      "updated_at": "2026-03-03T15:09:46.802Z"
+    },
+    {
+      "id": 16,
+      "student_name": "67777777777777777",
+      "caption": "67777777777777777777",
+      "memory_type": "Other",
+      "file_path": "1772550431267-54053105-download_1.jfif",
+      "file_name": "download 1.jfif",
+      "file_type": "image",
+      "file_size": 16111,
+      "sha256": "c2d529efe00a5605680078a537b71860f6c1eb575854abf57fd1a9832cd0f068",
+      "approved": 1,
+      "featured": 0,
+      "likes": 0,
+      "deletedAt": null,
+      "purgedAt": null,
+      "created_at": "2026-03-03T15:07:11.273Z",
+      "updated_at": "2026-03-03T15:12:04.517Z"
     }
   ],
-  "nextId": 16
+  "nextId": 17
 }
