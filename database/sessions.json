@@ -1,53 +1,34 @@
 {
   "sessions": [
     {
-      "token": "admin-1772547146338-x2p8fimah",
-      "expiresAt": "2026-03-04T14:12:26.338Z"
+      "token": "admin-1772644356023-8bgcngme1jp",
+      "expiresAt": "2026-03-05T17:12:36.023Z",
+      "userId": "super"
     },
     {
-      "token": "admin-1772549694675-uh8ahsfqvn9",
-      "expiresAt": "2026-03-04T14:54:54.675Z",
+      "token": "admin-1772700914409-09r350cbl0fn",
+      "expiresAt": "2026-03-06T08:55:14.409Z",
       "userId": "techteam"
     },
     {
-      "token": "admin-1772550127907-bkkbf84x6ph",
-      "expiresAt": "2026-03-04T15:02:07.907Z",
+      "token": "admin-1772702286091-xtf963ls7s",
+      "expiresAt": "2026-03-06T09:18:06.091Z",
       "userId": "techteam"
     },
     {
-      "token": "admin-1772550131132-isnxe9s4qy8",
-      "expiresAt": "2026-03-04T15:02:11.132Z",
+      "token": "admin-1772706489658-3ohal232ywj",
+      "expiresAt": "2026-03-06T10:28:09.658Z",
       "userId": "techteam"
     },
     {
-      "token": "admin-1772550617438-ze1cf0gfene",
-      "expiresAt": "2026-03-04T15:10:17.438Z",
-      "userId": "techteam"
+      "token": "admin-1772707100129-demedqo6jap",
+      "expiresAt": "2026-03-06T10:38:20.129Z",
+      "userId": "super"
     },
     {
-      "token": "admin-1772550617448-4xa0hz3rl5f",
-      "expiresAt": "2026-03-04T15:10:17.448Z",
-      "userId": "techteam"
-    },
-    {
-      "token": "admin-1772550719042-cozr2ccvbeg",
-      "expiresAt": "2026-03-04T15:11:59.042Z",
-      "userId": "techteam"
-    },
-    {
-      "token": "admin-1772550720604-ar349gxnu6m",
-      "expiresAt": "2026-03-04T15:12:00.604Z",
-      "userId": "techteam"
-    },
-    {
-      "token": "admin-1772550720812-9irlhy0wj1",
-      "expiresAt": "2026-03-04T15:12:00.812Z",
-      "userId": "techteam"
-    },
-    {
-      "token": "admin-1772550720820-700yfxyodxe",
-      "expiresAt": "2026-03-04T15:12:00.820Z",
-      "userId": "techteam"
+      "token": "admin-1772712636699-si9wety3rbe",
+      "expiresAt": "2026-03-06T12:10:36.699Z",
+      "userId": "super"
     }
   ]
 }

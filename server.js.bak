@@ -119,7 +119,6 @@ const adminPath = path.join(databaseDir, 'admin.json');
 const commentsPath = path.join(databaseDir, 'comments.json');
 const reactionsPath = path.join(databaseDir, 'reactions.json');
 const auditPath = path.join(databaseDir, 'audit.json');
-const compilationsPath = path.join(databaseDir, 'compilations.json');
 
 function initDatabase() {
   if (!fs.existsSync(dbPath)) {
@@ -177,11 +176,6 @@ function initDatabase() {
     }, null, 2));
     console.log('💾 Created admin database with super admin');
   }
-  if (!fs.existsSync(compilationsPath)) {
-    fs.writeFileSync(compilationsPath, JSON.stringify({ compilations: [], nextId: 1 }, null, 2));
-    console.log('💾 Created compilations database');
-  }
-  
 }
 
 function safeReadJson(filePath, fallback) {
@@ -250,15 +244,6 @@ function readAudit() {
 
 function writeAudit(data) {
   safeWriteJson(auditPath, data);
-}
-
-
-function readCompilations() {
-  return safeReadJson(compilationsPath, { compilations: [], nextId: 1 });
-}
-
-function writeCompilations(data) {
-  safeWriteJson(compilationsPath, data);
 }
 
 initDatabase();
@@ -1514,216 +1499,6 @@ app.get('/api/admin/export/csv', (req, res) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="memories-export-${new Date().toISOString().slice(0, 10)}.csv"`);
   res.send(lines.join('\n'));
-});
-
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// COMPILATIONS API
-// ═══════════════════════════════════════════════════════════════════════════════
-
-// Get all compilations (public)
-app.get('/api/compilations', (req, res) => {
-  try {
-    const data = readCompilations();
-    res.json({ success: true, compilations: data.compilations || [] });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-// Get single compilation (public)
-app.get('/api/compilations/:id', (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    const data = readCompilations();
-    const comp = data.compilations.find(c => c.id === id);
-    if (!comp) return res.status(404).json({ success: false, error: 'Not found' });
-    res.json({ success: true, compilation: comp });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-// Create compilation (admin)
-app.post('/api/admin/compilations', (req, res) => {
-  try {
-    const auth = requireAdmin(req, res);
-    if (!auth) return;
-    
-    const { name, slides, displayMode, transitionType } = req.body || {};
-    if (!name || !Array.isArray(slides)) {
-      return res.status(400).json({ success: false, error: 'name and slides required' });
-    }
-    
-    const data = readCompilations();
-    const compilation = {
-      id: data.nextId++,
-      name: String(name).trim().substring(0, 100),
-      slides: slides.map(s => ({
-        memoryId: Number(s.memoryId),
-        caption: String(s.caption || '').trim().substring(0, 300),
-        duration: Math.min(60, Math.max(1, Number(s.duration) || 5))
-      })),
-      displayMode: displayMode === 'manual' ? 'manual' : 'auto',
-      transitionType: ['fade', 'slide', 'zoom', 'flip'].includes(transitionType) ? transitionType : 'fade',
-      createdAt: nowIso(),
-      updatedAt: nowIso()
-    };
-    
-    data.compilations.push(compilation);
-    writeCompilations(data);
-    
-    audit(auth.user.id, 'create-compilation', { id: compilation.id });
-    res.json({ success: true, compilation });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-// Update compilation (admin)
-app.post('/api/admin/compilations/:id', (req, res) => {
-  try {
-    const auth = requireAdmin(req, res);
-    if (!auth) return;
-    
-    const id = parseInt(req.params.id, 10);
-    const data = readCompilations();
-    const comp = data.compilations.find(c => c.id === id);
-    if (!comp) return res.status(404).json({ success: false, error: 'Not found' });
-    
-    const { name, slides, displayMode, transitionType } = req.body || {};
-    if (name) comp.name = String(name).trim().substring(0, 100);
-    if (Array.isArray(slides)) {
-      comp.slides = slides.map(s => ({
-        memoryId: Number(s.memoryId),
-        caption: String(s.caption || '').trim().substring(0, 300),
-        duration: Math.min(60, Math.max(1, Number(s.duration) || 5))
-      }));
-    }
-    if (displayMode) comp.displayMode = displayMode === 'manual' ? 'manual' : 'auto';
-    if (transitionType && ['fade', 'slide', 'zoom', 'flip'].includes(transitionType)) {
-      comp.transitionType = transitionType;
-    }
-    comp.updatedAt = nowIso();
-    
-    writeCompilations(data);
-    audit(auth.user.id, 'update-compilation', { id });
-    res.json({ success: true, compilation: comp });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-// Delete compilation (admin)
-app.delete('/api/admin/compilations/:id', (req, res) => {
-  try {
-    const auth = requireAdmin(req, res);
-    if (!auth) return;
-    
-    const id = parseInt(req.params.id, 10);
-    const data = readCompilations();
-    const idx = data.compilations.findIndex(c => c.id === id);
-    if (idx === -1) return res.status(404).json({ success: false, error: 'Not found' });
-    
-    data.compilations.splice(idx, 1);
-    writeCompilations(data);
-    
-    audit(auth.user.id, 'delete-compilation', { id });
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-// Edit comment (admin)
-app.post('/api/admin/comments/:id', (req, res) => {
-  try {
-    const auth = requireAdmin(req, res);
-    if (!auth) return;
-    if (!hasPerm(auth.user, 'moderation')) return res.status(403).json({ success: false, error: 'Forbidden' });
-    
-    const id = parseInt(req.params.id, 10);
-    const { text, deleted } = req.body || {};
-    
-    const cdb = readComments();
-    const comment = cdb.comments.find(c => c.id === id);
-    if (!comment) return res.status(404).json({ success: false, error: 'Comment not found' });
-    
-    if (typeof text === 'string') comment.text = text.trim().substring(0, 800);
-    if (deleted === true) comment.deletedAt = nowIso();
-    if (deleted === false) comment.deletedAt = null;
-    
-    writeComments(cdb);
-    audit(auth.user.id, 'edit-comment', { commentId: id });
-    
-    res.json({ success: true, comment });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-// Upload intro video (admin)
-app.post('/api/admin/upload-intro-video', upload.single('video'), (req, res) => {
-  try {
-    const auth = requireAdmin(req, res);
-    if (!auth) return;
-    if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-    
-    const file = req.file;
-    if (!file) return res.status(400).json({ success: false, error: 'No video file' });
-    
-    // Save path to settings
-    const settings = readSettings();
-    settings.settings = settings.settings || {};
-    settings.settings.introVideoPath = file.filename;
-    writeSettings(settings);
-    
-    audit(auth.user.id, 'upload-intro-video', { filename: file.filename });
-    res.json({ success: true, path: file.filename });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-// Upload favicon (admin)
-app.post('/api/admin/upload-favicon', upload.single('favicon'), (req, res) => {
-  try {
-    const auth = requireAdmin(req, res);
-    if (!auth) return;
-    if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-    
-    const file = req.file;
-    if (!file) return res.status(400).json({ success: false, error: 'No file' });
-    
-    // Copy to favicon.ico in root
-    const faviconDest = path.join(__dirname, 'favicon.ico');
-    fs.copyFileSync(path.join(uploadsDir, file.filename), faviconDest);
-    
-    const settings = readSettings();
-    settings.settings = settings.settings || {};
-    settings.settings.faviconUploaded = true;
-    writeSettings(settings);
-    
-    audit(auth.user.id, 'upload-favicon', {});
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
-
-// Upload teacher image (admin)
-app.post('/api/admin/upload-teacher-image', upload.single('image'), (req, res) => {
-  try {
-    const auth = requireAdmin(req, res);
-    if (!auth) return;
-    
-    const file = req.file;
-    if (!file) return res.status(400).json({ success: false, error: 'No image file' });
-    
-    res.json({ success: true, url: `/uploads/${file.filename}` });
-  } catch (e) {
-    res.status(500).json({ success: false, error: e.message });
-  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
