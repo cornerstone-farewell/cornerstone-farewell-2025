@@ -1213,6 +1213,65 @@ app.post('/api/admin/bulk', (req, res) => {
   }
 });
 
+
+// Admin Batch Upload (Skips duplicate checks, profanity filters, and time windows)
+app.post('/api/admin/upload-batch', upload.array('files', MAX_FILES), checkTotalSize, (req, res) => {
+  try {
+    const auth = requireAdmin(req, res);
+    if (!auth) return;
+    if (!hasPerm(auth.user, 'moderation')) return res.status(403).json({ success: false, error: 'Forbidden' });
+
+    const { name, caption, type, autoApprove } = req.body;
+    const files = req.files;
+
+    if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Name required' });
+    if (!caption || !caption.trim()) return res.status(400).json({ success: false, error: 'Caption required' });
+    if (!files || files.length === 0) return res.status(400).json({ success: false, error: 'Files required' });
+
+    const db = readDB();
+    const insertedIds = [];
+    const isApproved = autoApprove === 'true' ? 1 : 0;
+
+    files.forEach(file => {
+      const filePath = path.join(uploadsDir, file.filename);
+      const hash = sha256File(filePath);
+
+      // DELIBERATELY SKIPPING DUPLICATE CHECK
+      
+      const memory = {
+        id: db.nextId++,
+        student_name: name.trim(),
+        caption: caption.trim().substring(0, 500),
+        memory_type: type,
+        file_path: file.filename,
+        file_name: file.originalname,
+        file_type: getFileType(file.mimetype),
+        file_size: file.size,
+        sha256: hash,
+        approved: isApproved,
+        featured: 0,
+        likes: 0,
+        deletedAt: null,
+        purgedAt: null,
+        created_at: nowIso(),
+        updated_at: nowIso()
+      };
+
+      db.memories.push(memory);
+      insertedIds.push(memory.id);
+    });
+
+    writeDB(db);
+    audit(auth.user.id, 'batch-upload', { count: insertedIds.length });
+    broadcast('memory:new', { count: insertedIds.length });
+
+    res.json({ success: true, count: insertedIds.length, ids: insertedIds });
+  } catch (error) {
+    console.error('Batch upload error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Edit memory metadata
 app.post('/api/admin/memory/edit/:id', (req, res) => {
   try {

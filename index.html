@@ -2347,6 +2347,67 @@ overflow: hidden;
     
 </script>
 
+  
+  <!-- Batch Upload Modal -->
+  <div class="compilation-modal" id="batchUploadModal">
+    <div class="compilation-modal-content" style="max-width: 600px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h2 style="font-family:var(--font-display); color:var(--primary-gold);">Batch Upload</h2>
+        <button class="admin-btn admin-btn-secondary" onclick="closeBatchUpload()">✕ Close</button>
+      </div>
+      
+      <div class="mini-pill" style="margin-bottom: 20px; background: rgba(123, 45, 142, 0.3); border-color: var(--accent-purple);">
+        Admin Upload: Skips duplicate checks, skips profanity filters.
+      </div>
+
+      <div class="form-group">
+        <label>Student Name (or Event Name)</label>
+        <input class="form-input" id="batchName" placeholder="e.g. Class Trip 2025" />
+      </div>
+      
+      <div class="form-group">
+        <label>Caption</label>
+        <textarea class="form-textarea" id="batchCaption" placeholder="Shared caption for all photos..." rows="3"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Category</label>
+        <select class="form-select" id="batchType">
+          <option value="Funny">Funny</option>
+          <option value="Emotional">Emotional</option>
+          <option value="Friends" selected>Friends</option>
+          <option value="Teachers">Teachers</option>
+          <option value="Events">Events</option>
+          <option value="Campus">Campus</option>
+          <option value="Classroom">Classroom</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-top: 20px; border: 2px dashed var(--glass-border); padding: 20px; text-align: center; border-radius: 12px; cursor: pointer;" onclick="document.getElementById('batchFiles').click()">
+        <input type="file" id="batchFiles" multiple style="display: none;" onchange="updateBatchFileCount(this)" />
+        <div style="font-size: 2rem; margin-bottom: 10px;">📂</div>
+        <div id="batchFileLabel" style="color: var(--text-muted);">Click to select files</div>
+      </div>
+
+      <div class="form-group" style="margin-top: 15px;">
+        <label style="display:flex; align-items:center; gap: 10px; cursor: pointer;">
+          <input type="checkbox" id="batchAutoApprove" checked style="transform: scale(1.2);" />
+          <span>Auto-approve immediately?</span>
+        </label>
+      </div>
+      
+      <div id="batchProgress" style="display:none; margin-top: 20px;">
+        <div class="upload-progress-bar"><div class="upload-progress-fill" id="batchProgressFill" style="width:0%"></div></div>
+        <div id="batchProgressText" style="text-align: center; font-size: 0.85rem; margin-top: 6px; color: var(--text-muted);">Uploading...</div>
+      </div>
+
+      <div style="display:flex; gap:15px; justify-content:flex-end; margin-top:25px;">
+        <button class="btn btn-secondary" onclick="closeBatchUpload()">Cancel</button>
+        <button class="btn btn-primary" id="btnStartBatch" onclick="submitBatchUpload()" style="background: var(--accent-purple); border-color: var(--accent-purple);">Start Upload</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Compilation Creator Modal -->
   <div class="compilation-modal" id="compilationCreatorModal">
     <div class="compilation-modal-content">
