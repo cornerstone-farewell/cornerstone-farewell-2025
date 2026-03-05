@@ -1864,7 +1864,55 @@
         "memoryId": 34
       },
       "createdAt": "2026-03-05T15:11:36.149Z"
+    },
+    {
+      "id": 226,
+      "userId": "techteam",
+      "action": "create-compilation",
+      "meta": {
+        "id": 1
+      },
+      "createdAt": "2026-03-05T15:16:51.762Z"
+    },
+    {
+      "id": 227,
+      "userId": "techteam",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-05T15:17:12.597Z"
+    },
+    {
+      "id": 228,
+      "userId": "techteam",
+      "action": "delete-compilation",
+      "meta": {
+        "id": 1
+      },
+      "createdAt": "2026-03-05T15:17:12.724Z"
+    },
+    {
+      "id": 229,
+      "userId": "techteam",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-05T15:19:10.663Z"
+    },
+    {
+      "id": 230,
+      "userId": "techteam",
+      "action": "approve-all",
+      "meta": {
+        "count": 0
+      },
+      "createdAt": "2026-03-05T15:19:20.249Z"
+    },
+    {
+      "id": 231,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-05T15:21:35.131Z"
     }
   ],
-  "nextId": 226
+  "nextId": 232
 }
