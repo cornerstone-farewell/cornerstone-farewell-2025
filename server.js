@@ -1123,6 +1123,35 @@ app.post('/api/admin/restore/:id', (req, res) => {
 });
 
 // Purge
+
+// Reset/Scramble all SHA256 hashes to allow re-uploading duplicates
+app.post('/api/admin/reset-hashes', (req, res) => {
+  try {
+    const auth = requireAdmin(req, res);
+    if (!auth) return;
+    if (auth.user.role !== 'superadmin') return res.status(403).json({ success: false, error: 'Super admin only' });
+
+    const db = readDB();
+    let count = 0;
+    
+    // Scramble hashes by appending a timestamp, making them unique from future uploads
+    db.memories.forEach(m => {
+      if (m.sha256 && !m.sha256.startsWith('RESET-')) {
+        m.sha256 = `RESET-${Date.now()}-${m.sha256}`;
+        count++;
+      }
+    });
+
+    writeDB(db);
+    audit(auth.user.id, 'reset-hashes', { count });
+    
+    console.log(`♻️  Reset duplicate detection for ${count} memories`);
+    res.json({ success: true, count });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 app.delete('/api/admin/purge/:id', (req, res) => {
   try {
     const auth = requireAdmin(req, res);

@@ -1790,7 +1790,22 @@ overflow: hidden;
     async function createUser() { const id = document.getElementById('newUserId')?.value?.trim(); const name = document.getElementById('newUserName')?.value?.trim(); const password = document.getElementById('newUserPass')?.value || ''; const role = document.getElementById('newUserRole')?.value || 'moderator'; const permissions = gatherPermsFromCreateForm(); try { const res = await fetch(apiUrl('/api/admin/users'), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify({ id, name, password, role, permissions }) }); const data = await res.json(); if (data.success) { showNotification('success', 'Created', 'User created.'); document.getElementById('newUserId').value = ''; document.getElementById('newUserName').value = ''; document.getElementById('newUserPass').value = ''; loadUsers(); } else showNotification('error', 'Failed', data.error || 'Could not create user.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
     async function updateUser(id) { const name = document.getElementById(`editName_${id}`)?.value?.trim(); const password = document.getElementById(`editPass_${id}`)?.value || ''; const disabled = document.getElementById(`editDisabled_${id}`)?.value === 'true'; const permInputs = Array.from(document.querySelectorAll(`[id^="editPerm_${CSS.escape(id)}_"]`)); const permissions = {}; permInputs.forEach(inp => { const key = inp.id.replace(`editPerm_${id}_`, ''); permissions[key] = !!inp.checked; }); const payload = { name, disabled, permissions }; if (password && password.length >= 8) payload.password = password; try { const res = await fetch(apiUrl(`/api/admin/users/${encodeURIComponent(id)}`), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify(payload) }); const data = await res.json(); if (data.success) { showNotification('success', 'Saved', 'User updated.'); loadUsers(); } else showNotification('error', 'Failed', data.error || 'Could not update user.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
 
-    function renderSecurityPanelHtml() { return `<div class="stat-card" style="text-align:left;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Security</h3><div class="mini-pill" style="margin-top:12px;">Change your own password. Minimum 8 characters.</div><div style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Old Password</label><input type="password" class="form-input" id="oldAdminPassword" /></div><div class="form-group"><label>New Password</label><input type="password" class="form-input" id="newAdminPassword" /></div></div><div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Confirm New</label><input type="password" class="form-input" id="confirmAdminPassword" /></div><div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" style="width:100%;" onclick="changeAdminPassword()">Change</button></div></div></div>`; }
+    function renderSecurityPanelHtml() { return `<div class="stat-card" style="text-align:left;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Security</h3><div class="mini-pill" style="margin-top:12px;">Change your own password. Minimum 8 characters.</div><div style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Old Password</label><input type="password" class="form-input" id="oldAdminPassword" /></div><div class="form-group"><label>New Password</label><input type="password" class="form-input" id="newAdminPassword" /></div></div><div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Confirm New</label><input type="password" class="form-input" id="confirmAdminPassword" /></div><div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" style="width:100%;" onclick="changeAdminPassword()">Change</button></div></div>
+    
+    <div style="margin-top: 25px; border-top: 1px solid var(--glass-border); padding-top: 20px;">
+        <h4 style="font-family:var(--font-display); color:var(--error-red); margin-bottom:10px;">Danger Zone</h4>
+        <div style="background: rgba(244, 67, 54, 0.1); border: 1px solid rgba(244, 67, 54, 0.3); padding: 15px; border-radius: 12px;">
+            <div style="font-weight: bold; color: #ffb3ad; margin-bottom: 5px;">Reset Duplicate Detection</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                This modifies the database so previously uploaded files are no longer considered duplicates. 
+                Use this if you need to re-upload files that were deleted or rejected.
+            </p>
+            <button class="admin-btn admin-btn-danger" style="width:100%; justify-content:center;" onclick="resetUploadHashes()">
+                ♻️ Reset All Upload Hashes
+            </button>
+        </div>
+    </div>
+    </div>`; }
     function wireSecurityPanel() {}
     async function changeAdminPassword() { const oldPassword = document.getElementById('oldAdminPassword')?.value; const newPassword = document.getElementById('newAdminPassword')?.value; const confirmPassword = document.getElementById('confirmAdminPassword')?.value; if (!oldPassword || !newPassword) return showNotification('error', 'Missing', 'Fill old and new password.'); if (newPassword.length < 8) return showNotification('error', 'Weak', 'Use at least 8 characters.'); if (newPassword !== confirmPassword) return showNotification('error', 'Mismatch', 'Passwords do not match.'); try { const res = await fetch(apiUrl('/api/admin/change-password'), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify({ oldPassword, newPassword }) }); const data = await res.json(); if (data.success) { document.getElementById('oldAdminPassword').value = ''; document.getElementById('newAdminPassword').value = ''; document.getElementById('confirmAdminPassword').value = ''; showNotification('success', 'Changed', 'Password updated.'); } else showNotification('error', 'Failed', data.error || 'Could not change password.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
 
@@ -2343,6 +2358,27 @@ overflow: hidden;
       state.settings.introVideoPath = null;
       await saveSettingsFromEditor();
       reloadSettingsAdmin();
+    }
+    
+
+    async function resetUploadHashes() {
+      if (!confirm("Are you sure? This allows ALL existing files to be re-uploaded as duplicates.")) return;
+      
+      try {
+        const res = await fetch(apiUrl('/api/admin/reset-hashes'), {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${state.adminToken}` }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          showNotification('success', 'Reset Complete', `Cleared hashes for ${data.count} memories.`);
+        } else {
+          showNotification('error', 'Failed', data.error);
+        }
+      } catch (e) {
+        showNotification('error', 'Error', e.message);
+      }
     }
     
 </script>
