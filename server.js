@@ -629,7 +629,7 @@ app.post('/api/upload', upload.array('files', MAX_FILES), checkTotalSize, (req, 
       const filePath = path.join(uploadsDir, file.filename);
       const hash = sha256File(filePath);
 
-      const exists = db.memories.find(m => m.sha256 === hash && !m.purgedAt);
+      const exists = db.memories.find(m => m.sha256 === hash && m.approved === 1 && !m.deletedAt && !m.purgedAt);
       if (exists) {
         duplicates.push({ originalId: exists.id, duplicateFile: file.originalname });
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
@@ -1261,7 +1261,7 @@ app.post('/api/admin/memory/replace-file/:id', upload.single('file'), (req, res)
 
     const newPath = path.join(uploadsDir, file.filename);
     const hash = sha256File(newPath);
-    const exists = db.memories.find(x => x.sha256 === hash && x.id !== id && !x.purgedAt);
+    const exists = db.memories.find(x => x.sha256 === hash && x.id !== id && x.approved === 1 && !x.deletedAt && !x.purgedAt);
     if (exists) {
       if (fs.existsSync(newPath)) fs.unlinkSync(newPath);
       return res.status(409).json({ success: false, error: `Duplicate of memory #${exists.id}` });
