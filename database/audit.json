@@ -1399,7 +1399,14 @@
       "action": "login",
       "meta": {},
       "createdAt": "2026-03-05T13:19:59.382Z"
+    },
+    {
+      "id": 173,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-05T13:50:27.299Z"
     }
   ],
-  "nextId": 173
+  "nextId": 174
 }
