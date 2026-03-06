@@ -1918,7 +1918,11 @@ overflow: hidden;
       try {
         await video.play();
         if (unmuteOverlay) unmuteOverlay.style.display = 'flex';
-      } catch (err2) { if (unmuteOverlay) { unmuteOverlay.style.display = "flex"; unmuteOverlay.innerHTML = "<div style=\"padding: 15px 30px; font-size: 1.5rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none;\">Tap to Play Intro</div>"; } }
+      } catch (err2) {
+ if (unmuteOverlay) {
+ unmuteOverlay.style.display = 'flex';
+ }
+ }
     }
     
     video.onended = () => skipIntro();
@@ -1930,13 +1934,21 @@ overflow: hidden;
   }
 
   function skipIntro() {
-    const overlay = document.getElementById('introVideoOverlay');
-    const video = document.getElementById('introVideo');
-    if (overlay) {
-      overlay.style.opacity = '0';
-      overlay.style.transition = 'opacity 0.5s ease';
-      setTimeout(() => { overlay.style.display = 'none'; overlay.classList.add('hidden'); }, 500);
-    }
+ const overlay = document.getElementById('introVideoOverlay');
+ const video = document.getElementById('introVideo');
+ if (overlay) {
+ overlay.style.opacity = '0';
+ overlay.style.transition = 'opacity 0.5s ease';
+ setTimeout(() => {
+ overlay.style.display = 'none';
+ overlay.classList.add('hidden');
+ }, 500);
+ }
+ if (video) {
+ video.pause();
+ video.currentTime = 0;
+ }
+}
     if (video) { video.pause(); video.currentTime = 0; 
           video.play().catch(e => console.log("Play failed:", e)); // Force play on tap} // Kept src intact so it works on refresh
   }

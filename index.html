@@ -1871,86 +1871,95 @@ overflow: hidden;
     
   function triggerConfetti() { const container = document.getElementById('confettiContainer'); if (!container) return; const colors = ['#D4AF37','#F4E5B2','#e94560','#7B2D8E','#4CAF50','#2196F3']; for (let i = 0; i < 80; i++) { const confetti = document.createElement('div'); confetti.className = 'confetti'; confetti.style.left = Math.random() * 100 + '%'; confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]; confetti.style.animationDelay = Math.random() * 1.5 + 's'; confetti.style.transform = `rotate(${Math.random() * 360}deg)`; container.appendChild(confetti); setTimeout(() => confetti.remove(), 4500); } }
 
-  // ═══════════════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════════
   // INTRO VIDEO
   // ═══════════════════════════════════════════════════════════════════════════════
-  
+
   window.forceUnmute = function() {
-      const video = document.getElementById('introVideo');
-      const overlay = document.getElementById('unmuteOverlay');
-      if (video) {
-          video.muted = false;
-          video.currentTime = 0; // Restart from the beginning so they hear it all
-          video.play().catch(e => console.log("Play failed:", e)); // Force play on tap
-      }
-      if (overlay) overlay.style.display = 'none';
+    const video = document.getElementById('introVideo');
+    const overlay = document.getElementById('unmuteOverlay');
+
+    if (video) {
+      video.muted = false;
+      video.currentTime = 0;
+      video.play().catch((e) => console.log('Play failed:', e));
+    }
+
+    if (overlay) overlay.style.display = 'none';
   };
 
   async function initIntroVideo() {
-  localStorage.removeItem("introSeen"); sessionStorage.removeItem("introSeen");
+    try {
+      localStorage.removeItem('introSeen');
+      sessionStorage.removeItem('introSeen');
+    } catch (e) {}
 
     const overlay = document.getElementById('introVideoOverlay');
     const video = document.getElementById('introVideo');
     const skipBtn = document.getElementById('skipIntroBtn');
     const unmuteOverlay = document.getElementById('unmuteOverlay');
-    
+
     if (!overlay || !video) return;
-    
+
     const introPath = state.settings.introVideoPath;
-    if (!introPath) { 
-        overlay.style.display = 'none'; 
-        overlay.classList.add('hidden'); 
-        return; 
+    if (!introPath) {
+      overlay.style.display = 'none';
+      overlay.classList.add('hidden');
+      return;
     }
-    
-    overlay.style.display = 'flex'; 
+
+    overlay.style.display = 'flex';
     overlay.classList.remove('hidden');
-    video.src = mediaUrl(('/uploads/' + introPath).replace('//', '/'));
-    
+    overlay.style.opacity = '1';
+
+    video.pause();
+    video.currentTime = 0;
+    video.src = mediaUrl(('/uploads/' + introPath).replace(/\/+/g, '/'));
+    video.load();
+
     try {
-      // 1. Try to autoplay WITH sound (works if user has visited site before)
-      video.muted = false; 
+      video.muted = false;
       await video.play();
       if (unmuteOverlay) unmuteOverlay.style.display = 'none';
     } catch (err) {
-      // 2. Browser blocked sound. Play muted, and show the Tap-to-Unmute screen
       video.muted = true;
       try {
         await video.play();
         if (unmuteOverlay) unmuteOverlay.style.display = 'flex';
       } catch (err2) {
- if (unmuteOverlay) {
- unmuteOverlay.style.display = 'flex';
- }
- }
+        if (unmuteOverlay) unmuteOverlay.style.display = 'flex';
+      }
     }
-    
+
     video.onended = () => skipIntro();
     video.onerror = () => skipIntro();
-    if (skipBtn) { 
-        skipBtn.onclick = (e) => { e.stopPropagation(); skipIntro(); };
-        if (state.settings.introHideSkip) skipBtn.style.display = 'none'; 
+
+    if (skipBtn) {
+      skipBtn.onclick = (e) => {
+        e.stopPropagation();
+        skipIntro();
+      };
+      skipBtn.style.display = state.settings.introHideSkip ? 'none' : '';
     }
   }
 
   function skipIntro() {
- const overlay = document.getElementById('introVideoOverlay');
- const video = document.getElementById('introVideo');
- if (overlay) {
- overlay.style.opacity = '0';
- overlay.style.transition = 'opacity 0.5s ease';
- setTimeout(() => {
- overlay.style.display = 'none';
- overlay.classList.add('hidden');
- }, 500);
- }
- if (video) {
- video.pause();
- video.currentTime = 0;
- }
-}
-    if (video) { video.pause(); video.currentTime = 0; 
-          video.play().catch(e => console.log("Play failed:", e)); // Force play on tap} // Kept src intact so it works on refresh
+    const overlay = document.getElementById('introVideoOverlay');
+    const video = document.getElementById('introVideo');
+
+    if (overlay) {
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        overlay.classList.add('hidden');
+      }, 500);
+    }
+
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════
