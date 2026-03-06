@@ -101,11 +101,6 @@
       "userId": "super"
     },
     {
-      "token": "admin-1772787042520-waa0ux42nm",
-      "expiresAt": "2026-03-07T08:50:42.520Z",
-      "userId": "techteam"
-    },
-    {
       "token": "admin-1772787069080-lix6seob6f",
       "expiresAt": "2026-03-07T08:51:09.080Z",
       "userId": "super"
@@ -114,6 +109,11 @@
       "token": "admin-1772787467051-r3r6knp2u6q",
       "expiresAt": "2026-03-07T08:57:47.051Z",
       "userId": "super"
+    },
+    {
+      "token": "admin-1772787865345-cbx7zw4h5ha",
+      "expiresAt": "2026-03-07T09:04:25.345Z",
+      "userId": "techteam"
     }
   ]
 }

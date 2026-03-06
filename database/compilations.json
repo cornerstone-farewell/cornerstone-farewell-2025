@@ -1,45 +1,4 @@
 {
-  "compilations": [
-    {
-      "id": 2,
-      "name": "Girls Gang!!!",
-      "slides": [
-        {
-          "memoryId": 183,
-          "caption": "",
-          "duration": 7
-        },
-        {
-          "memoryId": 184,
-          "caption": "",
-          "duration": 7
-        },
-        {
-          "memoryId": 186,
-          "caption": "",
-          "duration": 7
-        },
-        {
-          "memoryId": 177,
-          "caption": "",
-          "duration": 7
-        },
-        {
-          "memoryId": 179,
-          "caption": "",
-          "duration": 7
-        },
-        {
-          "memoryId": 71,
-          "caption": "",
-          "duration": 5
-        }
-      ],
-      "displayMode": "auto",
-      "transitionType": "fade",
-      "createdAt": "2026-03-06T08:57:51.690Z",
-      "updatedAt": "2026-03-06T08:59:59.843Z"
-    }
-  ],
+  "compilations": [],
   "nextId": 4
 }

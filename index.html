@@ -1821,6 +1821,8 @@ overflow: hidden;
   // ═══════════════════════════════════════════════════════════════════════════════
   // INTRO VIDEO
   // ═══════════════════════════════════════════════════════════════════════════════
+  // INTRO VIDEO
+  // ═══════════════════════════════════════════════════════════════════════════════
   
   async function initIntroVideo() {
     console.log("🎬 [VIDEO] Initializing smart video player...");
@@ -1846,31 +1848,26 @@ overflow: hidden;
     video.src = mediaUrl(safePath);
     
     try {
-      // ATTEMPT 1: Try to play WITH sound
       video.muted = false; 
       await video.play();
       console.log("🎬 [VIDEO] Playing with sound successfully!");
       if (unmuteBtn) unmuteBtn.style.display = 'none';
-      
     } catch (err) {
       console.warn("⚠️ [VIDEO] Browser blocked sound autoplay. Falling back to muted mode.");
-      
-      // ATTEMPT 2: Play muted to bypass browser block
       video.muted = true;
       try {
         await video.play();
-        // Show the unmute button so the user can activate the music
         if (unmuteBtn) {
           unmuteBtn.style.display = 'block';
           unmuteBtn.onclick = () => {
             video.muted = false;
-            video.currentTime = 0; // Restart from the beginning so they hear the full intro!
+            video.currentTime = 0;
             unmuteBtn.style.display = 'none';
           };
         }
       } catch (err2) {
         console.error("❌ [VIDEO] Failed completely:", err2);
-        skipIntro(); // Give up and show the website
+        skipIntro();
       }
     }
     
@@ -1896,12 +1893,88 @@ overflow: hidden;
     }
     if (video) {
         video.pause();
-        video.src = ""; // Free up memory
+        video.src = "";
     }
-  }, duration);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // COMPILATION PLAYER
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  let currentCompilation = null;
+  let currentSlideIndex = 0;
+  let compilationTimer = null;
+  
+  async function playCompilation(compilationId) {
+    try {
+      const res = await fetch(apiUrl('/api/compilations/' + compilationId));
+      const data = await res.json();
+      if (!data.success || !data.compilation) {
+        showNotification('error', 'Error', 'Could not load compilation');
+        return;
+      }
+      
+      currentCompilation = data.compilation;
+      currentSlideIndex = 0;
+      
+      renderCompilationSlides();
+      
+      const player = document.getElementById('compilationPlayer');
+      if (player) player.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      showCompilationSlide(0);
+    } catch (e) {
+      showNotification('error', 'Error', e.message);
     }
   }
   
+  function renderCompilationSlides() {
+    const container = document.getElementById('compilationSlides');
+    const progress = document.getElementById('compilationProgress');
+    if (!container || !currentCompilation) return;
+    
+    const transClass = 'trans-' + (currentCompilation.transitionType || 'fade');
+    
+    container.innerHTML = currentCompilation.slides.map((slide, i) => {
+      const memory = state.memories.find(m => m.id === slide.memoryId);
+      const imgUrl = memory ? memory.file_url : '';
+      return '<div class="compilation-slide ' + transClass + '" data-index="' + i + '">' +
+        '<img src="' + imgUrl + '" alt="" />' +
+        (slide.caption ? '<div class="compilation-caption">' + escapeHtml(slide.caption) + '</div>' : '') +
+        '</div>';
+    }).join('');
+    
+    progress.innerHTML = currentCompilation.slides.map((_, i) =>
+      '<div class="compilation-dot" onclick="goToCompilationSlide(' + i + ')"></div>'
+    ).join('');
+  }
+  
+  function showCompilationSlide(index) {
+    if (!currentCompilation) return;
+    
+    currentSlideIndex = index;
+    const slides = document.querySelectorAll('.compilation-slide');
+    const dots = document.querySelectorAll('.compilation-dot');
+    
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    
+    if (compilationTimer) clearTimeout(compilationTimer);
+    
+    if (currentCompilation.displayMode === 'auto') {
+      const duration = (currentCompilation.slides[index]?.duration || 5) * 1000;
+      compilationTimer = setTimeout(() => {
+        if (currentSlideIndex < currentCompilation.slides.length - 1) {
+          showCompilationSlide(currentSlideIndex + 1);
+        } else {
+          closeCompilationPlayer();
+        }
+      }, duration);
+    }
+  }
+
+  function nextCompilationSlide() {
   function nextCompilationSlide() {
     if (!currentCompilation) return;
     const next = (currentSlideIndex + 1) % currentCompilation.slides.length;

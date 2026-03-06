@@ -1,48 +1,195 @@
 #!/usr/bin/env python3
 """
-fix_final_tweaks.py - Unmutes the video by default and fixes Compilation image limits.
+fix_syntax_error.py - Repairs the corrupted skipIntro and Compilation Timer functions
 """
 
 import re
 
-def apply_fixes():
+def fix_syntax():
     with open('index.html', 'r', encoding='utf-8') as f:
         content = f.read()
 
-    modified = False
-
-    # 1. FIX THE VIDEO HTML (Remove 'muted' attribute)
-    target_video = '<video id="introVideo" class="intro-video" autoplay muted playsinline></video>'
-    replace_video = '<video id="introVideo" class="intro-video" autoplay playsinline></video>'
+    # The clean, perfectly formatted version of the Video + Player code
+    clean_code = """
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // INTRO VIDEO
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  async function initIntroVideo() {
+    console.log("🎬 [VIDEO] Initializing smart video player...");
     
-    if target_video in content:
-        content = content.replace(target_video, replace_video)
-        print("✅ Removed hardcoded 'muted' attribute from video tag")
-        modified = True
-    elif 'autoplay playsinline' in content:
-        print("ℹ️ Video tag already unmuted")
-
-    # 2. FIX THE COMPILATION LIMIT (Change to Admin API, Limit 5000)
-    # We use regex to find the old fetch line because the limit number might vary
-    old_fetch_pattern = re.compile(r"const res = await fetch\(apiUrl\('/api/memories\?limit=\d+'\)\);")
+    const overlay = document.getElementById('introVideoOverlay');
+    const video = document.getElementById('introVideo');
+    const skipBtn = document.getElementById('skipIntroBtn');
+    const unmuteBtn = document.getElementById('unmuteIntroBtn');
     
-    new_fetch = """const res = await fetch(apiUrl('/api/admin/memories?limit=5000&filter=approved'), {
-        headers: { 'Authorization': 'Bearer ' + state.adminToken }
-      });"""
+    if (!overlay || !video) return;
+    
+    const introPath = state.settings.introVideoPath;
+    if (!introPath) {
+      overlay.style.display = 'none';
+      overlay.classList.add('hidden');
+      return;
+    }
+    
+    overlay.style.display = 'flex';
+    overlay.classList.remove('hidden');
+    
+    const safePath = ('/uploads/' + introPath).replace('//', '/');
+    video.src = mediaUrl(safePath);
+    
+    try {
+      video.muted = false; 
+      await video.play();
+      console.log("🎬 [VIDEO] Playing with sound successfully!");
+      if (unmuteBtn) unmuteBtn.style.display = 'none';
+    } catch (err) {
+      console.warn("⚠️ [VIDEO] Browser blocked sound autoplay. Falling back to muted mode.");
+      video.muted = true;
+      try {
+        await video.play();
+        if (unmuteBtn) {
+          unmuteBtn.style.display = 'block';
+          unmuteBtn.onclick = () => {
+            video.muted = false;
+            video.currentTime = 0;
+            unmuteBtn.style.display = 'none';
+          };
+        }
+      } catch (err2) {
+        console.error("❌ [VIDEO] Failed completely:", err2);
+        skipIntro();
+      }
+    }
+    
+    video.onended = () => skipIntro();
+    video.onerror = () => skipIntro();
+    
+    if (skipBtn) {
+      skipBtn.onclick = skipIntro;
+      if (state.settings.introHideSkip) skipBtn.style.display = 'none';
+    }
+  }
 
-    if old_fetch_pattern.search(content):
-        content = old_fetch_pattern.sub(new_fetch, content)
-        print("✅ Upgraded Compilation selector to load up to 5000 images")
-        modified = True
-    elif 'limit=5000' in content:
-        print("ℹ️ Compilation limit already upgraded")
+  function skipIntro() {
+    const overlay = document.getElementById('introVideoOverlay');
+    const video = document.getElementById('introVideo');
+    if (overlay) {
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => { 
+        overlay.style.display = 'none'; 
+        overlay.classList.add('hidden'); 
+      }, 500);
+    }
+    if (video) {
+        video.pause();
+        video.src = "";
+    }
+  }
 
-    if modified:
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // COMPILATION PLAYER
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  let currentCompilation = null;
+  let currentSlideIndex = 0;
+  let compilationTimer = null;
+  
+  async function playCompilation(compilationId) {
+    try {
+      const res = await fetch(apiUrl('/api/compilations/' + compilationId));
+      const data = await res.json();
+      if (!data.success || !data.compilation) {
+        showNotification('error', 'Error', 'Could not load compilation');
+        return;
+      }
+      
+      currentCompilation = data.compilation;
+      currentSlideIndex = 0;
+      
+      renderCompilationSlides();
+      
+      const player = document.getElementById('compilationPlayer');
+      if (player) player.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      showCompilationSlide(0);
+    } catch (e) {
+      showNotification('error', 'Error', e.message);
+    }
+  }
+  
+  function renderCompilationSlides() {
+    const container = document.getElementById('compilationSlides');
+    const progress = document.getElementById('compilationProgress');
+    if (!container || !currentCompilation) return;
+    
+    const transClass = 'trans-' + (currentCompilation.transitionType || 'fade');
+    
+    container.innerHTML = currentCompilation.slides.map((slide, i) => {
+      const memory = state.memories.find(m => m.id === slide.memoryId);
+      const imgUrl = memory ? memory.file_url : '';
+      return '<div class="compilation-slide ' + transClass + '" data-index="' + i + '">' +
+        '<img src="' + imgUrl + '" alt="" />' +
+        (slide.caption ? '<div class="compilation-caption">' + escapeHtml(slide.caption) + '</div>' : '') +
+        '</div>';
+    }).join('');
+    
+    progress.innerHTML = currentCompilation.slides.map((_, i) =>
+      '<div class="compilation-dot" onclick="goToCompilationSlide(' + i + ')"></div>'
+    ).join('');
+  }
+  
+  function showCompilationSlide(index) {
+    if (!currentCompilation) return;
+    
+    currentSlideIndex = index;
+    const slides = document.querySelectorAll('.compilation-slide');
+    const dots = document.querySelectorAll('.compilation-dot');
+    
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    
+    if (compilationTimer) clearTimeout(compilationTimer);
+    
+    if (currentCompilation.displayMode === 'auto') {
+      const duration = (currentCompilation.slides[index]?.duration || 5) * 1000;
+      compilationTimer = setTimeout(() => {
+        if (currentSlideIndex < currentCompilation.slides.length - 1) {
+          showCompilationSlide(currentSlideIndex + 1);
+        } else {
+          closeCompilationPlayer();
+        }
+      }, duration);
+    }
+  }
+
+  function nextCompilationSlide() {
+"""
+
+    # We will locate the broken block using regex boundaries
+    # From "async function initIntroVideo()" down to just before "function nextCompilationSlide()"
+    start_match = re.search(r'async function initIntroVideo\(\)', content)
+    end_match = re.search(r'function nextCompilationSlide\(\)\s*\{', content)
+
+    if start_match and end_match:
+        # Move start_idx back a bit to catch the comments
+        start_idx = content.rfind('// ════', 0, start_match.start())
+        if start_idx == -1: start_idx = start_match.start()
+        
+        end_idx = end_match.start()
+        
+        # Splice the clean code into the file
+        new_content = content[:start_idx] + clean_code.strip() + '\n  function nextCompilationSlide() {' + content[end_idx + len('function nextCompilationSlide() {'):]
+        
         with open('index.html', 'w', encoding='utf-8') as f:
-            f.write(content)
-        print("\n🎉 DONE! Please Hard-Refresh your browser (Ctrl+Shift+R)!")
+            f.write(new_content)
+            
+        print("✅ Successfully repaired the corrupted JavaScript block!")
+        print("⚠️ ACTION REQUIRED: Hard-Refresh your browser (Ctrl+Shift+R).")
     else:
-        print("\nℹ️ No changes made (Code already patched or targets not found).")
+        print("❌ Could not find the boundaries. Please ensure you didn't manually delete 'initIntroVideo' or 'nextCompilationSlide'.")
 
 if __name__ == '__main__':
-    apply_fixes()
+    fix_syntax()
