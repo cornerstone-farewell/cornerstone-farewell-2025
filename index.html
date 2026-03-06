@@ -485,6 +485,9 @@
 
     <style id="cornerstone-patch-css">
       /* Intro Video Overlay */
+      .unmute-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 30px; font-size: 1.2rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border: none; border-radius: 30px; cursor: pointer; z-index: 15; box-shadow: 0 4px 20px rgba(0,0,0,0.5); animation: pulseBtn 2s infinite; display: none; }
+      @keyframes pulseBtn { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
+
       .intro-video-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
       .intro-video-overlay.hidden { display: none !important; }
       .intro-video { width: 100%; height: 100%; object-fit: cover; }
@@ -549,7 +552,7 @@
   
   <!-- Intro Video Overlay -->
   <div id="introVideoOverlay" class="intro-video-overlay">
-    <video id="introVideo" class="intro-video" autoplay muted playsinline></video>
+    <video id="introVideo" class="intro-video" autoplay playsinline></video>
     <button id="skipIntroBtn" class="skip-intro-btn">Skip →</button>
     <button id="toggleIntroControls" class="toggle-intro-controls" style="display:none;">⚙</button>
   </div>
@@ -1820,13 +1823,15 @@ overflow: hidden;
   // ═══════════════════════════════════════════════════════════════════════════════
   
   async function initIntroVideo() {
+    console.log("🎬 [VIDEO] Initializing smart video player...");
+    
     const overlay = document.getElementById('introVideoOverlay');
     const video = document.getElementById('introVideo');
     const skipBtn = document.getElementById('skipIntroBtn');
+    const unmuteBtn = document.getElementById('unmuteIntroBtn');
     
     if (!overlay || !video) return;
     
-    // Check if intro video is configured
     const introPath = state.settings.introVideoPath;
     if (!introPath) {
       overlay.style.display = 'none';
@@ -1834,106 +1839,66 @@ overflow: hidden;
       return;
     }
     
-    video.src = mediaUrl('/uploads/' + introPath);
+    overlay.style.display = 'flex';
+    overlay.classList.remove('hidden');
+    
+    const safePath = ('/uploads/' + introPath).replace('//', '/');
+    video.src = mediaUrl(safePath);
+    
+    try {
+      // ATTEMPT 1: Try to play WITH sound
+      video.muted = false; 
+      await video.play();
+      console.log("🎬 [VIDEO] Playing with sound successfully!");
+      if (unmuteBtn) unmuteBtn.style.display = 'none';
+      
+    } catch (err) {
+      console.warn("⚠️ [VIDEO] Browser blocked sound autoplay. Falling back to muted mode.");
+      
+      // ATTEMPT 2: Play muted to bypass browser block
+      video.muted = true;
+      try {
+        await video.play();
+        // Show the unmute button so the user can activate the music
+        if (unmuteBtn) {
+          unmuteBtn.style.display = 'block';
+          unmuteBtn.onclick = () => {
+            video.muted = false;
+            video.currentTime = 0; // Restart from the beginning so they hear the full intro!
+            unmuteBtn.style.display = 'none';
+          };
+        }
+      } catch (err2) {
+        console.error("❌ [VIDEO] Failed completely:", err2);
+        skipIntro(); // Give up and show the website
+      }
+    }
     
     video.onended = () => skipIntro();
     video.onerror = () => skipIntro();
     
-    skipBtn.onclick = skipIntro;
-    
-    // Auto-hide skip button option
-    if (state.settings.introHideSkip) {
-      skipBtn.style.display = 'none';
+    if (skipBtn) {
+      skipBtn.onclick = skipIntro;
+      if (state.settings.introHideSkip) skipBtn.style.display = 'none';
     }
   }
-  
+
   function skipIntro() {
     const overlay = document.getElementById('introVideoOverlay');
     const video = document.getElementById('introVideo');
     if (overlay) {
       overlay.style.opacity = '0';
       overlay.style.transition = 'opacity 0.5s ease';
-      setTimeout(() => { overlay.style.display = 'none'; overlay.classList.add('hidden'); }, 500);
+      setTimeout(() => { 
+        overlay.style.display = 'none'; 
+        overlay.classList.add('hidden'); 
+      }, 500);
     }
-    if (video) video.pause();
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // COMPILATION PLAYER
-  // ═══════════════════════════════════════════════════════════════════════════════
-  
-  let currentCompilation = null;
-  let currentSlideIndex = 0;
-  let compilationTimer = null;
-  
-  async function playCompilation(compilationId) {
-    try {
-      const res = await fetch(apiUrl('/api/compilations/' + compilationId));
-      const data = await res.json();
-      if (!data.success || !data.compilation) {
-        showNotification('error', 'Error', 'Could not load compilation');
-        return;
-      }
-      
-      currentCompilation = data.compilation;
-      currentSlideIndex = 0;
-      
-      renderCompilationSlides();
-      
-      const player = document.getElementById('compilationPlayer');
-      if (player) player.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      
-      showCompilationSlide(0);
-    } catch (e) {
-      showNotification('error', 'Error', e.message);
+    if (video) {
+        video.pause();
+        video.src = ""; // Free up memory
     }
-  }
-  
-  function renderCompilationSlides() {
-    const container = document.getElementById('compilationSlides');
-    const progress = document.getElementById('compilationProgress');
-    if (!container || !currentCompilation) return;
-    
-    const transClass = 'trans-' + (currentCompilation.transitionType || 'fade');
-    
-    container.innerHTML = currentCompilation.slides.map((slide, i) => {
-      const memory = state.memories.find(m => m.id === slide.memoryId);
-      const imgUrl = memory ? memory.file_url : '';
-      return '<div class="compilation-slide ' + transClass + '" data-index="' + i + '">' +
-        '<img src="' + imgUrl + '" alt="" />' +
-        (slide.caption ? '<div class="compilation-caption">' + escapeHtml(slide.caption) + '</div>' : '') +
-        '</div>';
-    }).join('');
-    
-    progress.innerHTML = currentCompilation.slides.map((_, i) =>
-      '<div class="compilation-dot" onclick="goToCompilationSlide(' + i + ')"></div>'
-    ).join('');
-  }
-  
-  function showCompilationSlide(index) {
-    if (!currentCompilation) return;
-    
-    currentSlideIndex = index;
-    const slides = document.querySelectorAll('.compilation-slide');
-    const dots = document.querySelectorAll('.compilation-dot');
-    
-    slides.forEach((s, i) => s.classList.toggle('active', i === index));
-    dots.forEach((d, i) => d.classList.toggle('active', i === index));
-    
-    // Clear existing timer
-    if (compilationTimer) clearTimeout(compilationTimer);
-    
-    // Auto-advance if in auto mode
-    if (currentCompilation.displayMode === 'auto') {
-      const duration = (currentCompilation.slides[index]?.duration || 5) * 1000;
-      compilationTimer = setTimeout(() => {
-        if (currentSlideIndex < currentCompilation.slides.length - 1) {
-          showCompilationSlide(currentSlideIndex + 1);
-        } else {
-          closeCompilationPlayer();
-        }
-      }, duration);
+  }, duration);
     }
   }
   
@@ -2079,7 +2044,9 @@ overflow: hidden;
     
     // Load approved memories for selection
     try {
-      const res = await fetch(apiUrl('/api/memories?limit=200'));
+      const res = await fetch(apiUrl('/api/admin/memories?limit=5000&filter=approved'), {
+        headers: { 'Authorization': 'Bearer ' + state.adminToken }
+      });
       const data = await res.json();
       if (!data.success) return;
       

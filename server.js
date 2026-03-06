@@ -293,6 +293,13 @@ const upload = multer({
   fileFilter
 });
 
+// 🚀 Special Admin Upload Instance: 2GB per file limit, up to 100 files
+const adminUpload = multer({
+  storage,
+  limits: { fileSize: 2000 * 1024 * 1024, files: 100 }, // 2000 MB
+  fileFilter
+});
+
 const checkTotalSize = (req, res, next) => {
   if (req.files && req.files.length > 0) {
     const totalSize = req.files.reduce((sum, file) => sum + file.size, 0);
@@ -1244,7 +1251,7 @@ app.post('/api/admin/bulk', (req, res) => {
 
 
 // Admin Batch Upload (Skips duplicate checks, profanity filters, and time windows)
-app.post('/api/admin/upload-batch', upload.array('files', MAX_FILES), checkTotalSize, (req, res) => {
+app.post('/api/admin/upload-batch', adminUpload.array('files', 100), (req, res) => {
   try {
     const auth = requireAdmin(req, res);
     if (!auth) return;
@@ -1751,7 +1758,7 @@ app.post('/api/admin/comments/:id', (req, res) => {
 });
 
 // Upload intro video (admin)
-app.post('/api/admin/upload-intro-video', upload.single('video'), (req, res) => {
+app.post('/api/admin/upload-intro-video', adminUpload.single('video'), (req, res) => {
   try {
     const auth = requireAdmin(req, res);
     if (!auth) return;
