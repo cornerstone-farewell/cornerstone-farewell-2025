@@ -98,6 +98,7 @@
       "glassBorder": "rgba(255, 255, 255, 0.2)",
       "successGreen": "#4CAF50",
       "errorRed": "#f44336"
-    }
+    },
+    "introHideSkip": false
   }
 }
