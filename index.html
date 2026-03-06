@@ -553,7 +553,11 @@
   <!-- Intro Video Overlay -->
   <div id="introVideoOverlay" class="intro-video-overlay">
     <video id="introVideo" class="intro-video" autoplay playsinline></video>
-    <button id="skipIntroBtn" class="skip-intro-btn">Skip →</button>
+    
+    <div id="unmuteOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 15; display: none; align-items: center; justify-content: center; cursor: pointer; background: rgba(0,0,0,0.3);" onclick="forceUnmute()">
+        <div style="padding: 15px 30px; font-size: 1.5rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none;">🔊 Tap Anywhere for Sound</div>
+    </div>
+    <button id="skipIntroBtn" class="skip-intro-btn" style="z-index: 20;">Skip →</button>
     <button id="toggleIntroControls" class="toggle-intro-controls" style="display:none;">⚙</button>
   </div>
 
@@ -1821,17 +1825,23 @@ overflow: hidden;
   // ═══════════════════════════════════════════════════════════════════════════════
   // INTRO VIDEO
   // ═══════════════════════════════════════════════════════════════════════════════
-  // INTRO VIDEO
-  // ═══════════════════════════════════════════════════════════════════════════════
   
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // INTRO VIDEO
-  // ═══════════════════════════════════════════════════════════════════════════════
+  window.forceUnmute = function() {
+      const video = document.getElementById('introVideo');
+      const overlay = document.getElementById('unmuteOverlay');
+      if (video) {
+          video.muted = false;
+          video.currentTime = 0; // Restart from the beginning so they hear it all
+      }
+      if (overlay) overlay.style.display = 'none';
+  };
+
   async function initIntroVideo() {
     const overlay = document.getElementById('introVideoOverlay');
     const video = document.getElementById('introVideo');
     const skipBtn = document.getElementById('skipIntroBtn');
-    const unmuteBtn = document.getElementById('unmuteIntroBtn');
+    const unmuteOverlay = document.getElementById('unmuteOverlay');
+    
     if (!overlay || !video) return;
     
     const introPath = state.settings.introVideoPath;
@@ -1846,28 +1856,25 @@ overflow: hidden;
     video.src = mediaUrl(('/uploads/' + introPath).replace('//', '/'));
     
     try {
+      // 1. Try to autoplay WITH sound (works if user has visited site before)
       video.muted = false; 
       await video.play();
-      if (unmuteBtn) unmuteBtn.style.display = 'none';
+      if (unmuteOverlay) unmuteOverlay.style.display = 'none';
     } catch (err) {
+      // 2. Browser blocked sound. Play muted, and show the Tap-to-Unmute screen
       video.muted = true;
       try {
         await video.play();
-        if (unmuteBtn) {
-          unmuteBtn.style.display = 'block';
-          unmuteBtn.onclick = () => { 
-              video.muted = false; 
-              video.currentTime = 0; 
-              unmuteBtn.style.display = 'none'; 
-          };
-        }
-      } catch (err2) { skipIntro(); }
+        if (unmuteOverlay) unmuteOverlay.style.display = 'flex';
+      } catch (err2) { 
+        skipIntro(); 
+      }
     }
     
     video.onended = () => skipIntro();
     video.onerror = () => skipIntro();
     if (skipBtn) { 
-        skipBtn.onclick = skipIntro; 
+        skipBtn.onclick = (e) => { e.stopPropagation(); skipIntro(); };
         if (state.settings.introHideSkip) skipBtn.style.display = 'none'; 
     }
   }
