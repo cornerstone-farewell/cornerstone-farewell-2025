@@ -1530,7 +1530,56 @@ overflow: hidden;
 
   <div class="confetti-container" id="confettiContainer"></div>
 
-  <!-- Compilation Player -->
+  
+<!-- Compilation Creator Modal -->
+<div class="compilation-modal" id="compilationCreatorModal">
+  <div class="compilation-modal-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2 style="color:var(--primary-gold); font-family:var(--font-display);">Compilation Creator</h2>
+      <button class="admin-btn admin-btn-secondary" onclick="closeCompilationCreator()">Close</button>
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom:20px;">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" class="form-input" id="compName" placeholder="Farewell Highlights" />
+      </div>
+      <div class="form-group">
+        <label>Display Mode</label>
+        <select class="form-select" id="compDisplayMode">
+          <option value="auto">Auto (Slideshow)</option>
+          <option value="manual">Manual (Arrows)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Transition</label>
+        <select class="form-select" id="compTransition">
+          <option value="fade">Fade</option>
+          <option value="slide">Slide</option>
+          <option value="zoom">Zoom</option>
+          <option value="flip">Flip</option>
+          <option value="blur">Blur</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Default Duration (sec)</label>
+        <input type="number" class="form-input" id="compDefaultDuration" value="5" min="1" max="60" />
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns: 1fr; gap:20px;">
+      <div>
+        <h3 style="color:var(--primary-gold); margin-bottom:10px;">Select Photos</h3>
+        <div class="compilation-photo-grid" id="compPhotoGrid"></div>
+      </div>
+      <div>
+        <h3 style="color:var(--primary-gold); margin-bottom:10px;">Slides Sequence</h3>
+        <div class="compilation-slides-preview" id="compSlidesPreview" style="flex-wrap:wrap; display:flex;"></div>
+        <button class="admin-btn admin-btn-primary" style="width:100%; justify-content:center; margin-top:20px;" onclick="saveCompilation()">Save Compilation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Compilation Player -->
   <div class="compilation-player-overlay" id="compilationPlayer">
     <button class="compilation-close" onclick="closeCompilationPlayer()">✕</button>
     <button class="compilation-nav-btn compilation-prev" onclick="prevCompilationSlide()">❮</button>
@@ -1832,11 +1881,14 @@ overflow: hidden;
       if (video) {
           video.muted = false;
           video.currentTime = 0; // Restart from the beginning so they hear it all
+          video.play().catch(e => console.log("Play failed:", e)); // Force play on tap
       }
       if (overlay) overlay.style.display = 'none';
   };
 
   async function initIntroVideo() {
+  localStorage.removeItem("introSeen"); sessionStorage.removeItem("introSeen");
+
     const overlay = document.getElementById('introVideoOverlay');
     const video = document.getElementById('introVideo');
     const skipBtn = document.getElementById('skipIntroBtn');
@@ -1866,9 +1918,7 @@ overflow: hidden;
       try {
         await video.play();
         if (unmuteOverlay) unmuteOverlay.style.display = 'flex';
-      } catch (err2) { 
-        skipIntro(); 
-      }
+      } catch (err2) { if (unmuteOverlay) { unmuteOverlay.style.display = "flex"; unmuteOverlay.innerHTML = "<div style=\"padding: 15px 30px; font-size: 1.5rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none;\">Tap to Play Intro</div>"; } }
     }
     
     video.onended = () => skipIntro();
@@ -1887,7 +1937,8 @@ overflow: hidden;
       overlay.style.transition = 'opacity 0.5s ease';
       setTimeout(() => { overlay.style.display = 'none'; overlay.classList.add('hidden'); }, 500);
     }
-    if (video) { video.pause(); video.src = ""; }
+    if (video) { video.pause(); video.currentTime = 0; 
+          video.play().catch(e => console.log("Play failed:", e)); // Force play on tap} // Kept src intact so it works on refresh
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════

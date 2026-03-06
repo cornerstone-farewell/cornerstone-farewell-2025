@@ -1,21 +1,6 @@
 {
   "sessions": [
     {
-      "token": "admin-1772702286091-xtf963ls7s",
-      "expiresAt": "2026-03-06T09:18:06.091Z",
-      "userId": "techteam"
-    },
-    {
-      "token": "admin-1772706489658-3ohal232ywj",
-      "expiresAt": "2026-03-06T10:28:09.658Z",
-      "userId": "techteam"
-    },
-    {
-      "token": "admin-1772707100129-demedqo6jap",
-      "expiresAt": "2026-03-06T10:38:20.129Z",
-      "userId": "super"
-    },
-    {
       "token": "admin-1772723832596-3nwpk8cesgm",
       "expiresAt": "2026-03-06T15:17:12.596Z",
       "userId": "techteam"
@@ -51,11 +36,6 @@
       "userId": "techteam"
     },
     {
-      "token": "admin-1772786054514-yewqwxab2ba",
-      "expiresAt": "2026-03-07T08:34:14.514Z",
-      "userId": "techteam"
-    },
-    {
       "token": "admin-1772786084935-mx01y27neid",
       "expiresAt": "2026-03-07T08:34:44.935Z",
       "userId": "super"
@@ -63,11 +43,6 @@
     {
       "token": "admin-1772786344882-xdzu69qflsc",
       "expiresAt": "2026-03-07T08:39:04.882Z",
-      "userId": "techteam"
-    },
-    {
-      "token": "admin-1772786638376-h9wtedq98qe",
-      "expiresAt": "2026-03-07T08:43:58.376Z",
       "userId": "techteam"
     },
     {
@@ -86,11 +61,6 @@
       "userId": "techteam"
     },
     {
-      "token": "admin-1772786883542-hz5chxqgva9",
-      "expiresAt": "2026-03-07T08:48:03.542Z",
-      "userId": "techteam"
-    },
-    {
       "token": "admin-1772787021742-6hg5s75b69o",
       "expiresAt": "2026-03-07T08:50:21.742Z",
       "userId": "techteam"
@@ -101,23 +71,33 @@
       "userId": "super"
     },
     {
-      "token": "admin-1772787069080-lix6seob6f",
-      "expiresAt": "2026-03-07T08:51:09.080Z",
-      "userId": "super"
-    },
-    {
-      "token": "admin-1772787467051-r3r6knp2u6q",
-      "expiresAt": "2026-03-07T08:57:47.051Z",
-      "userId": "super"
-    },
-    {
       "token": "admin-1772787865345-cbx7zw4h5ha",
       "expiresAt": "2026-03-07T09:04:25.345Z",
       "userId": "techteam"
     },
     {
-      "token": "admin-1772788332498-d0ycnpbw82q",
-      "expiresAt": "2026-03-07T09:12:12.498Z",
+      "token": "admin-1772788591191-6id1w01hqt9",
+      "expiresAt": "2026-03-07T09:16:31.191Z",
+      "userId": "techteam"
+    },
+    {
+      "token": "admin-1772788614613-7lpbxmu5b1b",
+      "expiresAt": "2026-03-07T09:16:54.613Z",
+      "userId": "techteam"
+    },
+    {
+      "token": "admin-1772788731891-wi9ane5u2n",
+      "expiresAt": "2026-03-07T09:18:51.891Z",
+      "userId": "super"
+    },
+    {
+      "token": "admin-1772789040713-kjhq5g1yyr",
+      "expiresAt": "2026-03-07T09:24:00.713Z",
+      "userId": "techteam"
+    },
+    {
+      "token": "admin-1772789390660-lphqtf9yjxb",
+      "expiresAt": "2026-03-07T09:29:50.660Z",
       "userId": "techteam"
     }
   ]
