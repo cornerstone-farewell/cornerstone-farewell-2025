@@ -5736,7 +5736,14 @@
       "action": "login",
       "meta": {},
       "createdAt": "2026-03-06T11:59:57.316Z"
+    },
+    {
+      "id": 668,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-06T12:47:26.317Z"
     }
   ],
-  "nextId": 668
+  "nextId": 669
 }
