@@ -3442,7 +3442,7 @@
       "id": 196,
       "student_name": "Four grads + the real Bio boss!",
       "caption": "MITOCHONDRIA IS THE POWERHOUSE OF THE CELL.",
-      "memory_type": "Academics",
+      "memory_type": "Fun moments",
       "file_path": "1772787565193-223084232-WhatsApp_Image_2026-03-04_at_8.46.12_AM__39_.jpeg",
       "file_name": "WhatsApp Image 2026-03-04 at 8.46.12 AM (39).jpeg",
       "file_type": "image",
@@ -3454,7 +3454,7 @@
       "deletedAt": null,
       "purgedAt": null,
       "created_at": "2026-03-06T08:59:25.217Z",
-      "updated_at": "2026-03-06T09:24:20.646Z"
+      "updated_at": "2026-03-06T14:03:24.765Z"
     },
     {
       "id": 197,
@@ -3496,7 +3496,7 @@
       "id": 199,
       "student_name": "The people who made school unforgettable",
       "caption": "FRIEND GROUP",
-      "memory_type": "Other",
+      "memory_type": "Friends",
       "file_path": "1772787622822-97723335-WhatsApp_Image_2026-03-04_at_8.46.12_AM__44_.jpeg",
       "file_name": "WhatsApp Image 2026-03-04 at 8.46.12 AM (44).jpeg",
       "file_type": "image",
@@ -3508,13 +3508,13 @@
       "deletedAt": null,
       "purgedAt": null,
       "created_at": "2026-03-06T09:00:22.847Z",
-      "updated_at": "2026-03-06T09:23:39.813Z"
+      "updated_at": "2026-03-06T14:03:14.109Z"
     },
     {
       "id": 200,
       "student_name": "Yoo, we did it!",
       "caption": "Just the two of us, sharing laughs, memories, and moments that will last a lifetime. Best friends, partners in crime, and forever duo",
-      "memory_type": "Sports",
+      "memory_type": "Fun Moments",
       "file_path": "1772787635016-803283860-WhatsApp_Image_2026-03-04_at_8.46.12_AM__46_.jpeg",
       "file_name": "WhatsApp Image 2026-03-04 at 8.46.12 AM (46).jpeg",
       "file_type": "image",
@@ -3526,13 +3526,13 @@
       "deletedAt": null,
       "purgedAt": null,
       "created_at": "2026-03-06T09:00:35.117Z",
-      "updated_at": "2026-03-06T09:24:00.985Z"
+      "updated_at": "2026-03-06T14:03:03.307Z"
     },
     {
       "id": 201,
       "student_name": "*smirk smirk*",
       "caption": ".",
-      "memory_type": "Academics",
+      "memory_type": "Others",
       "file_path": "1772788038142-388319132-WhatsApp_Image_2026-03-03_at_8.00.00_PM__2_.jpeg",
       "file_name": "WhatsApp Image 2026-03-03 at 8.00.00 PM (2).jpeg",
       "file_type": "image",
@@ -3544,7 +3544,7 @@
       "deletedAt": null,
       "purgedAt": null,
       "created_at": "2026-03-06T09:07:18.232Z",
-      "updated_at": "2026-03-06T09:33:34.679Z"
+      "updated_at": "2026-03-06T14:03:08.717Z"
     }
   ],
   "nextId": 202

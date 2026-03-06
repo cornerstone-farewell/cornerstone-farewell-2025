@@ -1,4 +1,40 @@
 {
-  "compilations": [],
-  "nextId": 4
+  "compilations": [
+    {
+      "id": 4,
+      "name": "Farewell Highlights",
+      "slides": [
+        {
+          "memoryId": 185,
+          "caption": "",
+          "duration": 5
+        },
+        {
+          "memoryId": 184,
+          "caption": "",
+          "duration": 5
+        },
+        {
+          "memoryId": 183,
+          "caption": "",
+          "duration": 5
+        },
+        {
+          "memoryId": 182,
+          "caption": "",
+          "duration": 5
+        },
+        {
+          "memoryId": 176,
+          "caption": "",
+          "duration": 5
+        }
+      ],
+      "displayMode": "auto",
+      "transitionType": "fade",
+      "createdAt": "2026-03-06T13:52:58.878Z",
+      "updatedAt": "2026-03-06T13:52:58.878Z"
+    }
+  ],
+  "nextId": 5
 }
