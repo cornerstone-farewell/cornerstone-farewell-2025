@@ -482,14 +482,82 @@
       .countdown-number { font-size: 2.5rem; }
     }
   </style>
+
+    <style id="cornerstone-patch-css">
+      /* Intro Video Overlay */
+      .unmute-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 30px; font-size: 1.2rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border: none; border-radius: 30px; cursor: pointer; z-index: 15; box-shadow: 0 4px 20px rgba(0,0,0,0.5); animation: pulseBtn 2s infinite; display: none; }
+      @keyframes pulseBtn { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
+
+      .intro-video-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+      .intro-video-overlay.hidden { display: none !important; }
+      .intro-video { width: 100%; height: 100%; object-fit: cover; }
+      .skip-intro-btn { position: absolute; top: 20px; right: 20px; padding: 12px 24px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 25px; cursor: pointer; font-family: var(--font-body); font-size: 0.95rem; backdrop-filter: blur(10px); transition: var(--transition-smooth); z-index: 10; }
+      .skip-intro-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+      .toggle-intro-controls { position: absolute; bottom: 20px; right: 20px; padding: 10px 15px; background: rgba(0,0,0,0.5); border: none; color: white; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+      
+      /* Compilations */
+      .compilation-player-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 8000; display: none; align-items: center; justify-content: center; }
+      .compilation-player-overlay.active { display: flex !important; }
+      .compilation-slide { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; opacity: 0; transition: opacity 0.8s ease, transform 0.8s ease; pointer-events: none; }
+      .compilation-slide.active { opacity: 1; pointer-events: auto; }
+      .compilation-slide img { max-width: 90%; max-height: 80vh; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+      .compilation-caption { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); padding: 16px 32px; border-radius: 20px; color: white; font-size: 1.3rem; max-width: 85%; text-align: center; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+      .compilation-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; transition: var(--transition-smooth); display: flex; align-items: center; justify-content: center; }
+      .compilation-nav-btn:hover { background: var(--primary-gold); color: var(--navy-dark); }
+      .compilation-prev { left: 30px; }
+      .compilation-next { right: 30px; }
+      .compilation-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; z-index: 8001;}
+      .compilation-close:hover { background: rgba(244,67,54,0.8); }
+      .compilation-progress { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
+      .compilation-dot { width: 12px; height: 12px; background: rgba(255,255,255,0.3); border-radius: 50%; cursor: pointer; transition: var(--transition-smooth); }
+      .compilation-dot:hover { background: rgba(255,255,255,0.6); }
+      .compilation-dot.active { background: var(--primary-gold); transform: scale(1.3); }
+      
+      .compilation-slide.trans-slide { transform: translateX(100%); }
+      .compilation-slide.trans-slide.active { transform: translateX(0); }
+      .compilation-slide.trans-zoom { transform: scale(0.7); }
+      .compilation-slide.trans-zoom.active { transform: scale(1); }
+      .compilation-slide.trans-flip { transform: rotateY(90deg); }
+      .compilation-slide.trans-flip.active { transform: rotateY(0); }
+      .compilation-slide.trans-blur { filter: blur(20px); }
+      .compilation-slide.trans-blur.active { filter: blur(0); }
+      
+      .compilation-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 7000; display: none; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+      .compilation-modal.active { display: flex !important; }
+      .compilation-modal-content { background: var(--navy-medium); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; max-width: 1200px; width: 100%; margin-top: 5vh; }
+      .compilation-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; max-height: 400px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; margin: 15px 0; }
+      .compilation-photo-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: var(--transition-smooth); }
+      .compilation-photo-item:hover { border-color: rgba(212,175,55,0.5); }
+      .compilation-photo-item.selected { border-color: var(--primary-gold); }
+      .compilation-photo-item img { width: 100%; height: 100%; object-fit: cover; }
+      .compilation-photo-item .photo-check { position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; background: var(--primary-gold); border-radius: 50%; display: none; align-items: center; justify-content: center; color: var(--navy-dark); font-weight: bold; }
+      .compilation-photo-item.selected .photo-check { display: flex; }
+      
+      .compilation-slides-preview { display: flex; gap: 12px; overflow-x: auto; padding: 15px 0; min-height: 120px; background: rgba(0,0,0,0.15); border-radius: 12px; margin: 15px 0; }
+      .compilation-slide-preview { flex-shrink: 0; width: 100px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; padding: 8px; cursor: grab; }
+      .compilation-slide-preview img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
+      .compilation-slide-preview input { width: 100%; margin-top: 6px; padding: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 4px; color: white; }
+      .compilation-slide-preview .remove-slide { display: block; width: 100%; margin-top: 4px; padding: 4px; background: rgba(244,67,54,0.3); border: none; border-radius: 4px; color: #ffb3ad; cursor: pointer; font-size: 0.7rem; }
+
+      /* Inline edit mode */
+      .inline-editable { cursor: pointer; border: 1px dashed transparent; padding: 2px 4px; border-radius: 4px; transition: var(--transition-smooth); }
+      .inline-editable:hover { border-color: var(--primary-gold); background: rgba(212, 175, 55, 0.1); }
+      .inline-editable.editing { background: rgba(255,255,255,0.1); border-color: var(--primary-gold); }
+      .inline-edit-input { background: rgba(255,255,255,0.1); border: 1px solid var(--primary-gold); color: var(--text-light); padding: 4px 8px; border-radius: 6px; font-family: inherit; font-size: inherit; width: 100%; }
+    </style>
+
 </head>
 
 <body>
   
   <!-- Intro Video Overlay -->
   <div id="introVideoOverlay" class="intro-video-overlay">
-    <video id="introVideo" class="intro-video" autoplay muted playsinline></video>
-    <button id="skipIntroBtn" class="skip-intro-btn">Skip →</button>
+    <video id="introVideo" class="intro-video" autoplay playsinline></video>
+    
+    <div id="unmuteOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 15; display: none; align-items: center; justify-content: center; cursor: pointer; background: rgba(0,0,0,0.3);" onclick="forceUnmute()">
+        <div style="padding: 15px 30px; font-size: 1.5rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none;">🔊 Tap Anywhere for Sound</div>
+    </div>
+    <button id="skipIntroBtn" class="skip-intro-btn" style="z-index: 20;">Skip →</button>
     <button id="toggleIntroControls" class="toggle-intro-controls" style="display:none;">⚙</button>
   </div>
 
@@ -1381,6 +1449,7 @@ overflow: hidden;
       <div class="admin-actions">
         <button class="admin-btn admin-btn-primary" id="btnApproveAll" onclick="approveAllPending()">Approve All</button>
         <button class="admin-btn admin-btn-secondary" id="btnDownloadZip" onclick="downloadAllApproved()">Download ZIP</button>
+        <button class="admin-btn" onclick="openBatchUpload()" style="background:var(--accent-purple); color:white; border:none; box-shadow:0 4px 15px rgba(123, 45, 142, 0.4);">Batch Upload</button>
         <button class="admin-btn admin-btn-secondary" id="btnExportCsv" onclick="exportCSV()">Export CSV</button>
         <button class="admin-btn admin-btn-danger" onclick="adminLogout()">Logout</button>
       </div>
@@ -1392,6 +1461,7 @@ overflow: hidden;
         <div class="admin-tab" id="tabSettings" onclick="switchAdminTab('settings')">Site Settings</div>
         <div class="admin-tab" id="tabTheme" onclick="switchAdminTab('theme')">Theme</div>
         <div class="admin-tab" id="tabUsers" onclick="switchAdminTab('users')">Users</div>
+        <div class="admin-tab" id="tabCompilations" onclick="switchAdminTab('compilations')">Compilations</div>
         <div class="admin-tab" id="tabSecurity" onclick="switchAdminTab('security')">Security</div>
       </div>
 
@@ -1444,6 +1514,7 @@ overflow: hidden;
       <div class="admin-panel" id="panelSettings"></div>
       <div class="admin-panel" id="panelTheme"></div>
       <div class="admin-panel" id="panelUsers"></div>
+      <div class="admin-panel" id="panelCompilations"></div>
       <div class="admin-panel" id="panelSecurity"></div>
     </div>
   </div>
@@ -1459,7 +1530,56 @@ overflow: hidden;
 
   <div class="confetti-container" id="confettiContainer"></div>
 
-  <!-- Compilation Player -->
+  
+<!-- Compilation Creator Modal -->
+<div class="compilation-modal" id="compilationCreatorModal">
+  <div class="compilation-modal-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2 style="color:var(--primary-gold); font-family:var(--font-display);">Compilation Creator</h2>
+      <button class="admin-btn admin-btn-secondary" onclick="closeCompilationCreator()">Close</button>
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom:20px;">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" class="form-input" id="compName" placeholder="Farewell Highlights" />
+      </div>
+      <div class="form-group">
+        <label>Display Mode</label>
+        <select class="form-select" id="compDisplayMode">
+          <option value="auto">Auto (Slideshow)</option>
+          <option value="manual">Manual (Arrows)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Transition</label>
+        <select class="form-select" id="compTransition">
+          <option value="fade">Fade</option>
+          <option value="slide">Slide</option>
+          <option value="zoom">Zoom</option>
+          <option value="flip">Flip</option>
+          <option value="blur">Blur</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Default Duration (sec)</label>
+        <input type="number" class="form-input" id="compDefaultDuration" value="5" min="1" max="60" />
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns: 1fr; gap:20px;">
+      <div>
+        <h3 style="color:var(--primary-gold); margin-bottom:10px;">Select Photos</h3>
+        <div class="compilation-photo-grid" id="compPhotoGrid"></div>
+      </div>
+      <div>
+        <h3 style="color:var(--primary-gold); margin-bottom:10px;">Slides Sequence</h3>
+        <div class="compilation-slides-preview" id="compSlidesPreview" style="flex-wrap:wrap; display:flex;"></div>
+        <button class="admin-btn admin-btn-primary" style="width:100%; justify-content:center; margin-top:20px;" onclick="saveCompilation()">Save Compilation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Compilation Player -->
   <div class="compilation-player-overlay" id="compilationPlayer">
     <button class="compilation-close" onclick="closeCompilationPlayer()">✕</button>
     <button class="compilation-nav-btn compilation-prev" onclick="prevCompilationSlide()">❮</button>
@@ -1476,7 +1596,7 @@ overflow: hidden;
     // Change this ONE line to point to your server
     // =========================
     const CONFIG = {
-      API_BASE: "https://already-inquiries-berkeley-jpeg.trycloudflare.com",
+      API_BASE: "https://anniversary-appeared-directors-devel.trycloudflare.com",
       REFRESH_INTERVAL: 60000,
       MAX_FILE_SIZE: 100 * 1024 * 1024,
       MAX_TOTAL_SIZE: 200 * 1024 * 1024,
@@ -1662,14 +1782,16 @@ overflow: hidden;
     async function verifyAdminToken() { try { const response = await fetch(apiUrl('/api/admin/verify'), { method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` } }); const data = await response.json(); if (data.valid) { state.adminUser = data.user; localStorage.setItem('adminUser', JSON.stringify(data.user)); openAdminDashboard(); } else adminLogout(); } catch { adminLogout(); } }
     function openAdminDashboard() { const dashboard = document.getElementById('adminDashboard'); if (dashboard) dashboard.classList.add('active'); document.body.style.overflow = 'hidden'; buildAdminPanels(); switchAdminTab('moderation'); loadAdminMemories(true); }
     async function adminLogout() { try { await fetch(apiUrl('/api/admin/logout'), { method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` } }); } catch {} state.adminToken = null; state.adminUser = null; localStorage.removeItem('adminToken'); localStorage.removeItem('adminUser'); const dashboard = document.getElementById('adminDashboard'); if (dashboard) dashboard.classList.remove('active'); document.body.style.overflow = ''; window.location.hash = ''; }
-    function switchAdminTab(tab) { ['moderation', 'settings', 'theme', 'users', 'security'].forEach(t => { const tabEl = document.getElementById('tab' + capitalize(t)); const panelEl = document.getElementById('panel' + capitalize(t)); if (tabEl) tabEl.classList.toggle('active', t === tab); if (panelEl) panelEl.classList.toggle('active', t === tab); }); }
+    function switchAdminTab(tab) { ['moderation', 'settings', 'theme', 'users', 'compilations', 'security'].forEach(t => { const tabEl = document.getElementById('tab' + capitalize(t)); const panelEl = document.getElementById('panel' + capitalize(t)); if (tabEl) tabEl.classList.toggle('active', t === tab); if (panelEl) panelEl.classList.toggle('active', t === tab); }); }
     function can(perm) { const u = state.adminUser; if (!u) return false; if (u.role === 'superadmin') return true; return !!u.permissions?.[perm]; }
-    function buildAdminPanels() { const tabs = { 'tabSettings': 'settings', 'tabTheme': 'theme', 'tabUsers': 'users' }; Object.entries(tabs).forEach(([id, perm]) => { const el = document.getElementById(id); if (el) el.style.display = can(perm) ? 'inline-block' : 'none'; }); const exportBtn = document.getElementById('btnExportCsv'); if (exportBtn) exportBtn.style.display = can('export') ? 'inline-flex' : 'none'; const approveAllBtn = document.getElementById('btnApproveAll'); if (approveAllBtn) approveAllBtn.style.display = can('bulk') ? 'inline-flex' : 'none'; const panelSettings = document.getElementById('panelSettings'); if (panelSettings) panelSettings.innerHTML = can('settings') ? renderSettingsPanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelTheme = document.getElementById('panelTheme'); if (panelTheme) panelTheme.innerHTML = can('theme') ? renderThemePanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelUsers = document.getElementById('panelUsers'); if (panelUsers) panelUsers.innerHTML = can('users') ? renderUsersPanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelSecurity = document.getElementById('panelSecurity'); if (panelSecurity) panelSecurity.innerHTML = renderSecurityPanelHtml(); if (can('settings')) wireSettingsPanel(); if (can('theme')) wireThemePanel(); if (can('users')) wireUsersPanel(); wireSecurityPanel(); syncSettingsEditor(); syncThemeEditor(); }
+    function buildAdminPanels() { const tabs = { 'tabSettings': 'settings', 'tabTheme': 'theme', 'tabUsers': 'users' }; Object.entries(tabs).forEach(([id, perm]) => { const el = document.getElementById(id); if (el) el.style.display = can(perm) ? 'inline-block' : 'none'; }); const exportBtn = document.getElementById('btnExportCsv'); if (exportBtn) exportBtn.style.display = can('export') ? 'inline-flex' : 'none'; const approveAllBtn = document.getElementById('btnApproveAll'); if (approveAllBtn) approveAllBtn.style.display = can('bulk') ? 'inline-flex' : 'none'; const panelSettings = document.getElementById('panelSettings'); if (panelSettings) panelSettings.innerHTML = can('settings') ? renderSettingsPanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelTheme = document.getElementById('panelTheme'); if (panelTheme) panelTheme.innerHTML = can('theme') ? renderThemePanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelUsers = document.getElementById('panelUsers'); if (panelUsers) panelUsers.innerHTML = can('users') ? renderUsersPanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelSecurity = document.getElementById('panelSecurity'); if (panelSecurity) panelSecurity.innerHTML = renderSecurityPanelHtml(); if (can('settings')) wireSettingsPanel(); if (can('theme')) wireThemePanel(); if (can('users')) wireUsersPanel(); wireSecurityPanel(); const panelCompilations = document.getElementById('panelCompilations');
+    if (panelCompilations) panelCompilations.innerHTML = renderCompilationsPanelHtml();
+    loadCompilationsAdmin(); syncSettingsEditor(); syncThemeEditor(); }
 
-    async function loadAdminMemories(reset) { if (!state.adminToken) return; if (reset) { state.adminPage = 1; state.adminHasMore = true; state.adminSelectedIds.clear(); state.adminBulkMode = false; updateBulkToggleUI(); } if (!state.adminHasMore) return; try { const params = new URLSearchParams({ filter: state.adminFilter, sort: state.adminSort, search: state.adminSearch || '', page: String(state.adminPage), limit: String(state.adminLimit) }); const res = await fetch(apiUrl(`/api/admin/memories?${params}`), { headers: { 'Authorization': `Bearer ${state.adminToken}` } }); const data = await res.json(); if (!data.success) { if (res.status === 401) return adminLogout(); return; } updateAdminStats(data.stats); renderAdminGrid(data.memories || [], reset); state.adminHasMore = !!data.hasMore; state.adminPage += 1; } catch (e) { console.error(e); } }
+    async function loadAdminMemories(reset, preserveBulk = false) { if (!state.adminToken) return; if (reset) { state.adminPage = 1; state.adminHasMore = true; if (!preserveBulk) { state.adminSelectedIds.clear(); state.adminBulkMode = false; } updateBulkToggleUI(); } if (!state.adminHasMore) return; try { const params = new URLSearchParams({ filter: state.adminFilter, sort: state.adminSort, search: state.adminSearch || '', page: String(state.adminPage), limit: String(state.adminLimit) }); const res = await fetch(apiUrl(`/api/admin/memories?${params}`), { headers: { 'Authorization': `Bearer ${state.adminToken}` } }); const data = await res.json(); if (!data.success) { if (res.status === 401) return adminLogout(); return; } updateAdminStats(data.stats); renderAdminGrid(data.memories || [], reset); state.adminHasMore = !!data.hasMore; state.adminPage += 1; } catch (e) { console.error(e); } }
     function adminLoadMore() { loadAdminMemories(false); }
     function updateAdminStats(stats) { const setContent = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; }; setContent('statTotal', stats.total); setContent('statApproved', stats.approved); setContent('statPending', stats.pending); setContent('statStorage', stats.totalSizeFormatted); }
-    function renderAdminGrid(memories, reset) { const grid = document.getElementById('adminGrid'); if (!grid) return; const items = (memories || []).map(m => ({ ...m, file_url: mediaUrl(m.file_url) })); if (reset) grid.innerHTML = ''; if (!items.length && reset) { grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color: var(--text-muted);">No memories found.</p>`; return; } grid.insertAdjacentHTML('beforeend', items.map(memory => { const statusClass = memory.purgedAt ? 'status-trash' : (memory.deletedAt ? 'status-trash' : (memory.approved ? 'status-approved' : 'status-pending')); const statusText = memory.deletedAt ? 'TRASH' : (memory.approved ? 'APPROVED' : 'PENDING'); const bulkBox = state.adminBulkMode ? `<div style="position:absolute; left:10px; top:10px; z-index:2;"><input type="checkbox" style="transform:scale(1.3);" onchange="toggleSelectId(${memory.id}, this.checked)" ${state.adminSelectedIds.has(memory.id) ? 'checked' : ''}/></div>` : ''; return `<div class="admin-memory-card" data-id="${memory.id}"><div class="admin-memory-media">${bulkBox}${memory.file_type === 'video' ? `<video src="${memory.file_url}" preload="metadata"></video>` : `<img src="${memory.file_url}" alt="">`}<span class="admin-memory-status ${statusClass}">${statusText}</span></div><div class="admin-memory-info"><div class="admin-memory-name">${escapeHtml(memory.student_name || '')}</div><div class="admin-memory-caption">${escapeHtml(memory.caption || '')}</div><div class="admin-memory-meta"><span>${escapeHtml(memory.memory_type || '')}</span><span>${escapeHtml(memory.file_size_formatted || '')}</span></div><div class="admin-memory-meta"><span>${memory.likes || 0} likes</span><span>${escapeHtml(timeAgo(memory.created_at))}</span></div><div class="admin-memory-actions">${(!memory.approved && !memory.deletedAt && can('moderation')) ? `<button class="approve-btn" onclick="approveMemory(${memory.id})">Approve</button>` : `<button class="approve-btn" style="opacity:0.5;" disabled>Approve</button>`}<button class="download-btn" onclick="window.open('${memory.file_url}', '_blank')">Download</button>${!memory.deletedAt ? `<button class="delete-btn" onclick="trashMemory(${memory.id})">Trash</button>` : `<button class="restore-btn" onclick="restoreMemory(${memory.id})">Restore</button>`}${can('editMemory') ? `<button class="edit-btn" onclick="openEditMemory(${memory.id})">Edit</button>` : `<button class="edit-btn" style="opacity:0.5;" disabled>Edit</button>`}</div>${can('replaceFile') ? `<div style="margin-top:10px;"><label style="color:var(--text-muted); font-size:0.85rem;">Replace file:</label><input type="file" accept="image/*,video/*" onchange="replaceFile(${memory.id}, this.files[0])" /></div>` : ''}${state.adminUser?.role === 'superadmin' && memory.deletedAt ? `<button class="btn btn-danger" style="margin-top:12px; width:100%; justify-content:center; padding:12px 16px;" onclick="purgeMemory(${memory.id})">Purge Permanently</button>` : ''}</div></div>`; }).join('')); }
+    function renderAdminGrid(memories, reset) { const grid = document.getElementById('adminGrid'); if (!grid) return; const items = (memories || []).map(m => ({ ...m, file_url: mediaUrl(m.file_url) })); if (reset) grid.innerHTML = ''; if (!items.length && reset) { grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color: var(--text-muted);">No memories found.</p>`; return; } grid.insertAdjacentHTML('beforeend', items.map(memory => { const statusClass = memory.purgedAt ? 'status-trash' : (memory.deletedAt ? 'status-trash' : (memory.approved ? 'status-approved' : 'status-pending')); const statusText = memory.deletedAt ? 'TRASH' : (memory.approved ? 'APPROVED' : 'PENDING'); const bulkBox = state.adminBulkMode ? `<div style="position:absolute; left:10px; top:10px; z-index:2;"><input type="checkbox" style="transform:scale(1.3);" onchange="toggleSelectId(${memory.id}, this.checked)" ${state.adminSelectedIds.has(memory.id) ? 'checked' : ''}/></div>` : ''; return `<div class="admin-memory-card" data-id="${memory.id}"><div class="admin-memory-media">${bulkBox}${memory.file_type === 'video' ? `<video src="${memory.file_url}" preload="metadata"></video>` : `<img src="${memory.file_url}" alt="">`}<span class="admin-memory-status ${statusClass}">${statusText}</span></div><div class="admin-memory-info"><div class="admin-memory-name inline-editable" title="Double click to edit" ondblclick="this.setAttribute('data-memory-id', ${memory.id}); this.setAttribute('data-field', 'student_name'); startInlineEdit(this)">${escapeHtml(memory.student_name || '')}</div><div class="admin-memory-caption inline-editable" title="Double click to edit" ondblclick="this.setAttribute('data-memory-id', ${memory.id}); this.setAttribute('data-field', 'caption'); startInlineEdit(this)">${escapeHtml(memory.caption || '')}</div><div class="admin-memory-meta"><span class="inline-editable" title="Double click to edit" ondblclick="this.setAttribute('data-memory-id', ${memory.id}); this.setAttribute('data-field', 'memory_type'); startInlineEdit(this)">${escapeHtml(memory.memory_type || '')}</span><span>${escapeHtml(memory.file_size_formatted || '')}</span></div><div class="admin-memory-meta"><span>${memory.likes || 0} likes</span><span>${escapeHtml(timeAgo(memory.created_at))}</span></div><div class="admin-memory-actions">${(!memory.approved && !memory.deletedAt && can('moderation')) ? `<button class="approve-btn" onclick="approveMemory(${memory.id})">Approve</button>` : `<button class="approve-btn" style="opacity:0.5;" disabled>Approve</button>`}<button class="download-btn" onclick="window.open('${memory.file_url}', '_blank')">Download</button>${!memory.deletedAt ? `<button class="delete-btn" onclick="trashMemory(${memory.id})">Trash</button>` : `<button class="restore-btn" onclick="restoreMemory(${memory.id})">Restore</button>`}${can('editMemory') ? `<button class="edit-btn" onclick="openEditMemory(${memory.id})">Edit</button>` : `<button class="edit-btn" style="opacity:0.5;" disabled>Edit</button>`}</div>${can('replaceFile') ? `<div style="margin-top:10px;"><label style="color:var(--text-muted); font-size:0.85rem;">Replace file:</label><input type="file" accept="image/*,video/*" onchange="replaceFile(${memory.id}, this.files[0])" /></div>` : ''}${state.adminUser?.role === 'superadmin' && memory.deletedAt ? `<button class="btn btn-danger" style="margin-top:12px; width:100%; justify-content:center; padding:12px 16px;" onclick="purgeMemory(${memory.id})">Purge Permanently</button>` : ''}</div></div>`; }).join('')); }
 
     async function approveMemory(id) { try { const res = await fetch(apiUrl(`/api/admin/approve/${id}`), { method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` } }); const data = await res.json(); if (data.success) { showNotification('success', 'Approved', 'Memory approved.'); loadAdminMemories(true); loadMemories(true); } else showNotification('error', 'Failed', data.error || 'Could not approve.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
     async function approveAllPending() { if (!confirm('Approve all pending memories?')) return; try { const res = await fetch(apiUrl(`/api/admin/approve-all`), { method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` } }); const data = await res.json(); if (data.success) { showNotification('success', 'Approved All', `${data.count} approved.`); loadAdminMemories(true); loadMemories(true); } else showNotification('error', 'Failed', data.error || 'Could not approve all.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
@@ -1677,18 +1799,36 @@ overflow: hidden;
     async function restoreMemory(id) { try { const res = await fetch(apiUrl(`/api/admin/restore/${id}`), { method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` } }); const data = await res.json(); if (data.success) { showNotification('success', 'Restored', 'Memory restored.'); loadAdminMemories(true); loadMemories(true); } else showNotification('error', 'Failed', data.error || 'Could not restore.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
     async function purgeMemory(id) { if (!confirm('Purge permanently? This deletes the file and cannot be undone.')) return; try { const res = await fetch(apiUrl(`/api/admin/purge/${id}`), { method: 'DELETE', headers: { 'Authorization': `Bearer ${state.adminToken}` } }); const data = await res.json(); if (data.success) { showNotification('success', 'Purged', 'Deleted permanently.'); loadAdminMemories(true); loadMemories(true); } else showNotification('error', 'Failed', data.error || 'Could not purge.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
     async function replaceFile(id, file) { if (!file) return; if (!confirm('Replace the file for this memory?')) return; const fd = new FormData(); fd.append('file', file); try { const res = await fetch(apiUrl(`/api/admin/memory/replace-file/${id}`), { method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` }, body: fd }); const data = await res.json(); if (data.success) { showNotification('success', 'Replaced', 'File replaced.'); loadAdminMemories(true); loadMemories(true); } else showNotification('error', 'Failed', data.error || 'Could not replace.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
-    function toggleBulkSelect() { state.adminBulkMode = !state.adminBulkMode; if (!state.adminBulkMode) state.adminSelectedIds.clear(); updateBulkToggleUI(); loadAdminMemories(true); }
+    function toggleBulkSelect() { state.adminBulkMode = !state.adminBulkMode; if (!state.adminBulkMode) state.adminSelectedIds.clear(); updateBulkToggleUI(); loadAdminMemories(true, true); }
     function updateBulkToggleUI() { const btn = document.getElementById('bulkSelectToggle'); if (btn) btn.textContent = `Bulk Select: ${state.adminBulkMode ? 'ON' : 'OFF'}`; }
     function toggleSelectId(id, checked) { if (checked) state.adminSelectedIds.add(id); else state.adminSelectedIds.delete(id); }
-    async function bulkActionPrompt(action) { if (!can('bulk')) return showNotification('error', 'No permission', 'You cannot do bulk actions.'); if (!state.adminBulkMode) return showNotification('info', 'Enable bulk select', 'Turn Bulk Select ON first.'); const ids = Array.from(state.adminSelectedIds); if (!ids.length) return showNotification('info', 'Select items', 'Select at least one memory.'); let memoryType = undefined; if (action === 'setType') { memoryType = prompt('Enter new category/type:', 'Friends'); if (!memoryType) return; } if (!confirm(`Run bulk action "${action}" on ${ids.length} item(s)?`)) return; try { const res = await fetch(apiUrl(`/api/admin/bulk`), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify({ action, ids, memoryType }) }); const data = await res.json(); if (data.success) { showNotification('success', 'Bulk done', `${data.changed} updated.`); state.adminSelectedIds.clear(); loadAdminMemories(true); loadMemories(true); } else showNotification('error', 'Failed', data.error || 'Bulk failed.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
+    async function bulkActionPrompt(action) { if (!can('bulk')) return showNotification('error', 'No permission', 'You cannot do bulk actions.'); if (!state.adminBulkMode) return showNotification('info', 'Enable bulk select', 'Turn Bulk Select ON first.'); const ids = Array.from(state.adminSelectedIds); if (!ids.length) return showNotification('info', 'Select items', 'Select at least one memory.'); let memoryType = undefined; if (action === 'setType') { memoryType = prompt('Enter new category/type:', 'Friends'); if (!memoryType) return; } if (!confirm(`Run bulk action "${action}" on ${ids.length} item(s)?`)) return; try { const res = await fetch(apiUrl(`/api/admin/bulk`), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify({ action, ids, memoryType }) }); const data = await res.json(); if (data.success) { showNotification('success', 'Bulk done', `${data.changed} updated.`); state.adminSelectedIds.clear(); loadAdminMemories(true, true); loadMemories(true); } else showNotification('error', 'Failed', data.error || 'Bulk failed.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
     async function openEditMemory(id) { const name = prompt('Student name (leave blank to keep):'); const caption = prompt('Caption (leave blank to keep):'); const type = prompt('Category/type (leave blank to keep):'); const featuredStr = prompt('Featured? (yes/no/blank keep):'); let featured = undefined; if (featuredStr && featuredStr.toLowerCase().startsWith('y')) featured = 1; if (featuredStr && featuredStr.toLowerCase().startsWith('n')) featured = 0; const payload = {}; if (name !== null && name.trim() !== '') payload.student_name = name; if (caption !== null && caption.trim() !== '') payload.caption = caption; if (type !== null && type.trim() !== '') payload.memory_type = type; if (featured !== undefined) payload.featured = featured; if (!Object.keys(payload).length) return; try { const res = await fetch(apiUrl(`/api/admin/memory/edit/${id}`), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify(payload) }); const data = await res.json(); if (data.success) { showNotification('success', 'Saved', 'Memory updated.'); loadAdminMemories(true); loadMemories(true); } else showNotification('error', 'Failed', data.error || 'Edit failed.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
     function downloadAllApproved() { window.location.href = apiUrl(`/api/admin/download-all?token=${encodeURIComponent(state.adminToken || '')}`); showNotification('info', 'Downloading', 'Preparing ZIP...'); }
     function exportCSV() { fetch(apiUrl(`/api/admin/export/csv`), { headers: { 'Authorization': `Bearer ${state.adminToken}` } }).then(async r => { if (!r.ok) throw new Error('Export failed'); const blob = await r.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `memories-export-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(a.href); showNotification('success', 'Exported', 'CSV downloaded.'); }).catch(e => showNotification('error', 'Failed', e.message)); }
 
-    function renderSettingsPanelHtml() { return `<div style="display:grid; gap: 18px;"><div class="stat-card" style="text-align:left;"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Site Settings</h3><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="admin-btn admin-btn-primary" onclick="saveSettingsFromEditor()">Save</button><button class="admin-btn admin-btn-secondary" onclick="reloadSettingsAdmin()">Reload</button></div></div><div style="margin-top:12px; display:grid; gap: 14px;"><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>School Name</label><input class="form-input" id="setSchoolName"/></div><div class="form-group"><label>Event Name</label><input class="form-input" id="setEventName"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Logo Text</label><input class="form-input" id="setLogoText" maxlength="5"/></div><div class="form-group"><label>Farewell IST (YYYY-MM-DDTHH:mm)</label><input class="form-input" id="setFarewellIST"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Contact Email</label><input class="form-input" id="setContactEmail"/></div><div class="form-group"><label>Location Line</label><input class="form-input" id="setLocationLine"/></div></div><div class="form-group"><label>Hero Badge</label><input class="form-input" id="setHeroBadge"/></div><div class="form-group"><label>Hero Title (use {year})</label><input class="form-input" id="setHeroTitle"/></div><div class="form-group"><label>Hero Subtitle</label><input class="form-input" id="setHeroSubtitle"/></div><div class="form-group"><label>Hero Description</label><textarea class="form-textarea" id="setHeroDescription" maxlength="600"></textarea></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Quote Text</label><textarea class="form-textarea" id="setQuoteText" maxlength="500"></textarea></div><div class="form-group"><label>Quote Author</label><input class="form-input" id="setQuoteAuthor"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Uploads Enabled</label><select class="form-select" id="setUploadsEnabled"><option value="true">true</option><option value="false">false</option></select></div><div class="form-group"><label>Comments Enabled</label><select class="form-select" id="setCommentsEnabled"><option value="true">true</option><option value="false">false</option></select></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Profanity Filter</label><select class="form-select" id="setProfanityEnabled"><option value="false">false</option><option value="true">true</option></select></div><div class="form-group"><label>Upload Window Enabled</label><select class="form-select" id="setUploadWindowEnabled"><option value="false">false</option><option value="true">true</option></select></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Upload Window Start (IST)</label><input class="form-input" id="setUploadWindowStart"/></div><div class="form-group"><label>Upload Window End (IST)</label><input class="form-input" id="setUploadWindowEnd"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Auto-Approve Enabled</label><select class="form-select" id="setAutoApproveEnabled"><option value="false">false</option><option value="true">true</option></select></div><div class="form-group"><label>(Auto) Start (IST)</label><input class="form-input" id="setAutoApproveStart"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>(Auto) End (IST)</label><input class="form-input" id="setAutoApproveEnd"/></div><div class="form-group"><label>—</label><div class="mini-pill">Auto-approve applies at upload time.</div></div></div><div class="form-group"><label>Footer Description</label><textarea class="form-textarea" id="setFooterDesc" maxlength="400"></textarea></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Footer Contact Note</label><input class="form-input" id="setFooterContactNote"/></div><div class="form-group"><label>Footer Made By</label><input class="form-input" id="setFooterMadeBy"/></div></div><div class="form-group"><label>Footer Copyright</label><input class="form-input" id="setFooterCopyright"/></div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Teachers Editor</h4><button class="admin-btn admin-btn-secondary" type="button" onclick="addTeacherRow()">+ Add Teacher</button></div><div class="mini-pill">Fields: name, subject, quote, imageUrl (optional)</div><div id="teachersEditor" style="margin-top:12px; display:grid; gap:12px;"></div></div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Timeline Editor</h4><button class="admin-btn admin-btn-secondary" type="button" onclick="addTimelineRow()">+ Add Timeline Item</button></div><div class="mini-pill">Fields: year, title, description</div><div id="timelineEditor" style="margin-top:12px; display:grid; gap:12px;"></div></div></div></div></div>`; }
+    function renderSettingsPanelHtml() { return `<div style="display:grid; gap: 18px;"><div class="stat-card" style="text-align:left;"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Site Settings</h3><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="admin-btn admin-btn-primary" onclick="saveSettingsFromEditor()">Save</button><button class="admin-btn admin-btn-secondary" onclick="reloadSettingsAdmin()">Reload</button></div></div><div style="margin-top:12px; display:grid; gap: 14px;"><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>School Name</label><input class="form-input" id="setSchoolName"/></div><div class="form-group"><label>Event Name</label><input class="form-input" id="setEventName"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Logo Text</label><input class="form-input" id="setLogoText" maxlength="5"/></div><div class="form-group"><label>Farewell IST (YYYY-MM-DDTHH:mm)</label><input class="form-input" id="setFarewellIST"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Contact Email</label><input class="form-input" id="setContactEmail"/></div><div class="form-group"><label>Location Line</label><input class="form-input" id="setLocationLine"/></div></div><div class="form-group"><label>Hero Badge</label><input class="form-input" id="setHeroBadge"/></div><div class="form-group"><label>Hero Title (use {year})</label><input class="form-input" id="setHeroTitle"/></div><div class="form-group"><label>Hero Subtitle</label><input class="form-input" id="setHeroSubtitle"/></div><div class="form-group"><label>Hero Description</label><textarea class="form-textarea" id="setHeroDescription" maxlength="600"></textarea></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Quote Text</label><textarea class="form-textarea" id="setQuoteText" maxlength="500"></textarea></div><div class="form-group"><label>Quote Author</label><input class="form-input" id="setQuoteAuthor"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Uploads Enabled</label><select class="form-select" id="setUploadsEnabled"><option value="true">true</option><option value="false">false</option></select></div><div class="form-group"><label>Comments Enabled</label><select class="form-select" id="setCommentsEnabled"><option value="true">true</option><option value="false">false</option></select></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Profanity Filter</label><select class="form-select" id="setProfanityEnabled"><option value="false">false</option><option value="true">true</option></select></div><div class="form-group"><label>Upload Window Enabled</label><select class="form-select" id="setUploadWindowEnabled"><option value="false">false</option><option value="true">true</option></select></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Upload Window Start (IST)</label><input class="form-input" id="setUploadWindowStart"/></div><div class="form-group"><label>Upload Window End (IST)</label><input class="form-input" id="setUploadWindowEnd"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Auto-Approve Enabled</label><select class="form-select" id="setAutoApproveEnabled"><option value="false">false</option><option value="true">true</option></select></div><div class="form-group"><label>(Auto) Start (IST)</label><input class="form-input" id="setAutoApproveStart"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>(Auto) End (IST)</label><input class="form-input" id="setAutoApproveEnd"/></div><div class="form-group"><label>—</label><div class="mini-pill">Auto-approve applies at upload time.</div></div></div><div class="form-group"><label>Footer Description</label><textarea class="form-textarea" id="setFooterDesc" maxlength="400"></textarea></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Footer Contact Note</label><input class="form-input" id="setFooterContactNote"/></div><div class="form-group"><label>Footer Made By</label><input class="form-input" id="setFooterMadeBy"/></div></div><div class="form-group"><label>Footer Copyright</label><input class="form-input" id="setFooterCopyright"/></div>
+    <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+      <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Intro Video Settings</h4>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end;">
+        <div class="form-group">
+          <label>Upload Intro Video (MP4/WebM)</label>
+          <input type="file" class="form-input" accept="video/mp4,video/webm" onchange="uploadIntroVideoFile(this.files[0])" style="padding: 6px;" />
+          <div class="mini-pill" style="margin-top:6px; display:inline-block;" id="currentIntroVideoStatus"></div>
+        </div>
+        <div class="form-group">
+          <label>Hide "Skip" Button?</label>
+          <select class="form-select" id="setIntroHideSkip" style="margin-bottom: 6px;">
+            <option value="false">false (Users can skip)</option>
+            <option value="true">true (Forced to watch)</option>
+          </select>
+          <button class="admin-btn admin-btn-danger" style="width:100%; justify-content:center;" type="button" onclick="removeIntroVideo()">Remove Video (Disable)</button>
+        </div>
+      </div>
+    </div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Teachers Editor</h4><button class="admin-btn admin-btn-secondary" type="button" onclick="addTeacherRow()">+ Add Teacher</button></div><div class="mini-pill">Fields: name, subject, quote, imageUrl (optional)</div><div id="teachersEditor" style="margin-top:12px; display:grid; gap:12px;"></div></div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Timeline Editor</h4><button class="admin-btn admin-btn-secondary" type="button" onclick="addTimelineRow()">+ Add Timeline Item</button></div><div class="mini-pill">Fields: year, title, description</div><div id="timelineEditor" style="margin-top:12px; display:grid; gap:12px;"></div></div></div></div></div>`; }
     function wireSettingsPanel() { renderTeachersEditor(); renderTimelineEditor(); }
     function syncSettingsEditor() { const s = state.settings; setVal('setSchoolName', s.schoolName); setVal('setEventName', s.eventName); setVal('setLogoText', s.logoText); setVal('setFarewellIST', s.farewellIST); setVal('setContactEmail', s.contactEmail); setVal('setLocationLine', s.locationLine); setVal('setHeroBadge', s.heroBadge); setVal('setHeroTitle', s.heroTitle); setVal('setHeroSubtitle', s.heroSubtitle); setVal('setHeroDescription', s.heroDescription); setVal('setQuoteText', s.quoteText); setVal('setQuoteAuthor', s.quoteAuthor); setVal('setUploadsEnabled', String(!!s.uploadsEnabled)); setVal('setCommentsEnabled', String(!!s.commentsEnabled)); setVal('setProfanityEnabled', String(!!s.profanityFilterEnabled)); setVal('setUploadWindowEnabled', String(!!s.uploadWindowEnabled)); setVal('setUploadWindowStart', s.uploadWindowStartIST || ''); setVal('setUploadWindowEnd', s.uploadWindowEndIST || ''); setVal('setAutoApproveEnabled', String(!!s.autoApproveEnabled)); setVal('setAutoApproveStart', s.autoApproveStartIST || ''); setVal('setAutoApproveEnd', s.autoApproveEndIST || ''); setVal('setFooterDesc', s.footerDesc); setVal('setFooterContactNote', s.footerContactNote); setVal('setFooterMadeBy', s.footerMadeBy); setVal('setFooterCopyright', s.footerCopyright); renderTeachersEditor(); renderTimelineEditor(); }
-    function readSettingsFromEditor() { const s = structuredClone(state.settings); s.schoolName = getVal('setSchoolName'); s.eventName = getVal('setEventName'); s.logoText = getVal('setLogoText'); s.farewellIST = getVal('setFarewellIST'); s.contactEmail = getVal('setContactEmail'); s.locationLine = getVal('setLocationLine'); s.heroBadge = getVal('setHeroBadge'); s.heroTitle = getVal('setHeroTitle'); s.heroSubtitle = getVal('setHeroSubtitle'); s.heroDescription = getVal('setHeroDescription'); s.quoteText = getVal('setQuoteText'); s.quoteAuthor = getVal('setQuoteAuthor'); s.uploadsEnabled = getVal('setUploadsEnabled') === 'true'; s.commentsEnabled = getVal('setCommentsEnabled') === 'true'; s.profanityFilterEnabled = getVal('setProfanityEnabled') === 'true'; s.uploadWindowEnabled = getVal('setUploadWindowEnabled') === 'true'; s.uploadWindowStartIST = getVal('setUploadWindowStart'); s.uploadWindowEndIST = getVal('setUploadWindowEnd'); s.autoApproveEnabled = getVal('setAutoApproveEnabled') === 'true'; s.autoApproveStartIST = getVal('setAutoApproveStart'); s.autoApproveEndIST = getVal('setAutoApproveEnd'); s.footerDesc = getVal('setFooterDesc'); s.footerContactNote = getVal('setFooterContactNote'); s.footerMadeBy = getVal('setFooterMadeBy'); s.footerCopyright = getVal('setFooterCopyright'); return s; }
+    function readSettingsFromEditor() { const s = structuredClone(state.settings); s.schoolName = getVal('setSchoolName'); s.eventName = getVal('setEventName'); s.logoText = getVal('setLogoText'); s.farewellIST = getVal('setFarewellIST'); s.contactEmail = getVal('setContactEmail'); s.locationLine = getVal('setLocationLine'); s.heroBadge = getVal('setHeroBadge'); s.heroTitle = getVal('setHeroTitle'); s.heroSubtitle = getVal('setHeroSubtitle'); s.heroDescription = getVal('setHeroDescription'); s.quoteText = getVal('setQuoteText'); s.quoteAuthor = getVal('setQuoteAuthor'); s.uploadsEnabled = getVal('setUploadsEnabled') === 'true'; s.commentsEnabled = getVal('setCommentsEnabled') === 'true'; s.profanityFilterEnabled = getVal('setProfanityEnabled') === 'true'; s.uploadWindowEnabled = getVal('setUploadWindowEnabled') === 'true'; s.uploadWindowStartIST = getVal('setUploadWindowStart'); s.uploadWindowEndIST = getVal('setUploadWindowEnd'); s.autoApproveEnabled = getVal('setAutoApproveEnabled') === 'true'; s.autoApproveStartIST = getVal('setAutoApproveStart'); s.autoApproveEndIST = getVal('setAutoApproveEnd'); s.footerDesc = getVal('setFooterDesc'); s.footerContactNote = getVal('setFooterContactNote'); s.footerMadeBy = getVal('setFooterMadeBy'); s.footerCopyright = getVal('setFooterCopyright'); s.introHideSkip = getVal('setIntroHideSkip') === 'true'; return s; }
     async function saveSettingsFromEditor() { const newSettings = readSettingsFromEditor(); newSettings.teachers = readTeachersFromEditor(); newSettings.timeline = readTimelineFromEditor(); newSettings.theme = state.settings.theme || {}; try { const res = await fetch(apiUrl('/api/admin/settings'), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify({ settings: newSettings }) }); const data = await res.json(); if (data.success) { state.settings = mergeDeep(structuredClone(DEFAULT_SETTINGS), newSettings); applySettingsToUI(); applyThemeToCSS(); updateUploadStatusCallout(); renderTeachers(); renderTimeline(); showNotification('success', 'Saved', 'Settings updated.'); } else showNotification('error', 'Save failed', data.error || 'Unknown error'); } catch (e) { showNotification('error', 'Save failed', e.message); } }
     async function reloadSettingsAdmin() { await loadSettings(); applySettingsToUI(); applyThemeToCSS(); syncSettingsEditor(); syncThemeEditor(); renderTeachers(); renderTimeline(); showNotification('success', 'Reloaded', 'Settings loaded from server.'); }
 
@@ -1707,215 +1847,150 @@ overflow: hidden;
     async function createUser() { const id = document.getElementById('newUserId')?.value?.trim(); const name = document.getElementById('newUserName')?.value?.trim(); const password = document.getElementById('newUserPass')?.value || ''; const role = document.getElementById('newUserRole')?.value || 'moderator'; const permissions = gatherPermsFromCreateForm(); try { const res = await fetch(apiUrl('/api/admin/users'), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify({ id, name, password, role, permissions }) }); const data = await res.json(); if (data.success) { showNotification('success', 'Created', 'User created.'); document.getElementById('newUserId').value = ''; document.getElementById('newUserName').value = ''; document.getElementById('newUserPass').value = ''; loadUsers(); } else showNotification('error', 'Failed', data.error || 'Could not create user.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
     async function updateUser(id) { const name = document.getElementById(`editName_${id}`)?.value?.trim(); const password = document.getElementById(`editPass_${id}`)?.value || ''; const disabled = document.getElementById(`editDisabled_${id}`)?.value === 'true'; const permInputs = Array.from(document.querySelectorAll(`[id^="editPerm_${CSS.escape(id)}_"]`)); const permissions = {}; permInputs.forEach(inp => { const key = inp.id.replace(`editPerm_${id}_`, ''); permissions[key] = !!inp.checked; }); const payload = { name, disabled, permissions }; if (password && password.length >= 8) payload.password = password; try { const res = await fetch(apiUrl(`/api/admin/users/${encodeURIComponent(id)}`), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify(payload) }); const data = await res.json(); if (data.success) { showNotification('success', 'Saved', 'User updated.'); loadUsers(); } else showNotification('error', 'Failed', data.error || 'Could not update user.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
 
-    function renderSecurityPanelHtml() { return `<div class="stat-card" style="text-align:left;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Security</h3><div class="mini-pill" style="margin-top:12px;">Change your own password. Minimum 8 characters.</div><div style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Old Password</label><input type="password" class="form-input" id="oldAdminPassword" /></div><div class="form-group"><label>New Password</label><input type="password" class="form-input" id="newAdminPassword" /></div></div><div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Confirm New</label><input type="password" class="form-input" id="confirmAdminPassword" /></div><div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" style="width:100%;" onclick="changeAdminPassword()">Change</button></div></div></div>`; }
+    function renderSecurityPanelHtml() { return `<div class="stat-card" style="text-align:left;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Security</h3><div class="mini-pill" style="margin-top:12px;">Change your own password. Minimum 8 characters.</div><div style="margin-top:14px; display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Old Password</label><input type="password" class="form-input" id="oldAdminPassword" /></div><div class="form-group"><label>New Password</label><input type="password" class="form-input" id="newAdminPassword" /></div></div><div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Confirm New</label><input type="password" class="form-input" id="confirmAdminPassword" /></div><div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" style="width:100%;" onclick="changeAdminPassword()">Change</button></div></div>
+    
+    <div style="margin-top: 25px; border-top: 1px solid var(--glass-border); padding-top: 20px;">
+        <h4 style="font-family:var(--font-display); color:var(--error-red); margin-bottom:10px;">Danger Zone</h4>
+        <div style="background: rgba(244, 67, 54, 0.1); border: 1px solid rgba(244, 67, 54, 0.3); padding: 15px; border-radius: 12px;">
+            <div style="font-weight: bold; color: #ffb3ad; margin-bottom: 5px;">Reset Duplicate Detection</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                This modifies the database so previously uploaded files are no longer considered duplicates. 
+                Use this if you need to re-upload files that were deleted or rejected.
+            </p>
+            <button class="admin-btn admin-btn-danger" style="width:100%; justify-content:center;" onclick="resetUploadHashes()">
+                ♻️ Reset All Upload Hashes
+            </button>
+        </div>
+    </div>
+    </div>`; }
     function wireSecurityPanel() {}
     async function changeAdminPassword() { const oldPassword = document.getElementById('oldAdminPassword')?.value; const newPassword = document.getElementById('newAdminPassword')?.value; const confirmPassword = document.getElementById('confirmAdminPassword')?.value; if (!oldPassword || !newPassword) return showNotification('error', 'Missing', 'Fill old and new password.'); if (newPassword.length < 8) return showNotification('error', 'Weak', 'Use at least 8 characters.'); if (newPassword !== confirmPassword) return showNotification('error', 'Mismatch', 'Passwords do not match.'); try { const res = await fetch(apiUrl('/api/admin/change-password'), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify({ oldPassword, newPassword }) }); const data = await res.json(); if (data.success) { document.getElementById('oldAdminPassword').value = ''; document.getElementById('newAdminPassword').value = ''; document.getElementById('confirmAdminPassword').value = ''; showNotification('success', 'Changed', 'Password updated.'); } else showNotification('error', 'Failed', data.error || 'Could not change password.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
 
     function showNotification(type, title, message) { const notification = document.getElementById('notification'); const icon = document.getElementById('notificationIcon'); const titleEl = document.getElementById('notificationTitle'); const messageEl = document.getElementById('notificationMessage'); if (!notification) return; notification.className = 'notification ' + type + ' active'; if (icon) icon.textContent = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'; if (titleEl) titleEl.textContent = title; if (messageEl) messageEl.textContent = message; setTimeout(hideNotification, 5000); }
     function hideNotification() { const notification = document.getElementById('notification'); if (notification) notification.classList.remove('active'); }
     
-  function renderCompilationsPanel() {
-    return '<div class="stat-card" style="text-align:left;"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Memory Compilations</h3><button class="admin-btn admin-btn-primary" onclick="openCreateCompilation()">+ New Compilation</button></div><div id="compilationsList" style="margin-top:16px;"></div></div>';
-  }
-  
-  async function loadCompilationsAdmin() {
-    try {
-      const res = await fetch(apiUrl('/api/compilations'));
-      const data = await res.json();
-      if (!data.success) return;
-      
-      const list = document.getElementById('compilationsList');
-      if (!list) return;
-      
-      if (!data.compilations.length) {
-        list.innerHTML = '<div class="mini-pill">No compilations yet.</div>';
-        return;
-      }
-      
-      list.innerHTML = data.compilations.map(c => 
-        '<div class="admin-memory-card" style="padding:14px; margin-bottom:10px;">' +
-          '<div style="display:flex; justify-content:space-between; align-items:center;">' +
-            '<div><strong>' + escapeHtml(c.name) + '</strong> <span class="mini-pill">' + c.slides.length + ' slides</span></div>' +
-            '<div style="display:flex; gap:8px;">' +
-              '<button class="admin-btn admin-btn-secondary" onclick="playCompilation(' + c.id + ')">▶ Play</button>' +
-              '<button class="admin-btn admin-btn-secondary" onclick="editCompilation(' + c.id + ')">Edit</button>' +
-              '<button class="admin-btn admin-btn-danger" onclick="deleteCompilation(' + c.id + ')">Delete</button>' +
-            '</div>' +
-          '</div>' +
-        '</div>'
-      ).join('');
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  
-  function openCreateCompilation() {
-    // This would open a modal to select photos and set options
-    const name = prompt('Compilation name:');
-    if (!name) return;
-    
-    // For now, show instructions
-    alert('Select memories from the moderation panel, then use bulk actions to add to compilation.');
-  }
-  
-  async function deleteCompilation(id) {
-    if (!confirm('Delete this compilation?')) return;
-    try {
-      const res = await fetch(apiUrl('/api/admin/compilations/' + id), {
-        method: 'DELETE',
-        headers: { 'Authorization': 'Bearer ' + state.adminToken }
-      });
-      const data = await res.json();
-      if (data.success) {
-        showNotification('success', 'Deleted', 'Compilation deleted');
-        loadCompilationsAdmin();
-      } else {
-        showNotification('error', 'Failed', data.error);
-      }
-    } catch (e) {
-      showNotification('error', 'Error', e.message);
-    }
-  }
-
-
   function triggerConfetti() { const container = document.getElementById('confettiContainer'); if (!container) return; const colors = ['#D4AF37','#F4E5B2','#e94560','#7B2D8E','#4CAF50','#2196F3']; for (let i = 0; i < 80; i++) { const confetti = document.createElement('div'); confetti.className = 'confetti'; confetti.style.left = Math.random() * 100 + '%'; confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]; confetti.style.animationDelay = Math.random() * 1.5 + 's'; confetti.style.transform = `rotate(${Math.random() * 360}deg)`; container.appendChild(confetti); setTimeout(() => confetti.remove(), 4500); } }
 
   // ═══════════════════════════════════════════════════════════════════════════════
   // INTRO VIDEO
   // ═══════════════════════════════════════════════════════════════════════════════
   
+  window.forceUnmute = function() {
+      const video = document.getElementById('introVideo');
+      const overlay = document.getElementById('unmuteOverlay');
+      if (video) {
+          video.muted = false;
+          video.currentTime = 0; // Restart from the beginning so they hear it all
+          video.play().catch(e => console.log("Play failed:", e)); // Force play on tap
+      }
+      if (overlay) overlay.style.display = 'none';
+  };
+
   async function initIntroVideo() {
+  localStorage.removeItem("introSeen"); sessionStorage.removeItem("introSeen");
+
     const overlay = document.getElementById('introVideoOverlay');
     const video = document.getElementById('introVideo');
     const skipBtn = document.getElementById('skipIntroBtn');
+    const unmuteOverlay = document.getElementById('unmuteOverlay');
     
     if (!overlay || !video) return;
     
-    // Check if intro video is configured
     const introPath = state.settings.introVideoPath;
-    if (!introPath) {
-      overlay.classList.add('hidden');
-      return;
+    if (!introPath) { 
+        overlay.style.display = 'none'; 
+        overlay.classList.add('hidden'); 
+        return; 
     }
     
-    video.src = mediaUrl('/uploads/' + introPath);
+    overlay.style.display = 'flex'; 
+    overlay.classList.remove('hidden');
+    video.src = mediaUrl(('/uploads/' + introPath).replace('//', '/'));
+    
+    try {
+      // 1. Try to autoplay WITH sound (works if user has visited site before)
+      video.muted = false; 
+      await video.play();
+      if (unmuteOverlay) unmuteOverlay.style.display = 'none';
+    } catch (err) {
+      // 2. Browser blocked sound. Play muted, and show the Tap-to-Unmute screen
+      video.muted = true;
+      try {
+        await video.play();
+        if (unmuteOverlay) unmuteOverlay.style.display = 'flex';
+      } catch (err2) { if (unmuteOverlay) { unmuteOverlay.style.display = "flex"; unmuteOverlay.innerHTML = "<div style=\"padding: 15px 30px; font-size: 1.5rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none;\">Tap to Play Intro</div>"; } }
+    }
     
     video.onended = () => skipIntro();
     video.onerror = () => skipIntro();
-    
-    skipBtn.onclick = skipIntro;
-    
-    // Auto-hide skip button option
-    if (state.settings.introHideSkip) {
-      skipBtn.style.display = 'none';
+    if (skipBtn) { 
+        skipBtn.onclick = (e) => { e.stopPropagation(); skipIntro(); };
+        if (state.settings.introHideSkip) skipBtn.style.display = 'none'; 
     }
   }
-  
+
   function skipIntro() {
     const overlay = document.getElementById('introVideoOverlay');
     const video = document.getElementById('introVideo');
     if (overlay) {
       overlay.style.opacity = '0';
       overlay.style.transition = 'opacity 0.5s ease';
-      setTimeout(() => overlay.classList.add('hidden'), 500);
+      setTimeout(() => { overlay.style.display = 'none'; overlay.classList.add('hidden'); }, 500);
     }
-    if (video) video.pause();
+    if (video) { video.pause(); video.currentTime = 0; 
+          video.play().catch(e => console.log("Play failed:", e)); // Force play on tap} // Kept src intact so it works on refresh
   }
-  
+
   // ═══════════════════════════════════════════════════════════════════════════════
   // COMPILATION PLAYER
   // ═══════════════════════════════════════════════════════════════════════════════
-  
-  let currentCompilation = null;
-  let currentSlideIndex = 0;
-  let compilationTimer = null;
+  let currentCompilation = null; let currentSlideIndex = 0; let compilationTimer = null;
   
   async function playCompilation(compilationId) {
     try {
       const res = await fetch(apiUrl('/api/compilations/' + compilationId));
       const data = await res.json();
-      if (!data.success || !data.compilation) {
-        showNotification('error', 'Error', 'Could not load compilation');
-        return;
-      }
-      
-      currentCompilation = data.compilation;
-      currentSlideIndex = 0;
-      
+      if (!data.success || !data.compilation) return showNotification('error', 'Error', 'Could not load compilation');
+      currentCompilation = data.compilation; currentSlideIndex = 0;
       renderCompilationSlides();
-      
       const player = document.getElementById('compilationPlayer');
       if (player) player.classList.add('active');
       document.body.style.overflow = 'hidden';
-      
       showCompilationSlide(0);
-    } catch (e) {
-      showNotification('error', 'Error', e.message);
-    }
+    } catch (e) { showNotification('error', 'Error', e.message); }
   }
   
   function renderCompilationSlides() {
     const container = document.getElementById('compilationSlides');
     const progress = document.getElementById('compilationProgress');
     if (!container || !currentCompilation) return;
-    
     const transClass = 'trans-' + (currentCompilation.transitionType || 'fade');
-    
     container.innerHTML = currentCompilation.slides.map((slide, i) => {
       const memory = state.memories.find(m => m.id === slide.memoryId);
       const imgUrl = memory ? memory.file_url : '';
-      return '<div class="compilation-slide ' + transClass + '" data-index="' + i + '">' +
-        '<img src="' + imgUrl + '" alt="" />' +
-        (slide.caption ? '<div class="compilation-caption">' + escapeHtml(slide.caption) + '</div>' : '') +
-        '</div>';
+      return `<div class="compilation-slide ${transClass}" data-index="${i}"><img src="${imgUrl}" alt="" />${slide.caption ? `<div class="compilation-caption">${escapeHtml(slide.caption)}</div>` : ''}</div>`;
     }).join('');
-    
-    progress.innerHTML = currentCompilation.slides.map((_, i) =>
-      '<div class="compilation-dot" onclick="goToCompilationSlide(' + i + ')"></div>'
-    ).join('');
+    progress.innerHTML = currentCompilation.slides.map((_, i) => `<div class="compilation-dot" onclick="goToCompilationSlide(${i})"></div>`).join('');
   }
   
   function showCompilationSlide(index) {
     if (!currentCompilation) return;
-    
     currentSlideIndex = index;
-    const slides = document.querySelectorAll('.compilation-slide');
-    const dots = document.querySelectorAll('.compilation-dot');
-    
-    slides.forEach((s, i) => s.classList.toggle('active', i === index));
-    dots.forEach((d, i) => d.classList.toggle('active', i === index));
-    
-    // Clear existing timer
+    document.querySelectorAll('.compilation-slide').forEach((s, i) => s.classList.toggle('active', i === index));
+    document.querySelectorAll('.compilation-dot').forEach((d, i) => d.classList.toggle('active', i === index));
     if (compilationTimer) clearTimeout(compilationTimer);
-    
-    // Auto-advance if in auto mode
     if (currentCompilation.displayMode === 'auto') {
       const duration = (currentCompilation.slides[index]?.duration || 5) * 1000;
       compilationTimer = setTimeout(() => {
-        if (currentSlideIndex < currentCompilation.slides.length - 1) {
-          showCompilationSlide(currentSlideIndex + 1);
-        } else {
-          closeCompilationPlayer();
-        }
+        if (currentSlideIndex < currentCompilation.slides.length - 1) showCompilationSlide(currentSlideIndex + 1);
+        else closeCompilationPlayer();
       }, duration);
     }
   }
-  
-  function nextCompilationSlide() {
-    if (!currentCompilation) return;
-    const next = (currentSlideIndex + 1) % currentCompilation.slides.length;
-    showCompilationSlide(next);
-  }
-  
-  function prevCompilationSlide() {
-    if (!currentCompilation) return;
-    const prev = (currentSlideIndex - 1 + currentCompilation.slides.length) % currentCompilation.slides.length;
-    showCompilationSlide(prev);
-  }
-  
-  function goToCompilationSlide(index) {
-    showCompilationSlide(index);
-  }
+
+  function nextCompilationSlide() { if (currentCompilation) showCompilationSlide((currentSlideIndex + 1) % currentCompilation.slides.length); }
+  function prevCompilationSlide() { if (currentCompilation) showCompilationSlide((currentSlideIndex - 1 + currentCompilation.slides.length) % currentCompilation.slides.length); }
+  function goToCompilationSlide(index) { showCompilationSlide(index); }
   
   function closeCompilationPlayer() {
     if (compilationTimer) clearTimeout(compilationTimer);
@@ -1924,119 +1999,230 @@ overflow: hidden;
     document.body.style.overflow = '';
     currentCompilation = null;
   }
-  
+
   // ═══════════════════════════════════════════════════════════════════════════════
   // INLINE EDITING
   // ═══════════════════════════════════════════════════════════════════════════════
-  
   function makeInlineEditable(element, memoryId, field) {
     if (!element || !can('editMemory')) return;
-    
-    element.classList.add('inline-editable');
-    element.setAttribute('data-memory-id', memoryId);
-    element.setAttribute('data-field', field);
-    
-    element.addEventListener('dblclick', function(e) {
-      e.stopPropagation();
-      startInlineEdit(this);
-    });
+    element.classList.add('inline-editable'); element.setAttribute('data-memory-id', memoryId); element.setAttribute('data-field', field);
+    element.addEventListener('dblclick', function(e) { e.stopPropagation(); startInlineEdit(this); });
   }
   
   function startInlineEdit(element) {
     if (element.classList.contains('editing')) return;
-    
     const originalText = element.textContent;
     element.classList.add('editing');
-    
     const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'inline-edit-input';
-    input.value = originalText;
-    
-    element.textContent = '';
-    element.appendChild(input);
-    input.focus();
-    input.select();
+    input.type = 'text'; input.className = 'inline-edit-input'; input.value = originalText;
+    element.textContent = ''; element.appendChild(input); input.focus(); input.select();
     
     const save = async () => {
       const newValue = input.value.trim();
       element.classList.remove('editing');
       element.textContent = newValue || originalText;
-      
       if (newValue && newValue !== originalText) {
-        const memoryId = element.getAttribute('data-memory-id');
-        const field = element.getAttribute('data-field');
-        
         try {
-          const payload = {};
-          payload[field] = newValue;
-          
-          const res = await fetch(apiUrl('/api/admin/memory/edit/' + memoryId), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + state.adminToken
-            },
-            body: JSON.stringify(payload)
+          const res = await fetch(apiUrl('/api/admin/memory/edit/' + element.getAttribute('data-memory-id')), {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.adminToken },
+            body: JSON.stringify({ [element.getAttribute('data-field')]: newValue })
           });
-          
           const data = await res.json();
-          if (data.success) {
-            showNotification('success', 'Saved', 'Updated ' + field);
-          } else {
-            element.textContent = originalText;
-            showNotification('error', 'Failed', data.error || 'Could not save');
-          }
-        } catch (e) {
-          element.textContent = originalText;
-          showNotification('error', 'Error', e.message);
-        }
+          if (data.success) showNotification('success', 'Saved', 'Updated ' + element.getAttribute('data-field'));
+          else { element.textContent = originalText; showNotification('error', 'Failed', data.error); }
+        } catch (e) { element.textContent = originalText; showNotification('error', 'Error', e.message); }
       }
     };
-    
     input.addEventListener('blur', save);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') save();
-      if (e.key === 'Escape') {
-        element.classList.remove('editing');
-        element.textContent = originalText;
-      }
-    });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') { element.classList.remove('editing'); element.textContent = originalText; } });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // COMPILATION CREATOR
+  // ═══════════════════════════════════════════════════════════════════════════════
+  let compSelectedSlides = []; let compEditingId = null;
+  
+  function openCompilationCreator(editId = null) {
+    compEditingId = editId; compSelectedSlides = [];
+    document.getElementById('compName').value = ''; document.getElementById('compDisplayMode').value = 'auto';
+    document.getElementById('compTransition').value = 'fade'; document.getElementById('compDefaultDuration').value = '5';
+    loadCompPhotoGrid(); renderCompSlidesPreview();
+    document.getElementById('compilationCreatorModal').classList.add('active');
   }
   
+  function closeCompilationCreator() { document.getElementById('compilationCreatorModal').classList.remove('active'); compSelectedSlides = []; compEditingId = null; }
+  
+  async function loadCompPhotoGrid() {
+    const grid = document.getElementById('compPhotoGrid'); if (!grid) return;
+    try {
+      const res = await fetch(apiUrl('/api/admin/memories?limit=5000&filter=approved'), { headers: { 'Authorization': 'Bearer ' + state.adminToken } });
+      const data = await res.json();
+      if (!data.success) return;
+      const memories = (data.memories || []).filter(m => m.file_type === 'image');
+      grid.innerHTML = memories.map(m => `<div class="compilation-photo-item" data-id="${m.id}" onclick="toggleCompPhoto(${m.id})"><img src="${mediaUrl(m.file_url)}" alt="" /><div class="photo-check">✓</div></div>`).join('') || '<div class="mini-pill">No photos available</div>';
+    } catch (e) { grid.innerHTML = '<div class="mini-pill">Error loading photos</div>'; }
+  }
+  
+  function toggleCompPhoto(memoryId) {
+    const idx = compSelectedSlides.findIndex(s => s.memoryId === memoryId);
+    if (idx >= 0) compSelectedSlides.splice(idx, 1);
+    else compSelectedSlides.push({ memoryId, caption: '', duration: parseInt(document.getElementById('compDefaultDuration').value) || 5 });
+    updateCompPhotoSelection(); renderCompSlidesPreview();
+  }
+  
+  function updateCompPhotoSelection() { document.querySelectorAll('.compilation-photo-item').forEach(el => { el.classList.toggle('selected', compSelectedSlides.some(s => s.memoryId === parseInt(el.dataset.id))); }); }
+  
+  function renderCompSlidesPreview() {
+    const preview = document.getElementById('compSlidesPreview'); if (!preview) return;
+    if (compSelectedSlides.length === 0) { preview.innerHTML = '<div class="mini-pill" style="margin:auto;">No slides selected yet</div>'; return; }
+    preview.innerHTML = compSelectedSlides.map((slide, i) => {
+      const mem = state.memories.find(m => m.id === slide.memoryId);
+      const imgUrl = mem ? mediaUrl(mem.file_url) : '';
+      return `<div class="compilation-slide-preview" data-index="${i}"><img src="${imgUrl}" alt="" /><input type="text" placeholder="Caption..." value="${escapeAttr(slide.caption)}" onchange="updateSlideCaption(${i}, this.value)" /><input type="number" min="1" max="60" value="${slide.duration}" onchange="updateSlideDuration(${i}, this.value)" style="margin-top:4px;" /><button class="remove-slide" onclick="removeCompSlide(${i})">Remove</button></div>`;
+    }).join('');
+  }
+  
+  function updateSlideCaption(index, caption) { if (compSelectedSlides[index]) compSelectedSlides[index].caption = caption; }
+  function updateSlideDuration(index, duration) { if (compSelectedSlides[index]) compSelectedSlides[index].duration = Math.max(1, Math.min(60, parseInt(duration) || 5)); }
+  function removeCompSlide(index) { compSelectedSlides.splice(index, 1); updateCompPhotoSelection(); renderCompSlidesPreview(); }
+  
+  async function saveCompilation() {
+    const name = document.getElementById('compName').value.trim();
+    if (!name) return showNotification('error', 'Name required', 'Enter a compilation name');
+    if (compSelectedSlides.length < 2) return showNotification('error', 'Need slides', 'Select at least 2 photos');
+    const payload = { name, slides: compSelectedSlides, displayMode: document.getElementById('compDisplayMode').value, transitionType: document.getElementById('compTransition').value };
+    try {
+      const url = compEditingId ? apiUrl('/api/admin/compilations/' + compEditingId) : apiUrl('/api/admin/compilations');
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.adminToken }, body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.success) { showNotification('success', 'Saved', compEditingId ? 'Compilation updated' : 'Compilation created'); closeCompilationCreator(); loadCompilationsAdmin(); }
+      else showNotification('error', 'Failed', data.error);
+    } catch (e) { showNotification('error', 'Error', e.message); }
+  }
+  
+  function renderCompilationsPanelHtml() {
+    return `<div class="stat-card" style="text-align:left;"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Memory Compilations</h3><div style="display:flex; gap:10px;"><button class="admin-btn admin-btn-secondary" onclick="loadCompilationsAdmin()">Refresh</button><button class="admin-btn admin-btn-primary" onclick="openCompilationCreator()">+ New Compilation</button></div></div><div class="mini-pill" style="margin-top:12px;">Create photo slideshows with transitions and captions</div><div id="compilationsListAdmin" style="margin-top:16px;"></div></div>`;
+  }
+  
+  async function loadCompilationsAdmin() {
+    try {
+      const res = await fetch(apiUrl('/api/compilations'));
+      const data = await res.json();
+      if (!data.success) return;
+      const list = document.getElementById('compilationsListAdmin'); if (!list) return;
+      if (!data.compilations || !data.compilations.length) { list.innerHTML = '<div class="mini-pill">No compilations yet. Create your first one!</div>'; return; }
+      list.innerHTML = data.compilations.map(c => `<div class="admin-memory-card" style="padding:16px; margin-bottom:12px;"><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><div><div style="font-weight:800; font-size:1.1rem;">${escapeHtml(c.name)}</div><div style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">${c.slides.length} slides • ${c.displayMode} mode • ${c.transitionType} transition</div></div><div style="display:flex; gap:8px; flex-wrap:wrap;"><button class="admin-btn admin-btn-primary" onclick="playCompilation(${c.id})">▶ Play</button><button class="admin-btn admin-btn-secondary" onclick="editCompilationAdmin(${c.id})">Edit</button><button class="admin-btn admin-btn-danger" onclick="deleteCompilationAdmin(${c.id})">Delete</button></div></div><div style="display:flex; gap:8px; margin-top:12px; overflow-x:auto; padding:8px 0;">${c.slides.slice(0, 8).map(s => { const mem = state.memories.find(m => m.id === s.memoryId); return mem ? `<img src="${mediaUrl(mem.file_url)}" style="width:60px; height:60px; object-fit:cover; border-radius:8px;" />` : ''; }).join('')}${c.slides.length > 8 ? `<span class="mini-pill">+${c.slides.length - 8} more</span>` : ''}</div></div>`).join('');
+    } catch (e) { console.error('Load compilations error:', e); }
+  }
+  
+  async function editCompilationAdmin(id) {
+    try {
+      const res = await fetch(apiUrl('/api/compilations/' + id));
+      const data = await res.json();
+      if (!data.success || !data.compilation) return;
+      compEditingId = id; compSelectedSlides = data.compilation.slides.map(s => ({ memoryId: s.memoryId, caption: s.caption || '', duration: s.duration || 5 }));
+      document.getElementById('compName').value = data.compilation.name; document.getElementById('compDisplayMode').value = data.compilation.displayMode || 'auto'; document.getElementById('compTransition').value = data.compilation.transitionType || 'fade';
+      loadCompPhotoGrid(); setTimeout(() => { updateCompPhotoSelection(); renderCompSlidesPreview(); }, 500);
+      document.getElementById('compilationCreatorModal').classList.add('active');
+    } catch (e) { showNotification('error', 'Error', e.message); }
+  }
+  
+  async function deleteCompilationAdmin(id) {
+    if (!confirm('Delete this compilation?')) return;
+    try {
+      const res = await fetch(apiUrl('/api/admin/compilations/' + id), { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + state.adminToken } });
+      const data = await res.json();
+      if (data.success) { showNotification('success', 'Deleted', 'Compilation removed'); loadCompilationsAdmin(); }
+      else showNotification('error', 'Failed', data.error);
+    } catch (e) { showNotification('error', 'Error', e.message); }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // BATCH UPLOAD (ADMIN)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  function openBatchUpload() {
+    document.getElementById('batchUploadModal').classList.add('active');
+    document.getElementById('batchName').value = ''; document.getElementById('batchCaption').value = ''; document.getElementById('batchType').value = 'Friends';
+    document.getElementById('batchFiles').value = ''; document.getElementById('batchFileLabel').textContent = 'Click to select files';
+    document.getElementById('batchProgress').style.display = 'none'; document.getElementById('btnStartBatch').disabled = false;
+  }
+  
+  function closeBatchUpload() { document.getElementById('batchUploadModal').classList.remove('active'); }
+  function updateBatchFileCount(input) { document.getElementById('batchFileLabel').textContent = input.files && input.files.length > 0 ? `${input.files.length} file(s) selected` : 'Click to select files'; }
+  
+  async function submitBatchUpload() {
+    const name = document.getElementById('batchName').value.trim(); const caption = document.getElementById('batchCaption').value.trim();
+    const type = document.getElementById('batchType').value; const fileInput = document.getElementById('batchFiles');
+    const autoApprove = document.getElementById('batchAutoApprove').checked;
+    if (!name || !caption || !fileInput.files.length) return showNotification('error', 'Missing fields', 'Fill all fields and select files.');
+    
+    document.getElementById('btnStartBatch').disabled = true;
+    const progressDiv = document.getElementById('batchProgress'); const fill = document.getElementById('batchProgressFill'); const text = document.getElementById('batchProgressText');
+    progressDiv.style.display = 'block';
+    
+    const files = Array.from(fileInput.files); const total = files.length; let successCount = 0; const CHUNK_SIZE = 5;
+    for (let i = 0; i < total; i += CHUNK_SIZE) {
+        const chunk = files.slice(i, i + CHUNK_SIZE);
+        const fd = new FormData(); fd.append('name', name); fd.append('caption', caption); fd.append('type', type); fd.append('autoApprove', autoApprove ? 'true' : 'false');
+        chunk.forEach(f => fd.append('files', f));
+        try {
+            text.textContent = `Uploading batch ${Math.ceil((i+1)/CHUNK_SIZE)} of ${Math.ceil(total/CHUNK_SIZE)}...`;
+            const res = await fetch(apiUrl('/api/admin/upload-batch'), { method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` }, body: fd });
+            const data = await res.json();
+            if (data.success) successCount += (data.count || 0); else showNotification('error', 'Error in chunk', data.error);
+            fill.style.width = Math.min(100, Math.round(((i + chunk.length) / total) * 100)) + '%';
+        } catch (e) { console.error(e); }
+    }
+    showNotification('success', 'Batch Complete', `${successCount} uploaded successfully.`);
+    closeBatchUpload(); loadAdminMemories(true);
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════════
   // FAVICON HANDLING
   // ═══════════════════════════════════════════════════════════════════════════════
-  
   function updateFavicon() {
-    const s = state.settings;
-    let faviconUrl = '/favicon.ico';
-    
-    // Check for uploaded favicon first
+    const s = state.settings; let faviconUrl = '/favicon.ico';
     if (s.faviconUploaded) {
-      faviconUrl = '/favicon.ico?v=' + Date.now();
+        faviconUrl = '/favicon.ico?v=' + Date.now();
     } else if (s.logoText) {
-      // Create emoji favicon
-      const canvas = document.createElement('canvas');
-      canvas.width = 32;
-      canvas.height = 32;
-      const ctx = canvas.getContext('2d');
-      ctx.font = '28px serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(s.logoText, 16, 18);
-      faviconUrl = canvas.toDataURL('image/png');
+      const canvas = document.createElement('canvas'); canvas.width = 32; canvas.height = 32;
+      const ctx = canvas.getContext('2d'); ctx.font = '28px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(s.logoText, 16, 18); faviconUrl = canvas.toDataURL('image/png');
     }
-    
     let link = document.querySelector("link[rel*='icon']");
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
-      document.head.appendChild(link);
-    }
+    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
     link.href = faviconUrl;
   }
+</script>
+<script id="intro-reload-fix">
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    sessionStorage.removeItem("introSeen");
+    localStorage.removeItem("introSeen");
+  } catch (e) {}
 
+  const video = document.getElementById("introVideo");
+  if (!video) return;
+
+  try {
+    if (video.getAttribute("src") === "") {
+      const originalSrc = video.getAttribute("data-original-src");
+      if (originalSrc) {
+        video.setAttribute("src", originalSrc);
+        video.load();
+      }
+    } else if (!video.getAttribute("data-original-src") && video.getAttribute("src")) {
+      video.setAttribute("data-original-src", video.getAttribute("src"));
+    }
+  } catch (e) {}
+
+  window.addEventListener("pageshow", function () {
+    try {
+      video.currentTime = 0;
+      video.load();
+    } catch (e) {}
+  });
+});
 </script>
 </body>
 </html>
