@@ -17,7 +17,7 @@
     "footerMadeBy": "Made with ♥ by the Batch of 2025",
     "footerCopyright": "© 2026 Cornerstone School. All rights reserved.",
     "uploadsEnabled": true,
-    "commentsEnabled": true,
+    "commentsEnabled": false,
     "profanityFilterEnabled": true,
     "uploadWindowEnabled": false,
     "uploadWindowStartIST": "",
