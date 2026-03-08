@@ -2342,16 +2342,6 @@ app.use((err, req, res, next) => {
 })();
 
 
-
-
-// === SNIPER_SERVER_PATCH_V6_START ===
-(() => {
-  if (global.__SNIPER_SERVER_PATCH_V6__) return;
-  global.__SNIPER_SERVER_PATCH_V6__ = true;
-  console.log('SNIPER patch server v6 loaded.');
-})();
-
-
 server.listen(PORT, '0.0.0.0', () => {
   console.log('');
   console.log('═══════════════════════════════════════════════════════════════════');
