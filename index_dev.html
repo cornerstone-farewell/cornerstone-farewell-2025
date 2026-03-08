@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Farewell 2025 | Cornerstone International School</title>
+ <meta name="description" content="Celebrating the Class of 2025 - Share and cherish our memories together" />
+ <link rel="preconnect" href="https://fonts.googleapis.com" />
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+ <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet" />
+ 
+ <!-- Globe.gl for "Erase the Distance" Map Feature -->
+ <script src="https://unpkg.com/globe.gl"></script>
+
+ <style>
+ :root {
+ --primary-gold: #D4AF37;
+ --primary-gold-light: #F4E5B2;
+ --primary-gold-dark: #B8860B;
+ --navy-dark: #1a1a2e;
+ --navy-medium: #16213e;
+ --navy-light: #0f3460;
+ --accent-rose: #e94560;
+ --accent-purple: #7B2D8E;
+ --text-light: #ffffff;
+ --text-muted: rgba(255, 255, 255, 0.7);
+ --text-dark: #1a1a2e;
+ --glass-bg: rgba(255, 255, 255, 0.1);
+ --glass-border: rgba(255, 255, 255, 0.2);
+ --success-green: #4CAF50;
+ --error-red: #f44336;
+ --gradient-gold: linear-gradient(135deg, #D4AF37 0%, #F4E5B2 50%, #D4AF37 100%);
+ --gradient-navy: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+ --gradient-hero: linear-gradient(180deg, rgba(26, 26, 46, 0.9) 0%, rgba(22, 33, 62, 0.8) 100%);
+ --font-display: 'Playfair Display', serif;
+ --font-body: 'Poppins', sans-serif;
+ --font-script: 'Dancing Script', cursive;
+ --section-padding: 100px;
+ --container-width: 1400px;
+ --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.3);
+ --shadow-gold: 0 4px 30px rgba(212, 175, 55, 0.3);
+ --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+ }
+ * { margin: 0; padding: 0; box-sizing: border-box; }
+ html { scroll-behavior: auto; }
+ body { font-family: var(--font-body); background: var(--navy-dark); color: var(--text-light); line-height: 1.6; overflow-x: hidden; }
+ ::-webkit-scrollbar { width: 10px; }
+ ::-webkit-scrollbar-track { background: var(--navy-dark); }
+ ::-webkit-scrollbar-thumb { background: var(--primary-gold); border-radius: 5px; }
+ ::-webkit-scrollbar-thumb:hover { background: var(--primary-gold-dark); }
+ 
+ @keyframes float { 0%,100%{transform:translateY(0) rotate(0deg);} 50%{transform:translateY(-20px) rotate(5deg);} }
+ @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+ @keyframes fadeInUp { from{opacity:0; transform:translateY(30px);} to{opacity:1; transform:translateY(0);} }
+ @keyframes scaleIn { from{opacity:0; transform:scale(0.9);} to{opacity:1; transform:scale(1);} }
+ @keyframes confettiFall { 0%{transform:translateY(-100vh) rotate(0deg); opacity:1;} 100%{transform:translateY(100vh) rotate(720deg); opacity:0;} }
+ @keyframes slideInRight { from{opacity:0; transform:translateX(50px);} to{opacity:1; transform:translateX(0);} }
+ @keyframes heartBeat { 0%{transform:scale(1);} 14%{transform:scale(1.3);} 28%{transform:scale(1);} 42%{transform:scale(1.3);} 70%{transform:scale(1);} }
+ @keyframes spin { to { transform: rotate(360deg); } }
+ @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+ 
+ .animate-fadeInUp { animation: fadeInUp 0.8s ease forwards; }
+ .animate-scaleIn { animation: scaleIn 0.6s ease forwards; }
+ 
+ #particles-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+ .particle { position: absolute; width: 4px; height: 4px; background: var(--primary-gold); border-radius: 50%; opacity: 0.3; animation: float 8s infinite ease-in-out; }
+ 
+ .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; transition: var(--transition-smooth); background: transparent; }
+ .navbar.scrolled { background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px); padding: 15px 50px; box-shadow: var(--shadow-soft); }
+ .logo { display: flex; align-items: center; gap: 15px; cursor: pointer; user-select: none; }
+ .logo-icon { width: 50px; height: 50px; background: var(--gradient-gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow-gold); transition: var(--transition-smooth); }
+ .logo:hover .logo-icon { transform: rotate(360deg); }
+ .logo-text { display: flex; flex-direction: column; }
+ .logo-text .school-name { font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; color: var(--primary-gold); }
+ .logo-text .event-name { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+ .nav-links { display: flex; gap: 40px; list-style: none; }
+ .nav-links a { color: var(--text-light); text-decoration: none; font-weight: 500; font-size: 0.95rem; position: relative; padding: 5px 0; transition: var(--transition-smooth); }
+ .nav-links a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: var(--primary-gold); transition: var(--transition-smooth); }
+ .nav-links a:hover { color: var(--primary-gold); }
+ .nav-links a:hover::after { width: 100%; }
+ .nav-cta { background: var(--gradient-gold); color: var(--navy-dark) !important; padding: 12px 28px !important; border-radius: 30px; font-weight: 600 !important; box-shadow: var(--shadow-gold); transition: var(--transition-smooth) !important; }
+ .nav-cta::after { display: none !important; }
+ .nav-cta:hover { transform: translateY(-3px); box-shadow: 0 6px 30px rgba(212, 175, 55, 0.5); }
+ .mobile-menu-btn { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 10px; }
+ .mobile-menu-btn span { width: 25px; height: 3px; background: var(--primary-gold); border-radius: 2px; transition: var(--transition-smooth); }
+ 
+ .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; background: var(--gradient-navy); }
+ .hero-bg { position: absolute; top:0; left:0; right:0; bottom:0; background: radial-gradient(ellipse at 20% 80%, rgba(212, 175, 55, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(123, 45, 142, 0.1) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(15, 52, 96, 0.3) 0%, transparent 70%); }
+ .hero-content { text-align: center; z-index: 10; padding: 0 20px; max-width: 900px; }
+ .hero-badge { display: inline-block; background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 10px 25px; border-radius: 30px; font-size: 0.9rem; color: var(--primary-gold); margin-bottom: 30px; backdrop-filter: blur(10px); animation: fadeInUp 0.8s ease; }
+ .hero-title { font-family: var(--font-display); font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 1.1; margin-bottom: 20px; animation: fadeInUp 0.8s ease 0.2s both; }
+ .hero-title .highlight { background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+ .hero-subtitle { font-family: var(--font-script); font-size: clamp(1.5rem, 4vw, 2.5rem); color: var(--primary-gold-light); margin-bottom: 20px; animation: fadeInUp 0.8s ease 0.4s both; }
+ .hero-description { font-size: 1.2rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 40px; animation: fadeInUp 0.8s ease 0.6s both; }
+ .hero-buttons { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; animation: fadeInUp 0.8s ease 0.8s both; }
+ .btn { padding: 16px 36px; border-radius: 30px; font-size: 1rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; transition: var(--transition-smooth); cursor: pointer; border: none; font-family: var(--font-body); }
+ .btn-primary { background: var(--gradient-gold); color: var(--navy-dark); box-shadow: var(--shadow-gold); }
+ .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 40px rgba(212, 175, 55, 0.5); }
+ .btn-secondary { background: transparent; color: var(--text-light); border: 2px solid var(--glass-border); backdrop-filter: blur(10px); }
+ .btn-secondary:hover { background: var(--glass-bg); border-color: var(--primary-gold); color: var(--primary-gold); }
+ .btn-danger { background: rgba(244,67,54,0.2); border: 1px solid rgba(244,67,54,0.6); color: #ffb3ad; }
+ .btn-danger:hover { background: rgba(244,67,54,0.35); }
+ 
+ section { padding: var(--section-padding) 20px; position: relative; }
+ .container { max-width: var(--container-width); margin: 0 auto; }
+ .section-header { text-align: center; margin-bottom: 60px; }
+ .section-badge { display: inline-block; background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; color: var(--primary-gold); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+ .section-title { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700; margin-bottom: 15px; }
+ .section-title .highlight { background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+ .section-description { font-size: 1.1rem; color: var(--text-muted); max-width: 700px; margin: 0 auto; }
+ 
+ /* Countdown */
+ #countdown { background: linear-gradient(180deg, var(--navy-dark) 0%, var(--navy-medium) 100%); transition: filter 2s; }
+ .countdown-container { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+ .countdown-item { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px 40px; text-align: center; backdrop-filter: blur(10px); min-width: 140px; transition: var(--transition-smooth); }
+ .countdown-item:hover { transform: translateY(-10px); border-color: var(--primary-gold); box-shadow: var(--shadow-gold); }
+ .countdown-number { font-family: var(--font-display); font-size: 4rem; font-weight: 700; background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+ .countdown-label { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; }
+ .event-date-display { text-align: center; margin-top: 40px; padding: 20px; background: rgba(212, 175, 55, 0.1); border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2); }
+ .event-date-display p { font-size: 1.2rem; color: var(--primary-gold); }
+ .event-date-display p span { font-weight: 700; }
+ 
+ /* Upload */
+ #upload { background: var(--navy-medium); }
+ .upload-container { max-width: 800px; margin: 0 auto; }
+ .upload-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 30px; padding: 50px; backdrop-filter: blur(20px); }
+ .callout { margin: 0 0 20px; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: var(--text-muted); }
+ .callout strong { color: var(--text-light); }
+ .dropzone { border: 3px dashed var(--glass-border); border-radius: 20px; padding: 60px 40px; text-align: center; transition: var(--transition-smooth); cursor: pointer; background: rgba(255, 255, 255, 0.02); }
+ .dropzone:hover, .dropzone.drag-over { border-color: var(--primary-gold); background: rgba(212, 175, 55, 0.05); }
+ .dropzone-icon { font-size: 4rem; margin-bottom: 20px; }
+ .dropzone-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 10px; }
+ .dropzone-subtitle { color: var(--text-muted); margin-bottom: 20px; }
+ .dropzone-formats { font-size: 0.85rem; color: var(--text-muted); }
+ .dropzone-formats span { background: rgba(212, 175, 55, 0.2); padding: 4px 10px; border-radius: 10px; margin: 0 3px; color: var(--primary-gold); }
+ #file-input { display: none; }
+ .file-preview-container { margin-top: 30px; display: none; }
+ .file-preview-container.has-files { display: block; }
+ .file-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }
+ .file-preview-item { position: relative; aspect-ratio: 1; border-radius: 15px; overflow: hidden; background: var(--navy-dark); }
+ .file-preview-item img, .file-preview-item video { width: 100%; height: 100%; object-fit: cover; }
+ .file-preview-item .video-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: rgba(0,0,0,0.7); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+ .file-preview-item .remove-file { position: absolute; top: 5px; right: 5px; width: 25px; height: 25px; background: var(--error-red); border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; opacity: 0; transition: var(--transition-smooth); }
+ .file-preview-item:hover .remove-file { opacity: 1; }
+ .file-info { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; }
+ .upload-form { margin-top: 30px; }
+ .form-group { margin-bottom: 25px; }
+ .form-group label { display: block; margin-bottom: 10px; font-weight: 500; color: var(--text-light); }
+ .form-group label .required { color: var(--accent-rose); }
+ .form-input, .form-select, .form-textarea { width: 100%; padding: 16px 20px; background: rgba(255,255,255,0.05); border: 2px solid var(--glass-border); border-radius: 15px; color: var(--text-light); font-size: 1rem; font-family: var(--font-body); transition: var(--transition-smooth); }
+ .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary-gold); background: rgba(255,255,255,0.08); }
+ .form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+ .form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 15px center; background-size: 20px; }
+ .form-select option { background: var(--navy-dark); color: var(--text-light); }
+ .form-textarea { min-height: 120px; resize: vertical; }
+ .char-counter { text-align: right; font-size: 0.85rem; color: var(--text-muted); margin-top: 5px; }
+ .char-counter.warning { color: var(--accent-rose); }
+ .upload-progress { display: none; margin-top: 20px; }
+ .upload-progress.active { display: block; }
+ .progress-bar { height: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+ .progress-fill { height: 100%; background: var(--gradient-gold); border-radius: 10px; width: 0%; transition: width 0.3s ease; }
+ .progress-text { text-align: center; color: var(--text-muted); }
+ .upload-success { display: none; text-align: center; padding: 40px; }
+ .upload-success.active { display: block; animation: scaleIn 0.5s ease; }
+ .success-icon { font-size: 5rem; margin-bottom: 20px; }
+ .success-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 10px; color: var(--primary-gold); }
+ .success-message { color: var(--text-muted); margin-bottom: 20px; }
+
+ /* ========================================= */
+ /* JAW-DROPPING NEW FEATURES CSS ADDITIONS   */
+ /* ========================================= */
+
+ /* 1. Disposable Camera Flash Intro */
+ .disposable-flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 999999; opacity: 0; pointer-events: none; }
+ .disposable-flash.active { animation: flashAnim 2.5s ease-out forwards; }
+ @keyframes flashAnim { 0% { opacity: 1; } 20% { opacity: 1; } 100% { opacity: 0; } }
+
+ /* 2. Locker Slam Transition */
+ .locker-doors { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9000; display: flex; pointer-events: none; perspective: 1200px; overflow: hidden; }
+ .locker-door { width: 50%; height: 100%; background: linear-gradient(90deg, #3a4556, #2d3748); border: 4px solid #1a202c; box-shadow: inset 0 0 80px rgba(0,0,0,0.8); transform-origin: center left; transform: rotateY(-110deg); transition: transform 0.4s cubic-bezier(0.8, 0, 0.2, 1); background-image: repeating-linear-gradient(transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 12px); }
+ .locker-right { transform-origin: center right; transform: rotateY(110deg); border-left: none; }
+ .locker-doors.slam .locker-door { transform: rotateY(0deg); pointer-events: all; }
+ .locker-door::after { content: ''; position: absolute; top: 50%; width: 20px; height: 120px; background: #1a202c; border-radius: 5px; transform: translateY(-50%); box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+ .locker-left::after { right: 20px; }
+ .locker-right::after { left: 20px; display: none; } /* Only one handle visually */
+
+ /* 3. Tear Out Page Close Button */
+ .lightbox.tear-anim .lightbox-grid { animation: ripPage 0.7s forwards cubic-bezier(0.5, 0, 0.1, 1); transform-origin: top left; }
+ @keyframes ripPage { 0% { transform: rotate(0) translate(0, 0); opacity: 1; } 100% { transform: rotate(25deg) translate(100vw, 100vh); opacity: 0; } }
+
+ /* 4. Boombox Cassette Deck */
+ .boombox-widget { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; gap: 15px; align-items: flex-end; }
+ .cassettes { display: flex; flex-direction: column; gap: 8px; }
+ .cassette { width: 80px; height: 50px; background: rgba(255,255,255,0.05); border: 2px solid var(--primary-gold); border-radius: 8px; cursor: grab; text-align: center; font-size: 0.65rem; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); text-transform: uppercase; line-height: 1.2; padding: 5px; }
+ .cassette:hover { background: rgba(212, 175, 55, 0.2); transform: translateX(-5px); }
+ .cassette:active { cursor: grabbing; transform: scale(0.95); }
+ .boombox { width: 140px; height: 100px; background: linear-gradient(180deg, #333, #111); border-radius: 12px; border: 3px solid var(--glass-border); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px; box-shadow: var(--shadow-soft); transition: var(--transition-smooth); position: relative; overflow: hidden; }
+ .boombox.drag-over { border-color: var(--primary-gold); box-shadow: 0 0 30px rgba(212, 175, 55, 0.5); }
+ .boombox.playing { box-shadow: 0 0 25px var(--accent-purple); animation: boomboxPulse 0.5s infinite alternate; border-color: var(--accent-purple); }
+ .boombox-speakers { display: flex; width: 100%; justify-content: space-between; }
+ .speaker { width: 35px; height: 35px; border-radius: 50%; background: #000; border: 2px solid #444; }
+ .boombox-deck { width: 70px; height: 35px; background: #000; border-radius: 5px; border: 1px solid #555; position: relative; }
+ .boombox.playing .boombox-deck::after { content: ''; position: absolute; left: 10px; top: 15px; width: 10px; height: 10px; background: var(--primary-gold); border-radius: 50%; animation: spin 2s linear infinite; }
+ .boombox.playing .boombox-deck::before { content: ''; position: absolute; right: 10px; top: 15px; width: 10px; height: 10px; background: var(--primary-gold); border-radius: 50%; animation: spin 2s linear infinite reverse; }
+ @keyframes boomboxPulse { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
+
+ /* 5. Cinematic Lean Back Mode */
+ .lean-back-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: black; z-index: 9500; display: none; overflow: hidden; }
+ .lean-back-overlay.active { display: block; }
+ .lean-back-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 2s ease; transform: scale(1); pointer-events: none; }
+ .lean-back-img.active { opacity: 1; animation: kenBurns 8s linear forwards; }
+ @keyframes kenBurns { 100% { transform: scale(1.15) rotate(1deg); } }
+ .lean-back-close { position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 20px; cursor: pointer; z-index: 9501; backdrop-filter: blur(10px); }
+
+ /* 6. Scratch-to-Reveal Canvas */
+ .scratch-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; }
+ .scratch-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none; transition: opacity 1s ease; }
+ .scratch-tooltip { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: var(--primary-gold); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; pointer-events: none; text-align: center; border: 1px solid var(--primary-gold); opacity: 0.8; transition: opacity 0.3s; }
+ .scratch-container:hover .scratch-tooltip { opacity: 0.2; }
+
+ /* 7. Ghost Cursors (Multiplayer Simulation) */
+ .ghost-cursor { position: fixed; pointer-events: none; z-index: 9998; transition: top 0.1s linear, left 0.1s linear; display: flex; align-items: center; gap: 5px; opacity: 0.7; }
+ .ghost-cursor-icon { color: #fff; font-size: 1.2rem; filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5)); }
+ .ghost-cursor-label { background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; color: white; font-weight: bold; }
+ .ghost-popup { position: fixed; bottom: 30px; left: 30px; background: var(--navy-medium); border: 2px solid var(--primary-gold); border-radius: 15px; padding: 20px; z-index: 9999; max-width: 300px; box-shadow: var(--shadow-gold); animation: slideInRight 0.5s ease; }
+ .ghost-toggle-btn { position: fixed; bottom: 20px; left: 20px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-light); padding: 10px 15px; border-radius: 20px; z-index: 1000; cursor: pointer; backdrop-filter: blur(10px); display: none; }
+
+ /* 8. Emoji Physics Cannon */
+ .physics-emoji { position: fixed; font-size: 2rem; pointer-events: none; z-index: 9999; user-select: none; }
+
+ /* 9. Paper Airplane Pass */
+ .airplane-btn-wrap { position: fixed; top: 100px; right: 20px; z-index: 1000; }
+ .airplane { position: fixed; font-size: 3rem; color: white; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); pointer-events: none; z-index: 9999; opacity: 0; }
+ .airplane.fly-out { animation: flyOut 2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+ .airplane.fly-in { animation: flyIn 4s cubic-bezier(0.25, 1, 0.5, 1) forwards; pointer-events: all; cursor: pointer; }
+ @keyframes flyOut { 0% { opacity: 1; transform: translate(50vw, 80vh) rotate(-45deg) scale(1); } 100% { opacity: 0; transform: translate(120vw, -20vh) rotate(-10deg) scale(0.5); } }
+ @keyframes flyIn { 0% { opacity: 0; transform: translate(-20vw, 20vh) rotate(20deg) scale(0.5); } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; transform: translate(120vw, 80vh) rotate(45deg) scale(1.5); } }
+
+ /* 10. Erase the Distance Globe Section */
+ #global-map { background: #000; padding: 0; position: relative; min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+ #globeViz { width: 100%; height: 600px; cursor: grab; }
+ #globeViz:active { cursor: grabbing; }
+ .map-overlay-text { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 10; pointer-events: none; }
+ .map-overlay-text h2 { font-family: var(--font-display); font-size: 3rem; color: var(--primary-gold); margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+
+ /* ========================================= */
+ </style>
+ <style id="cornerstone-patch-css">
+ /* Intro Video Overlay */
+ .unmute-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 30px; font-size: 1.2rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border: none; border-radius: 30px; cursor: pointer; z-index: 15; box-shadow: 0 4px 20px rgba(0,0,0,0.5); animation: pulseBtn 2s infinite; display: none; }
+ @keyframes pulseBtn { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
+ .intro-video-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+ .intro-video-overlay.hidden { display: none !important; }
+ .intro-video { width: 100%; height: 100%; object-fit: cover; }
+ .skip-intro-btn { position: absolute; top: 20px; right: 20px; padding: 12px 24px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 25px; cursor: pointer; font-family: var(--font-body); font-size: 0.95rem; backdrop-filter: blur(10px); transition: var(--transition-smooth); z-index: 10; }
+ .skip-intro-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+ .toggle-intro-controls { position: absolute; bottom: 20px; right: 20px; padding: 10px 15px; background: rgba(0,0,0,0.5); border: none; color: white; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+ /* Compilations */
+ .compilation-player-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 8000; display: none; align-items: center; justify-content: center; }
+ .compilation-player-overlay.active { display: flex !important; }
+ .compilation-slide { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; opacity: 0; transition: opacity 0.8s ease, transform 0.8s ease; pointer-events: none; }
+ .compilation-slide.active { opacity: 1; pointer-events: auto; }
+ .compilation-slide img { max-width: 90%; max-height: 80vh; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+ .compilation-caption { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); padding: 16px 32px; border-radius: 20px; color: white; font-size: 1.3rem; max-width: 85%; text-align: center; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+ .compilation-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; transition: var(--transition-smooth); display: flex; align-items: center; justify-content: center; }
+ .compilation-nav-btn:hover { background: var(--primary-gold); color: var(--navy-dark); }
+ .compilation-prev { left: 30px; }
+ .compilation-next { right: 30px; }
+ .compilation-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; z-index: 8001;}
+ .compilation-close:hover { background: rgba(244,67,54,0.8); }
+ .compilation-progress { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
+ .compilation-dot { width: 12px; height: 12px; background: rgba(255,255,255,0.3); border-radius: 50%; cursor: pointer; transition: var(--transition-smooth); }
+ .compilation-dot:hover { background: rgba(255,255,255,0.6); }
+ .compilation-dot.active { background: var(--primary-gold); transform: scale(1.3); }
+ .compilation-slide.trans-slide { transform: translateX(100%); }
+ .compilation-slide.trans-slide.active { transform: translateX(0); }
+ .compilation-slide.trans-zoom { transform: scale(0.7); }
+ .compilation-slide.trans-zoom.active { transform: scale(1); }
+ .compilation-slide.trans-flip { transform: rotateY(90deg); }
+ .compilation-slide.trans-flip.active { transform: rotateY(0); }
+ .compilation-slide.trans-blur { filter: blur(20px); }
+ .compilation-slide.trans-blur.active { filter: blur(0); }
+ .compilation-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 7000; display: none; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+ .compilation-modal.active { display: flex !important; }
+ .compilation-modal-content { background: var(--navy-medium); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; max-width: 1200px; width: 100%; margin-top: 5vh; }
+ .compilation-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; max-height: 400px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; margin: 15px 0; }
+ .compilation-photo-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: var(--transition-smooth); }
+ .compilation-photo-item:hover { border-color: rgba(212,175,55,0.5); }
+ .compilation-photo-item.selected { border-color: var(--primary-gold); }
+ .compilation-photo-item img { width: 100%; height: 100%; object-fit: cover; }
+ .compilation-photo-item .photo-check { position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; background: var(--primary-gold); border-radius: 50%; display: none; align-items: center; justify-content: center; color: var(--navy-dark); font-weight: bold; }
+ .compilation-photo-item.selected .photo-check { display: flex; }
+ .compilation-slides-preview { display: flex; gap: 12px; overflow-x: auto; padding: 15px 0; min-height: 120px; background: rgba(0,0,0,0.15); border-radius: 12px; margin: 15px 0; }
+ .compilation-slide-preview { flex-shrink: 0; width: 100px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; padding: 8px; cursor: grab; }
+ .compilation-slide-preview img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
+ .compilation-slide-preview input { width: 100%; margin-top: 6px; padding: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 4px; color: white; }
+ .compilation-slide-preview .remove-slide { display: block; width: 100%; margin-top: 4px; padding: 4px; background: rgba(244,67,54,0.3); border: none; border-radius: 4px; color: #ffb3ad; cursor: pointer; font-size: 0.7rem; }
+ /* Inline edit mode */
+ .inline-editable { cursor: pointer; border: 1px dashed transparent; padding: 2px 4px; border-radius: 4px; transition: var(--transition-smooth); }
+ .inline-editable:hover { border-color: var(--primary-gold); background: rgba(212, 175, 55, 0.1); }
+ .inline-editable.editing { background: rgba(255,255,255,0.1); border-color: var(--primary-gold); }
+ .inline-edit-input { background: rgba(255,255,255,0.1); border: 1px solid var(--primary-gold); color: var(--text-light); padding: 4px 8px; border-radius: 6px; font-family: inherit; font-size: inherit; width: 100%; }
+ </style>
+</head>
+<body>
+
+ <!-- NEW: Disposable Camera Flash Overlay -->
+ <div id="disposableFlash" class="disposable-flash"></div>
+
+ <!-- NEW: Locker Slam Transition Overlay -->
+ <div id="lockerDoors" class="locker-doors">
+   <div class="locker-door locker-left"></div>
+   <div class="locker-door locker-right"></div>
+ </div>
+
+ <!-- NEW: Cinematic Lean Back Overlay -->
+ <div class="lean-back-overlay" id="leanBackOverlay">
+   <button class="lean-back-close" onclick="stopLeanBackMode()">Exit Cinematic Mode</button>
+   <img id="leanBackImg" class="lean-back-img" src="" alt="Cinematic Memory" />
+ </div>
+
+ <!-- NEW: Ghost Cursor Popup & Toggle -->
+ <div class="ghost-popup" id="ghostPopup">
+   <h4 style="color:var(--primary-gold); margin-bottom:10px; font-family:var(--font-display);">Live Multiplayer 👻</h4>
+   <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px; line-height:1.4;">See other students browsing the site right now in real-time. Bump cursors to celebrate!</p>
+   <div style="display:flex; gap:10px;">
+     <button class="btn btn-primary" onclick="dismissGhostPopup()" style="padding:8px 15px; font-size:0.8rem;">Awesome</button>
+     <button class="btn btn-secondary" onclick="toggleGhostCursors(false); dismissGhostPopup()" style="padding:8px 15px; font-size:0.8rem;">Turn Off</button>
+   </div>
+ </div>
+ <button class="ghost-toggle-btn" id="ghostToggleBtn" onclick="toggleGhostCursors(true)">👻 Show Live Users</button>
+
+ <!-- NEW: Paper Airplane Pass Button -->
+ <div class="airplane-btn-wrap">
+   <button class="btn btn-secondary" onclick="throwAirplane()" style="background: rgba(22, 33, 62, 0.8); border-color: var(--primary-gold); font-size: 0.85rem; padding: 10px 20px; box-shadow: var(--shadow-gold); backdrop-filter: blur(5px);">
+     ✈️ Send a Note
+   </button>
+ </div>
+
+ <!-- NEW: Boombox Cassette Deck -->
+ <div class="boombox-widget" id="boomboxWidget">
+   <div class="cassettes">
+     <div class="cassette" draggable="true" data-track="graduation" style="border-color:#D4AF37;">Graduation<br>Vibes</div>
+     <div class="cassette" draggable="true" data-track="sad" style="border-color:#7B2D8E;">Sad Boi<br>Hours</div>
+     <div class="cassette" draggable="true" data-track="hype" style="border-color:#e94560;">Hype<br>Track</div>
+   </div>
+   <div class="boombox" id="boombox" title="Drag a cassette here to play!">
+     <div class="boombox-speakers">
+       <div class="speaker"></div>
+       <div class="speaker"></div>
+     </div>
+     <div class="boombox-deck"></div>
+   </div>
+ </div>
+
+ <!-- Intro Video Overlay -->
+ <div id="introVideoOverlay" class="intro-video-overlay">
+ <video id="introVideo" class="intro-video" autoplay playsinline></video>
+ <div id="unmuteOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 15; display: none; align-items: center; justify-content: center; cursor: pointer; background: rgba(0,0,0,0.3);" onclick="forceUnmute()">
+ <div style="padding: 15px 30px; font-size: 1.5rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none;"> Tap Anywhere for Sound</div>
+ </div>
+ <button id="skipIntroBtn" class="skip-intro-btn" style="z-index: 20;">Skip →</button>
+ <button id="toggleIntroControls" class="toggle-intro-controls" style="display:none;"> </button>
+ </div>
+
+ <div id="particles-container"></div>
+ <nav class="navbar" id="navbar">
+ <div class="logo" id="logo" title="Click 5 times for Admin login">
+ <div class="logo-icon" id="uiLogoIcon"> </div>
+ <div class="logo-text">
+ <span class="school-name" id="uiSchoolName">Cornerstone</span>
+ <span class="event-name" id="uiEventName">Farewell 2025</span>
+ </div>
+ </div>
+ <ul class="nav-links" id="navLinks">
+ <li><a href="#home">Home</a></li>
+ <li><a href="#countdown">Countdown</a></li>
+ <li><a href="#memories">Memories</a></li>
+ <li><a href="#teachers">Teachers</a></li>
+ <li><a href="#timeline">Journey</a></li>
+ <li><a href="#compilations">Compilations</a></li>
+ <li><a href="#upload" class="nav-cta">Upload Memory</a></li>
+ </ul>
+ <div class="mobile-menu-btn" id="mobileMenuBtn"><span></span><span></span><span></span></div>
+ </nav>
+ <section class="hero" id="home">
+ <div class="hero-bg"></div>
+ <div class="hero-content">
+ <div class="hero-badge" id="uiHeroBadge">Class of 2025</div>
+ <h1 class="hero-title" id="uiHeroTitle">Farewell <span class="highlight">2025</span></h1>
+ <p class="hero-subtitle" id="uiHeroSubtitle">Where Memories Become Eternal</p>
+ <p class="hero-description" id="uiHeroDescription">
+ As we close this chapter and begin new journeys, let's celebrate the friendships, lessons, and memories that shaped us.
+ </p>
+ <div class="hero-buttons">
+ <a href="#upload" class="btn btn-primary">Share Your Memory</a>
+ <a href="#memories" class="btn btn-secondary">View Memory Wall</a>
+ </div>
+ </div>
+ </section>
+ <section id="countdown">
+ <div class="container">
+ <div class="section-header">
+ <span class="section-badge" id="uiCountdownBadge">Mark Your Calendar</span>
+ <h2 class="section-title" id="uiCountdownTitle">Countdown to <span class="highlight">Farewell</span></h2>
+ <p class="section-description" id="uiCountdownDesc">The moment we've all been waiting for is almost here</p>
+ </div>
+ <div class="countdown-container">
+ <div class="countdown-item"><div class="countdown-number" id="days">00</div><div class="countdown-label">Days</div></div>
+ <div class="countdown-item"><div class="countdown-number" id="hours">00</div><div class="countdown-label">Hours</div></div>
+ <div class="countdown-item"><div class="countdown-number" id="minutes">00</div><div class="countdown-label">Minutes</div></div>
+ <div class="countdown-item"><div class="countdown-number" id="seconds">00</div><div class="countdown-label">Seconds</div></div>
+ </div>
+ <div class="event-date-display">
+ <p id="uiEventDateLine"><span>March 15, 2026</span> at <span>6:00 PM</span> IST</p>
+ </div>
+ </div>
+ </section>
+ <section id="upload">
+ <div class="container">
+ <div class="section-header">
+ <span class="section-badge" id="uiUploadBadge">Share Your Story</span>
+ <h2 class="section-title" id="uiUploadTitle">Upload Your <span class="highlight">Memories</span></h2>
+ <p class="section-description" id="uiUploadDesc">Share the moments that made your journey special</p>
+ </div>
+ <div class="upload-container">
+ <div class="upload-card">
+ <div class="callout" id="uploadStatusCallout" style="display:none;"></div>
+ <div id="uploadForm">
+ <div class="dropzone" id="dropzone">
+ <div class="dropzone-icon"> </div>
+ <h3 class="dropzone-title">Drag & Drop Your Files</h3>
+ <p class="dropzone-subtitle">or click to browse</p>
+ <p class="dropzone-formats">Supported: <span>JPG</span> <span>PNG</span> <span>GIF</span> <span>MP4</span> <span>MOV</span></p>
+ <p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);">Max 200MB total • 100MB per file</p>
+ <input type="file" id="file-input" multiple accept="image/*,video/*" />
+ </div>
+ <div class="file-preview-container" id="filePreviewContainer">
+ <h4 style="margin-bottom: 15px;">Selected Files:</h4>
+ <div class="file-preview-grid" id="filePreviewGrid"></div>
+ <p class="file-info" id="fileInfo"></p>
+ </div>
+ <div class="upload-form" id="uploadFormFields" style="display: none;">
+ <div class="form-group">
+ <label>Your Name <span class="required">*</span></label>
+ <input type="text" class="form-input" id="studentName" placeholder="Enter your full name" maxlength="100" />
+ </div>
+ <div class="form-group">
+ <label>Caption / Memory Description <span class="required">*</span></label>
+ <textarea class="form-textarea" id="caption" placeholder="Share the story behind this memory..." maxlength="500"></textarea>
+ <p class="char-counter"><span id="charCount">0</span>/500 characters</p>
+ </div>
+ <div class="form-group">
+ <label>Memory Category <span class="required">*</span></label>
+ <select class="form-select" id="memoryType">
+ <option value="">Select a category</option>
+ <option value="Friends">Friends</option>
+ <option value="Teachers">Teachers</option>
+ <option value="Events">Events</option>
+ <option value="Fun Moments">Fun Moments</option>
+ <option value="Sports">Sports</option>
+ <option value="Academics">Academics</option>
+ <option value="Other">Other</option>
+ </select>
+ </div>
+ <button type="button" class="btn btn-primary" id="submitUpload" style="width: 100%;">Upload Memory</button>
+ </div>
+ <div class="upload-progress" id="uploadProgress">
+ <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+ <p class="progress-text" id="progressText">Uploading... 0%</p>
+ </div>
+ </div>
+ <div class="upload-success" id="uploadSuccess">
+ <div class="success-icon"> </div>
+ <h3 class="success-title">Memory Uploaded!</h3>
+ <p class="success-message" id="uploadSuccessMsg">
+ Your memory has been submitted and is pending approval. It will appear once approved by the admin.
+ </p>
+ <button class="btn btn-primary" onclick="resetUploadForm()">Upload Another</button>
+ </div>
+ </div>
+ </div>
+ </div>
+ </section>
+
+ <section id="memories">
+ <div class="container">
+ <div class="section-header">
+ <span class="section-badge" id="uiMemoriesBadge">Memory Wall</span>
+ <h2 class="section-title" id="uiMemoriesTitle">Our <span class="highlight">Memories</span></h2>
+ <p class="section-description" id="uiMemoriesDesc">A collection of moments from our incredible journey together</p>
+ </div>
+ <div class="memories-toolbar">
+ <div class="left">
+ <div class="mini-pill" id="memCountPill">Loading...</div>
+ <div class="mini-pill" id="livePill" style="display:none;">Live updates enabled</div>
+ </div>
+ <div class="right">
+ <!-- NEW: Cinematic Watch As Movie Button -->
+ <button class="btn btn-primary" style="padding: 8px 15px; font-size: 0.85rem; border-radius: 20px;" onclick="startLeanBackMode()">🎬 Watch as Movie</button>
+ </div>
+ </div>
+ <div class="memory-filters" id="memoryFilters">
+ <button class="filter-btn active" data-filter="all">All</button>
+ <button class="filter-btn" data-filter="Friends">Friends</button>
+ <button class="filter-btn" data-filter="Teachers">Teachers</button>
+ <button class="filter-btn" data-filter="Events">Events</button>
+ <button class="filter-btn" data-filter="Fun Moments">Fun Moments</button>
+ <button class="filter-btn" data-filter="Sports">Sports</button>
+ <button class="filter-btn" data-filter="Academics">Academics</button>
+ <button class="filter-btn" data-filter="Other">Other</button>
+ </div>
+ <div class="memory-grid" id="memoryGrid">
+ <div class="memory-loading" style="grid-column: 1/-1;">
+ <div class="loading-spinner"></div>
+ <p>Loading memories...</p>
+ </div>
+ </div>
+ <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+ <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" type="button">Load More</button>
+ </div>
+ </div>
+ </section>
+
+ <section id="compilations" style="background: var(--navy-medium); padding: 80px 0;">
+ <div class="container">
+ <div class="section-header" style="text-align: center; margin-bottom: 40px;">
+ <span class="section-badge" style="color: var(--primary-gold); font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Curated Memories</span>
+ <h2 class="section-title" style="font-size: 2.5rem; margin-top: 10px;">Memory <span class="highlight" style="color: var(--primary-gold);">Compilations</span></h2>
+ <p class="section-description" style="color: #aaa; margin-top: 10px;">Watch special slideshows created from the best moments.</p>
+ </div>
+ <div class="compilations-grid" id="publicCompilationsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+ <!-- Compilations will load here automatically -->
+ </div>
+ </div>
+ </section>
+
+ <!-- NEW: Erase the Distance Global Map Section -->
+ <section id="global-map">
+   <div class="map-overlay-text">
+     <h2>Erase the Distance</h2>
+     <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">No matter where we go, we all started from here. Spin the globe to see where the Class of 2025 is heading.</p>
+   </div>
+   <div id="globeViz"></div>
+ </section>
+
+ <section id="teachers">
+ <div class="container">
+ <div class="section-header">
+ <span class="section-badge" id="uiTeachersBadge">Our Guides</span>
+ <h2 class="section-title" id="uiTeachersTitle">Beloved <span class="highlight">Teachers</span></h2>
+ <p class="section-description" id="uiTeachersDesc">The mentors who shaped our minds and hearts</p>
+ </div>
+ <div class="teachers-grid" id="teachersGrid"></div>
+ </div>
+ </section>
+
+ <section id="timeline">
+ <div class="container">
+ <div class="section-header">
+ <span class="section-badge" id="uiTimelineBadge">Our Journey</span>
+ <h2 class="section-title" id="uiTimelineTitle">Through The <span class="highlight">Years</span></h2>
+ <p class="section-description" id="uiTimelineDesc">Key milestones of our school journey</p>
+ </div>
+ <div class="timeline" id="timelineList"></div>
+ </div>
+ </section>
+
+ <section id="quote">
+ <div class="quote-content">
+ <div class="quote-icon" id="uiQuoteIcon">❝</div>
+ <p class="quote-text" id="uiQuoteText">"Don't cry because it's over, smile because it happened. The memories we made will last a lifetime."</p>
+ <p class="quote-author" id="uiQuoteAuthor">— Class of 2025</p>
+ </div>
+ </section>
+
+ <footer>
+ <div class="footer-content">
+ <div class="footer-section">
+ <h4 id="uiFooterSchool">Cornerstone</h4>
+ <p id="uiFooterDesc">Cornerstone International School - Where futures are built and memories are made.</p>
+ </div>
+ <div class="footer-section">
+ <h4 id="uiFooterQuickLinksTitle">Quick Links</h4>
+ <ul class="footer-links">
+ <li><a href="#home">Home</a></li>
+ <li><a href="#memories">Memory Wall</a></li>
+ <li><a href="#compilations">Memory Compilations</a></li>
+ <li><a href="#upload">Upload Memory</a></li>
+ <li><a href="#teachers">Teachers</a></li>
+ </ul>
+ </div>
+ <div class="footer-section">
+ <h4 id="uiFooterContactTitle">Contact</h4>
+ <ul class="footer-links">
+ <li id="uiFooterLocation">Cornerstone International School</li>
+ <li><a id="uiFooterEmailLink" href="mailto:farewell2025@cornerstone.edu">farewell2025@cornerstone.edu</a></li>
+ <li id="uiFooterContactNote">Contact School Office</li>
+ </ul>
+ </div>
+ </div>
+ <div class="footer-bottom">
+ <p id="uiFooterMadeBy">Made with ♥ by the Class of 2025</p>
+ <p style="margin-top: 10px; opacity: 0.7;" id="uiFooterCopyright">© 2025 Cornerstone International School. All rights reserved.</p>
+ </div>
+ </footer>
+
+ <!-- Lightbox -->
+ <div class="lightbox" id="lightbox">
+ <button class="lightbox-close" onclick="closeLightboxWithRip()">✕</button>
+ <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">❮</button>
+ <div class="lightbox-grid" id="lightboxGridWrap">
+ <div class="lightbox-main">
+ <div class="lightbox-content" id="lightboxContent"></div>
+ </div>
+ <div class="lightbox-side">
+ <div class="lightbox-info" id="lightboxInfo"></div>
+ <div style="margin-top: 14px;">
+ <div class="comments-header">
+ <div class="comments-title">Comments</div>
+ <div class="mini-pill" id="commentsCountPill">0</div>
+ </div>
+ <div class="comments-disabled" id="commentsDisabledBanner" style="display:none;">
+ Comments are currently disabled by the admin.
+ </div>
+ <div class="comment-form" id="commentForm">
+ <div class="comment-form-row">
+ <input class="form-input" id="commentName" placeholder="Your name *" maxlength="60" />
+ <textarea class="form-textarea" id="commentText" placeholder="Write a comment..." maxlength="800" style="min-height: 90px;"></textarea>
+ </div>
+ <div class="comment-form-actions">
+ <button class="btn btn-secondary" type="button" id="cancelReplyBtn" style="display:none; padding: 12px 18px;">Cancel Reply</button>
+ <button class="btn btn-primary" type="button" id="postCommentBtn" style="padding: 12px 18px;">Post</button>
+ </div>
+ <div class="mini-pill" id="replyingToPill" style="display:none;">Replying…</div>
+ </div>
+ <div class="comment-list" id="commentList"></div>
+ </div>
+ </div>
+ </div>
+ <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">❯</button>
+ </div>
+  <!-- Admin Login Overlay -->
+ <style>
+ .admin-overlay {
+ position: fixed; top:0; left:0; right:0; bottom:0;
+ background: rgba(0,0,0,0.9);
+ z-index: 3000;
+ display: none;
+ align-items: center;
+ justify-content: center;
+ padding: 20px;
+ }
+ .admin-overlay.active { display: flex; animation: fadeIn 0.3s ease; }
+ .admin-login-card {
+ background: var(--navy-medium);
+ border: 1px solid var(--glass-border);
+ border-radius: 25px;
+ padding: 42px;
+ max-width: 440px;
+ width: 100%;
+ text-align: center;
+ }
+ .admin-login-card h2 { font-family: var(--font-display); font-size: 2rem; margin-bottom: 10px; color: var(--primary-gold); }
+ .admin-login-card p { color: var(--text-muted); margin-bottom: 22px; }
+ .admin-login-card .form-group { text-align: left; }
+ .admin-login-error {
+ background: rgba(244, 67, 54, 0.1);
+ border: 1px solid var(--error-red);
+ color: var(--error-red);
+ padding: 12px;
+ border-radius: 10px;
+ margin-bottom: 16px;
+ display: none;
+ }
+ .admin-login-error.active { display: block; }
+ .admin-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }
+ /* Admin dashboard base (full UI + theme editor + users panel in Part 3) */
+ .admin-dashboard {
+ position: fixed; top:0; left:0; right:0; bottom:0;
+ background: var(--navy-dark);
+ z-index: 3000;
+ display: none;
+ overflow-y: auto;
+ }
+ .admin-dashboard.active { display: block; }
+ .admin-header {
+ background: var(--navy-medium);
+ padding: 20px 40px;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ border-bottom: 1px solid var(--glass-border);
+ position: sticky;
+ top: 0;
+ z-index: 100;
+ gap: 15px;
+ flex-wrap: wrap;
+ }
+ .admin-title { font-family: var(--font-display); font-size: 1.5rem; color: var(--primary-gold); }
+ .admin-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+ .admin-btn {
+ padding: 10px 16px;
+ border-radius: 25px;
+ font-size: 0.9rem;
+ font-weight: 600;
+ cursor: pointer;
+ transition: var(--transition-smooth);
+ font-family: var(--font-body);
+ display: inline-flex;
+ align-items: center;
+ gap: 8px;
+ border: none;
+ }
+ .admin-btn-primary { background: var(--gradient-gold); color: var(--navy-dark); }
+ .admin-btn-secondary { background: var(--glass-bg); color: var(--text-light); border: 1px solid var(--glass-border); }
+ .admin-btn-danger { background: rgba(244, 67, 54, 0.2); color: #ffb3ad; border: 1px solid rgba(244,67,54,0.5); }
+ .admin-btn:hover { transform: translateY(-2px); }
+ .admin-content { padding: 40px; }
+ .admin-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+ .admin-tab {
+ padding: 10px 16px;
+ border-radius: 20px;
+ cursor: pointer;
+ border: 1px solid var(--glass-border);
+ background: var(--glass-bg);
+ color: var(--text-light);
+ transition: var(--transition-smooth);
+ user-select: none;
+ }
+ .admin-tab.active { background: var(--primary-gold); color: var(--navy-dark); border-color: var(--primary-gold); }
+ .admin-panel { display: none; }
+ .admin-panel.active { display: block; }
+ .admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+ .stat-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; text-align: center; }
+ .stat-number { font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; color: var(--primary-gold); }
+ .stat-label { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
+ .admin-filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+ .admin-search { flex: 1; min-width: 250px; }
+ .admin-search input {
+ width: 100%;
+ padding: 12px 20px;
+ background: var(--glass-bg);
+ border: 1px solid var(--glass-border);
+ border-radius: 25px;
+ color: var(--text-light);
+ font-size: 0.95rem;
+ }
+ .admin-search input:focus { outline: none; border-color: var(--primary-gold); }
+ .admin-filter-group { display: flex; gap: 10px; flex-wrap: wrap; }
+ .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+ .admin-memory-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 15px; overflow: hidden; transition: var(--transition-smooth); }
+ .admin-memory-card:hover { border-color: var(--primary-gold); }
+ .admin-memory-media { position: relative; aspect-ratio: 16/10; overflow: hidden; background: var(--navy-dark); }
+ .admin-memory-media img, .admin-memory-media video { width: 100%; height: 100%; object-fit: cover; }
+ .admin-memory-status { position: absolute; top: 10px; right: 10px; padding: 5px 12px; border-radius: 15px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
+ .status-approved { background: rgba(76, 175, 80, 0.9); color: white; }
+ .status-pending { background: rgba(255, 193, 7, 0.9); color: #333; }
+ .status-trash { background: rgba(244,67,54,0.9); color: white; }
+ .admin-memory-info { padding: 15px; }
+ .admin-memory-name { font-weight: 800; margin-bottom: 5px; }
+ .admin-memory-caption { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; display: -webkit-box; line-clamp: 2;
+-webkit-line-clamp: 2;
+-webkit-box-orient: vertical;
+overflow: hidden;
+}
+ .admin-memory-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; gap: 10px; }
+ .admin-memory-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+ .admin-memory-actions button {
+ padding: 9px;
+ border-radius: 12px;
+ font-size: 0.85rem;
+ cursor: pointer;
+ transition: var(--transition-smooth);
+ border: none;
+ font-family: var(--font-body);
+ font-weight: 700;
+ }
+ .approve-btn { background: rgba(76, 175, 80, 0.2); color: #8ff09a; border: 1px solid rgba(76,175,80,0.35); }
+ .approve-btn:hover { background: var(--success-green); color: white; }
+ .delete-btn { background: rgba(244, 67, 54, 0.2); color: #ffb3ad; border: 1px solid rgba(244,67,54,0.35); }
+ .delete-btn:hover { background: var(--error-red); color: white; }
+ .download-btn { background: rgba(33, 150, 243, 0.2); color: #9cd3ff; border: 1px solid rgba(33,150,243,0.35); }
+ .download-btn:hover { background: #2196F3; color: white; }
+ .edit-btn { background: rgba(212,175,55,0.18); color: var(--primary-gold-light); border: 1px solid rgba(212,175,55,0.35); }
+ .edit-btn:hover { background: rgba(212,175,55,0.35); }
+ .restore-btn { background: rgba(255,255,255,0.08); color: var(--text-light); border: 1px solid rgba(255,255,255,0.2); }
+ .restore-btn:hover { border-color: var(--primary-gold); }
+ /* notification */
+ .notification {
+ position: fixed;
+ top: 100px;
+ right: 20px;
+ padding: 18px 22px;
+ border-radius: 15px;
+ z-index: 4000;
+ display: none;
+ align-items: center;
+ gap: 15px;
+ animation: slideInRight 0.5s ease;
+ max-width: 420px;
+ }
+ .notification.active { display: flex; }
+ .notification.success { background: rgba(76, 175, 80, 0.95); color: white; }
+ .notification.error { background: rgba(244, 67, 54, 0.95); color: white; }
+ .notification.info { background: rgba(33, 150, 243, 0.95); color: white; }
+ .notification-icon { font-size: 1.5rem; }
+ .notification-content { flex: 1; }
+ .notification-title { font-weight: 800; margin-bottom: 3px; }
+ .notification-message { font-size: 0.9rem; opacity: 0.95; }
+ .notification-close { background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem; opacity: 0.7; }
+ .notification-close:hover { opacity: 1; }
+ .confetti-container { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5000; overflow:hidden; }
+ .confetti { position: absolute; width: 10px; height: 10px; animation: confettiFall 3s linear forwards; }
+ @media (max-width: 768px) {
+ .admin-header { padding: 15px 20px; }
+ .admin-content { padding: 20px; }
+ .admin-filters { flex-direction: column; }
+ .admin-search { width: 100%; }
+ }
+ </style>
+ <div class="admin-overlay" id="adminOverlay">
+ <button class="admin-close" onclick="closeAdminLogin()">✕</button>
+ <div class="admin-login-card">
+ <h2>Admin Access</h2>
+ <p>Login with your Admin ID + password</p>
+ <div class="admin-login-error" id="adminLoginError">Invalid credentials. Please try again.</div>
+ <div class="form-group">
+ <label>Admin ID</label>
+ <input type="text" class="form-input" id="adminUserId" placeholder="super" />
+ <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">Tip: Super Admin ID is <strong>super</strong>.</p>
+ </div>
+ <div class="form-group">
+ <label>Password</label>
+ <input type="password" class="form-input" id="adminPassword" placeholder="Enter password" />
+ </div>
+ <button class="btn btn-primary" style="width: 100%;" onclick="adminLogin()">Login</button>
+ </div>
+ </div>
+ <div class="admin-dashboard" id="adminDashboard">
+ <div class="admin-header">
+ <h1 class="admin-title">Admin Dashboard</h1>
+ <div class="admin-actions">
+ <button class="admin-btn admin-btn-primary" id="btnApproveAll" onclick="approveAllPending()">Approve All</button>
+ <button class="admin-btn admin-btn-secondary" id="btnDownloadZip" onclick="downloadAllApproved()">Download ZIP</button>
+ <button class="admin-btn" onclick="openBatchUpload()" style="background:var(--accent-purple); color:white; border:none; box-shadow:0 4px 15px rgba(123, 45, 142, 0.4);">Batch Upload</button>
+ <button class="admin-btn admin-btn-secondary" id="btnExportCsv" onclick="exportCSV()">Export CSV</button>
+ <button class="admin-btn admin-btn-danger" onclick="adminLogout()">Logout</button>
+ </div>
+ </div>
+ <div class="admin-content">
+ <div class="admin-tabs" id="adminTabs">
+ <div class="admin-tab active" id="tabModeration" onclick="switchAdminTab('moderation')">Moderation</div>
+ <div class="admin-tab" id="tabSettings" onclick="switchAdminTab('settings')">Site Settings</div>
+ <div class="admin-tab" id="tabTheme" onclick="switchAdminTab('theme')">Theme</div>
+ <div class="admin-tab" id="tabUsers" onclick="switchAdminTab('users')">Users</div>
+ <div class="admin-tab" id="tabCompilations" onclick="switchAdminTab('compilations')">Compilations</div>
+ <div class="admin-tab" id="tabSecurity" onclick="switchAdminTab('security')">Security</div>
+ </div>
+ <!-- Panels: content is completed in Part 3 -->
+ <div class="admin-panel active" id="panelModeration">
+ <div class="admin-stats" id="adminStats">
+ <div class="stat-card"><div class="stat-number" id="statTotal">0</div><div class="stat-label">Total Uploads</div></div>
+ <div class="stat-card"><div class="stat-number" id="statApproved">0</div><div class="stat-label">Approved</div></div>
+ <div class="stat-card"><div class="stat-number" id="statPending">0</div><div class="stat-label">Pending</div></div>
+ <div class="stat-card"><div class="stat-number" id="statStorage">0 MB</div><div class="stat-label">Storage</div></div>
+ </div>
+ <div class="admin-filters">
+ <div class="admin-search"><input type="text" id="adminSearch" placeholder="Search by name/caption/type..." /></div>
+ <div class="admin-filter-group">
+ <button class="filter-btn active" data-admin-filter="all">All</button>
+ <button class="filter-btn" data-admin-filter="approved">Approved</button>
+ <button class="filter-btn" data-admin-filter="pending">Pending</button>
+ <button class="filter-btn" data-admin-filter="featured">Featured</button>
+ <button class="filter-btn" data-admin-filter="trash">Trash</button>
+ </div>
+ <select class="form-select" id="adminSort" style="width: auto; padding: 10px 40px 10px 15px;">
+ <option value="newest">Newest First</option>
+ <option value="oldest">Oldest First</option>
+ <option value="likes">Most Liked</option>
+ </select>
+ <select class="form-select" id="adminPageSize" style="width:auto; padding: 10px 40px 10px 15px;">
+ <option value="30">30/page</option>
+ <option value="60">60/page</option>
+ </select>
+ </div>
+ <div style="display:flex; gap: 10px; flex-wrap:wrap; margin-bottom: 14px;">
+ <button class="admin-btn admin-btn-secondary" id="bulkSelectToggle" onclick="toggleBulkSelect()">Bulk Select: OFF</button>
+ <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('approve')">Bulk Approve</button>
+ <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('trash')">Bulk Trash</button>
+ <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('restore')">Bulk Restore</button>
+ <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('setType')">Bulk Change Category</button>
+ <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('feature')">Bulk Feature</button>
+ <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('unfeature')">Bulk Unfeature</button>
+ </div>
+ <div class="admin-grid" id="adminGrid"></div>
+ <div class="load-more-wrap" style="margin-top: 25px;">
+ <button class="btn btn-secondary load-more-btn" id="adminLoadMoreBtn" type="button" onclick="adminLoadMore()">Load More</button>
+ </div>
+ </div>
+ <div class="admin-panel" id="panelSettings"></div>
+ <div class="admin-panel" id="panelTheme"></div>
+ <div class="admin-panel" id="panelUsers"></div>
+ <div class="admin-panel" id="panelCompilations"></div>
+ <div class="admin-panel" id="panelSecurity"></div>
+ </div>
+ </div>
+ <div class="notification" id="notification">
+ <span class="notification-icon" id="notificationIcon">✓</span>
+ <div class="notification-content">
+ <div class="notification-title" id="notificationTitle">Success</div>
+ <div class="notification-message" id="notificationMessage">Operation completed successfully.</div>
+ </div>
+ <button class="notification-close" onclick="hideNotification()">✕</button>
+ </div>
+ <div class="confetti-container" id="confettiContainer"></div>
+<!-- Compilation Creator Modal -->
+<div class="compilation-modal" id="compilationCreatorModal">
+ <div class="compilation-modal-content">
+ <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+ <h2 style="color:var(--primary-gold); font-family:var(--font-display);">Compilation Creator</h2>
+ <button class="admin-btn admin-btn-secondary" onclick="closeCompilationCreator()">Close</button>
+ </div>
+ <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom:20px;">
+ <div class="form-group">
+ <label>Name</label>
+ <input type="text" class="form-input" id="compName" placeholder="Farewell Highlights" />
+ </div>
+ <div class="form-group">
+ <label>Display Mode</label>
+ <select class="form-select" id="compDisplayMode">
+ <option value="auto">Auto (Slideshow)</option>
+ <option value="manual">Manual (Arrows)</option>
+ </select>
+ </div>
+ <div class="form-group">
+ <label>Transition</label>
+ <select class="form-select" id="compTransition">
+ <option value="fade">Fade</option>
+ <option value="slide">Slide</option>
+ <option value="zoom">Zoom</option>
+ <option value="flip">Flip</option>
+ <option value="blur">Blur</option>
+ </select>
+ </div>
+ <div class="form-group">
+ <label>Default Duration (sec)</label>
+ <input type="number" class="form-input" id="compDefaultDuration" value="5" min="1" max="60" />
+ </div>
+ </div>
+ <div style="display:grid; grid-template-columns: 1fr; gap:20px;">
+ <div>
+ <h3 style="color:var(--primary-gold); margin-bottom:10px;">Select Photos</h3>
+ <div class="compilation-photo-grid" id="compPhotoGrid"></div>
+ </div>
+ <div>
+ <h3 style="color:var(--primary-gold); margin-bottom:10px;">Slides Sequence</h3>
+ <div class="compilation-slides-preview" id="compSlidesPreview" style="flex-wrap:wrap; display:flex;"></div>
+ <button class="admin-btn admin-btn-primary" style="width:100%; justify-content:center; margin-top:20px;" onclick="saveCompilation()">Save Compilation</button>
+ </div>
+ </div>
+ </div>
+</div>
+<!-- Compilation Player -->
+<div class="compilation-player-overlay" id="compilationPlayer">
+ <button class="compilation-close" onclick="closeCompilationPlayer()">✕</button>
+ <button class="compilation-nav-btn compilation-prev" onclick="prevCompilationSlide()">❮</button>
+ <button class="compilation-nav-btn compilation-next" onclick="nextCompilationSlide()">❯</button>
+ <div id="compilationSlides" style="width: 100%; height: 100%; position: relative;"></div>
+ <div class="compilation-progress" id="compilationProgress"></div>
+</div>
+ <!-- Batch Upload Modal -->
+<div class="admin-overlay" id="batchUploadModal">
+ <button class="admin-close" onclick="closeBatchUpload()">✕</button>
+ <div class="admin-login-card" style="max-width: 500px; padding: 30px; text-align: left;">
+ <h2 style="font-family: var(--font-display); color: var(--primary-gold); margin-bottom: 20px; text-align: center;">Batch Upload</h2>
+ <div class="form-group">
+ <label>Batch Name (Uploader)</label>
+ <input type="text" class="form-input" id="batchName" placeholder="Admin Team" />
+ </div>
+ <div class="form-group">
+ <label>Default Caption</label>
+ <input type="text" class="form-input" id="batchCaption" placeholder="Memory from event..." />
+ </div>
+ <div class="form-group">
+ <label>Category</label>
+ <select class="form-select" id="batchType">
+ <option value="Friends">Friends</option>
+ <option value="Teachers">Teachers</option>
+ <option value="Events">Events</option>
+ <option value="Fun Moments">Fun Moments</option>
+ <option value="Sports">Sports</option>
+ <option value="Academics">Academics</option>
+ <option value="Other">Other</option>
+ </select>
+ </div>
+ <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+ <input type="checkbox" id="batchAutoApprove" checked style="transform: scale(1.2);" />
+ <label style="margin-bottom: 0;">Auto-Approve immediately</label>
+ </div>
+ <div class="form-group" style="margin-top: 15px;">
+ <label class="btn btn-secondary" style="width: 100%; justify-content: center; cursor: pointer; border-style: dashed;">
+ <span id="batchFileLabel">Click to select files</span>
+ <input type="file" id="batchFiles" multiple accept="image/*,video/*" style="display: none;" onchange="updateBatchFileCount(this)" />
+ </label>
+ </div>
+ <div class="upload-progress" id="batchProgress" style="display:none; margin-top: 15px;">
+ <div class="progress-bar"><div class="progress-fill" id="batchProgressFill"></div></div>
+ <p class="progress-text" id="batchProgressText" style="text-align: center;">Uploading batch...</p>
+ </div>
+ <div style="display: flex; gap: 10px; margin-top: 25px;">
+ <button class="btn btn-primary" style="flex: 1; justify-content: center;" id="btnStartBatch" onclick="submitBatchUpload()">Start Upload</button>
+ </div>
+ </div>
+</div>
+<script>
+ // =========================
+ // UNIFIED CONFIG & SFX
+ // =========================
+ const CONFIG = {
+   API_BASE: "https://anniversary-appeared-directors-devel.trycloudflare.com",
+   REFRESH_INTERVAL: 60000,
+   MAX_FILE_SIZE: 100 * 1024 * 1024,
+   MAX_TOTAL_SIZE: 200 * 1024 * 1024,
+   MAX_FILES: 20,
+   ALLOWED_TYPES: ['image/jpeg','image/png','image/gif','image/webp','video/mp4','video/quicktime','video/webm'],
+   WS_AUTO: false
+ };
+
+ // High-quality Audio Assets
+ const SFX = {
+   flash: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-camera-shutter-click-1133.mp3'),
+   locker: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-metallic-cabinet-door-slams-3044.mp3'),
+   rip: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-paper-rip-23.mp3'),
+   bell: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-school-bell-warning-1628.mp3'),
+   plane: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-fast-rocket-whoosh-1714.mp3')
+ };
+
+ // Continuous Background Music Setup
+ let bgMusic;
+ let isMusicIntentionallyPaused = false;
+
+ function initBackgroundMusic() {
+   // Admin can change this URL in settings later, defaulting to a nostalgic track
+   const bgMusicUrl = state.settings?.bgMusicUrl || 'https://assets.mixkit.co/music/preview/mixkit-beautiful-dream-493.mp3';
+   bgMusic = new Audio(bgMusicUrl);
+   bgMusic.loop = true;
+   bgMusic.volume = 0.3; // Soft background volume
+
+   // Create Floating Mute/Unmute Button
+   const musicBtn = document.createElement('button');
+   musicBtn.id = "globalMusicBtn";
+   musicBtn.innerHTML = "🎵";
+   musicBtn.style.cssText = "position:fixed;bottom:20px;left:20px;width:50px;height:50px;border-radius:50%;background:var(--glass-bg);border:1px solid var(--primary-gold);color:white;font-size:1.5rem;z-index:9000;cursor:pointer;backdrop-filter:blur(10px);box-shadow:var(--shadow-gold);transition:all 0.3s;";
+   document.body.appendChild(musicBtn);
+
+   musicBtn.addEventListener('click', (e) => {
+     e.stopPropagation();
+     if (bgMusic.paused) {
+       bgMusic.play();
+       musicBtn.innerHTML = "🎵";
+       isMusicIntentionallyPaused = false;
+     } else {
+       bgMusic.pause();
+       musicBtn.innerHTML = "🔇";
+       isMusicIntentionallyPaused = true;
+     }
+   });
+
+   // Auto-play on first interaction
+   document.body.addEventListener('click', () => {
+     if (!isMusicIntentionallyPaused && bgMusic && bgMusic.paused) {
+       bgMusic.play().catch(e => console.log("Auto-play blocked pending interaction"));
+     }
+   }, { once: true });
+ }
+
+ function apiUrl(path) { return CONFIG.API_BASE.replace(/\/$/, '') + (path.startsWith('/') ? path : '/' + path); }
+ function mediaUrl(url) { if (!url) return url; if (url.startsWith('http')) return url; return `${CONFIG.API_BASE}/${url}`.replace(/([^:]\/)\/+/g, "$1"); }
+
+ const DEFAULT_SETTINGS = {
+   schoolName: "Cornerstone", eventName: "Farewell 2025", logoText: "C",
+   farewellIST: "2026-03-15T18:00",
+   bgMusicUrl: "https://assets.mixkit.co/music/preview/mixkit-beautiful-dream-493.mp3",
+   teachers: [], timeline: []
+ };
+
+ let state = { selectedFiles: [], memories: [], memPage: 1, memLimit: 2000, memHasMore: true, memLoading: false, currentFilter: 'all', lightboxIndex: 0, adminToken: localStorage.getItem('adminToken') || null, settings: structuredClone(DEFAULT_SETTINGS), ghostEnabled: false };
+
+ // =========================================
+ // DOM CONTENT LOADED - CORE INITIALIZATION
+ // =========================================
+ document.addEventListener('DOMContentLoaded', async () => {
+   initNavbar(); 
+   initUpload(); 
+   initMemoryWall(); 
+   initLightboxComments(); 
+   initAdminTrigger();
+   
+   await loadSettings();
+   initCountdown();
+   
+   await loadMemories(true);
+   await loadPublicCompilations();
+   renderTeachers();
+   renderTimeline();
+   
+   triggerDisposableFlash();
+   initGlobeViz();
+   initBoombox();
+   initGhostCursors();
+   initBackgroundMusic();
+
+   setTimeout(() => { initIntroVideo(); }, 50);
+ });
+
+ // =========================================
+ // EPIC JAW-DROPPING FEATURES IMPLEMENTATION
+ // =========================================
+
+ function triggerDisposableFlash() {
+   if (!sessionStorage.getItem('flashSeen')) {
+     const flash = document.getElementById('disposableFlash');
+     if(flash) flash.classList.add('active');
+     SFX.flash.play().catch(e => {}); 
+     sessionStorage.setItem('flashSeen', 'true');
+     setTimeout(() => { if(flash) flash.remove(); }, 3000);
+   }
+ }
+
+ function triggerLockerTransition(callback) {
+   const doors = document.getElementById('lockerDoors');
+   if(!doors) { callback(); return; }
+   doors.classList.add('slam');
+   SFX.locker.play().catch(e => {});
+   setTimeout(() => {
+     callback(); 
+     setTimeout(() => { doors.classList.remove('slam'); }, 300);
+   }, 500);
+ }
+
+ window.closeLightboxWithRip = function() {
+   const lightbox = document.getElementById('lightbox');
+   const gridWrap = document.getElementById('lightboxGridWrap');
+   if(gridWrap) {
+     SFX.rip.play().catch(e => {}); 
+     gridWrap.classList.add('tear-anim');
+     setTimeout(() => {
+       lightbox.classList.remove('active');
+       document.body.style.overflow = '';
+       const video = document.querySelector('#lightboxContent video');
+       if (video) video.pause();
+       gridWrap.classList.remove('tear-anim');
+     }, 700);
+   } else {
+     lightbox.classList.remove('active');
+     document.body.style.overflow = '';
+   }
+ };
+
+ function shootEmojiCannon(emoji, startX, startY) {
+   for (let i = 0; i < 25; i++) {
+     const el = document.createElement('div');
+     el.className = 'physics-emoji';
+     el.textContent = emoji;
+     document.body.appendChild(el);
+     let x = startX || window.innerWidth / 2;
+     let y = startY || window.innerHeight / 2;
+     let vx = (Math.random() - 0.5) * 25;
+     let vy = (Math.random() - 1) * 25;
+     function animate() {
+       vy += 1.2; x += vx; y += vy;
+       el.style.left = x + 'px'; el.style.top = y + 'px';
+       if (y > window.innerHeight + 50) el.remove();
+       else requestAnimationFrame(animate);
+     }
+     requestAnimationFrame(animate);
+   }
+ }
+
+ // Boombox Logic
+ let currentBoomboxTrack = null;
+ function initBoombox() {
+   const cassettes = document.querySelectorAll('.cassette');
+   const boombox = document.getElementById('boombox');
+   if(!boombox) return;
+
+   const tracks = {
+     graduation: new Audio('https://assets.mixkit.co/music/preview/mixkit-beautiful-dream-493.mp3'),
+     sad: new Audio('https://assets.mixkit.co/music/preview/mixkit-emotional-piano-145.mp3'),
+     hype: new Audio('https://assets.mixkit.co/music/preview/mixkit-hustle-and-flow-86.mp3')
+   };
+
+   Object.values(tracks).forEach(t => t.loop = true);
+
+   cassettes.forEach(c => {
+     c.addEventListener('dragstart', (e) => {
+       e.dataTransfer.setData('text/plain', c.dataset.track);
+       c.style.opacity = '0.5';
+     });
+     c.addEventListener('dragend', () => c.style.opacity = '1');
+   });
+
+   boombox.addEventListener('dragover', (e) => { e.preventDefault(); boombox.classList.add('drag-over'); });
+   boombox.addEventListener('dragleave', () => boombox.classList.remove('drag-over'));
+   
+   boombox.addEventListener('drop', (e) => {
+     e.preventDefault();
+     boombox.classList.remove('drag-over');
+     const trackName = e.dataTransfer.getData('text/plain');
+     
+     if(currentBoomboxTrack) currentBoomboxTrack.pause();
+     if(bgMusic) { bgMusic.pause(); document.getElementById('globalMusicBtn').innerHTML = "🔇"; }
+     
+     if (tracks[trackName]) {
+       currentBoomboxTrack = tracks[trackName];
+       currentBoomboxTrack.currentTime = 0;
+       currentBoomboxTrack.play().then(() => {
+         boombox.classList.add('playing');
+       }).catch(err => {
+         console.warn("Boombox blocked by browser. User must click first.", err);
+         showNotification('error', 'Audio Blocked', 'Please click anywhere on the page to enable audio!');
+       });
+     }
+   });
+
+   boombox.addEventListener('click', () => {
+     if(currentBoomboxTrack) {
+       currentBoomboxTrack.pause();
+       boombox.classList.remove('playing');
+       currentBoomboxTrack = null;
+     }
+   });
+ }
+
+ // Cinematic Lean Back
+ let leanBackInterval;
+ window.startLeanBackMode = function() {
+   const overlay = document.getElementById('leanBackOverlay');
+   const imgEl = document.getElementById('leanBackImg');
+   if(!overlay || state.memories.length === 0) return;
+   document.body.style.overflow = 'hidden';
+   overlay.classList.add('active');
+   const photos = state.memories.filter(m => m.file_type === 'image');
+   let idx = 0;
+   function showNext() {
+     if(idx >= photos.length) idx = 0;
+     imgEl.classList.remove('active');
+     setTimeout(() => { imgEl.src = mediaUrl(photos[idx].file_url); imgEl.classList.add('active'); idx++; }, 100);
+   }
+   showNext();
+   leanBackInterval = setInterval(showNext, 8000); 
+ };
+ window.stopLeanBackMode = function() {
+   clearInterval(leanBackInterval);
+   document.getElementById('leanBackOverlay').classList.remove('active');
+   document.body.style.overflow = '';
+ };
+
+ // Safely render Scratch Cards (Fixed Size Issue)
+ function initScratchCards() {
+   document.querySelectorAll('.scratch-canvas').forEach(canvas => {
+     if(canvas.dataset.initialized) return;
+     canvas.dataset.initialized = 'true';
+     
+     const container = canvas.parentElement;
+     container.style.position = 'absolute';
+     container.style.top = '0'; container.style.left = '0';
+     container.style.width = '100%'; container.style.height = '100%';
+     container.style.zIndex = '5';
+     
+     const ctx = canvas.getContext('2d');
+     
+     // Match canvas size strictly to parent bounds
+     canvas.width = container.offsetWidth || 300;
+     canvas.height = container.offsetHeight || 250;
+     
+     // Fill with solid beautiful gold instead of image to prevent CORS/sizing bugs
+     ctx.fillStyle = '#D4AF37'; 
+     ctx.fillRect(0, 0, canvas.width, canvas.height);
+     ctx.fillStyle = '#ffffff';
+     ctx.font = 'bold 16px Poppins';
+     ctx.textAlign = 'center';
+     ctx.fillText('✨ Scratch ✨', canvas.width/2, canvas.height/2);
+     
+     let isDrawing = false;
+     const scratch = (e) => {
+       if (!isDrawing) return;
+       const rect = canvas.getBoundingClientRect();
+       const x = (e.clientX || e.touches[0].clientX) - rect.left;
+       const y = (e.clientY || e.touches[0].clientY) - rect.top;
+       
+       ctx.globalCompositeOperation = 'destination-out';
+       ctx.beginPath();
+       ctx.arc(x, y, 30, 0, Math.PI * 2, false);
+       ctx.fill();
+     };
+     
+     canvas.addEventListener('mousedown', () => { isDrawing = true; });
+     window.addEventListener('mouseup', () => { isDrawing = false; });
+     canvas.addEventListener('mousemove', scratch);
+     canvas.addEventListener('touchstart', (e) => { isDrawing = true; e.preventDefault(); });
+     window.addEventListener('touchend', () => { isDrawing = false; });
+     canvas.addEventListener('touchmove', (e) => { scratch(e); e.preventDefault(); });
+   });
+ }
+
+ // Safe Globe Initialization
+ function initGlobeViz() {
+   const container = document.getElementById('globeViz');
+   const mapSection = document.getElementById('global-map');
+   if(!container || !mapSection) return;
+   
+   try {
+     const cvs = document.createElement('canvas');
+     if (!(cvs.getContext('webgl') || cvs.getContext('experimental-webgl'))) throw new Error("No WebGL");
+     const generateArcs = () => [...Array(25).keys()].map(() => ({ startLat: 20, startLng: 78, endLat: (Math.random() - 0.5)*180, endLng: (Math.random() - 0.5)*360, color: ['#D4AF37', '#F4E5B2', '#e94560'][Math.floor(Math.random()*3)] }));
+     const globe = Globe()(container).globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg').arcsData(generateArcs()).arcColor('color').arcDashLength(0.4).arcDashGap(0.2).arcDashAnimateTime(2000).backgroundColor('#000000');
+     globe.controls().autoRotate = true; globe.pointOfView({ lat: 20, lng: 78, altitude: 2.5 });
+   } catch(e) { mapSection.style.display = 'none'; }
+ }
+
+ // Ghost Cursors
+ function initGhostCursors() { setInterval(() => { if(state.ghostEnabled && Math.random()>0.7) spawnSimulatedCursor(); }, 3000); }
+ window.toggleGhostCursors = function(enabled) { state.ghostEnabled = enabled; document.getElementById('ghostToggleBtn').style.display = enabled ? 'none' : 'block'; if(enabled) triggerConfetti(); else document.querySelectorAll('.ghost-cursor').forEach(e => e.remove()); };
+ window.dismissGhostPopup = function() { document.getElementById('ghostPopup').style.display = 'none'; document.getElementById('ghostToggleBtn').style.display = 'block'; };
+ function spawnSimulatedCursor() {
+   const names = ['JD', 'AS', 'RK', 'MK', 'SP', 'VP'];
+   const el = document.createElement('div'); el.className = 'ghost-cursor';
+   el.innerHTML = `<div class="ghost-cursor-icon">➤</div><div class="ghost-cursor-label">${names[Math.floor(Math.random()*names.length)]}</div>`;
+   document.body.appendChild(el);
+   let x = Math.random() * window.innerWidth; let y = Math.random() * window.innerHeight;
+   el.style.left = x + 'px'; el.style.top = y + 'px';
+   let steps = 0; const interval = setInterval(() => { x += (Math.random()-0.5)*100; y += (Math.random()-0.5)*100; el.style.left = x + 'px'; el.style.top = y + 'px'; steps++; if(steps>20) { clearInterval(interval); el.style.opacity=0; setTimeout(()=>el.remove(), 500); } }, 500);
+ }
+
+ // Paper Airplanes
+ window.throwAirplane = function() {
+   SFX.plane.play().catch(e=>{});
+   const plane = document.createElement('div'); plane.className = 'airplane fly-out'; plane.textContent = '✈️'; document.body.appendChild(plane);
+   setTimeout(() => { plane.remove(); showNotification('success', 'Note Sent!', 'Flew off into the cloud.'); setTimeout(receiveAirplane, 5000); }, 2000);
+ };
+ function receiveAirplane() {
+   const plane = document.createElement('div'); plane.className = 'airplane fly-in'; plane.textContent = '✈️';
+   plane.onclick = () => { plane.remove(); if(state.memories.length > 0) openLightbox(Math.floor(Math.random() * state.memories.length)); };
+   document.body.appendChild(plane); setTimeout(() => plane.remove(), 4000);
+ }
+
+ // =========================================
+ // OVERRIDDEN CORE RENDER FUNCTIONS
+ // =========================================
+ function renderReactionButtons(memory) { 
+   const rx = memory.reactions || {}; 
+   const emojis = { 'like': '❤️', 'love': '😍', 'laugh': '😂', 'wow': '😮', 'sad': '🥺' };
+   return Object.keys(emojis).map(type => `<button class="react-btn" onclick="reactWithCannon(event, ${memory.id}, '${type}', '${emojis[type]}')">${emojis[type]}<span class="react-count">${rx[type] || 0}</span></button>`).join(''); 
+ }
+ window.reactWithCannon = function(event, memoryId, type, emoji) { shootEmojiCannon(emoji, event.clientX, event.clientY); react(memoryId, type); };
+
+ window.openLightbox = function(index) {
+   triggerLockerTransition(() => {
+     state.lightboxIndex = index; activeMemoryId = state.memories[index]?.id; 
+     updateLightbox(); document.getElementById('lightbox').classList.add('active'); document.body.style.overflow = 'hidden'; 
+   });
+ };
+
+ window.renderMemories = function() {
+   const grid = document.getElementById('memoryGrid');
+   if (!grid) return;
+   if (state.memories.length === 0) { grid.innerHTML = `<div class="memory-empty" style="grid-column: 1/-1;"><div class="memory-empty-icon">📂</div><h3>No Memories</h3></div>`; return; }
+   
+   grid.innerHTML = state.memories.map((memory, index) => {
+     const isSecret = (index > 0 && index % 12 === 0); 
+     let mediaHtml = memory.file_type === 'video' ? `<video src="${mediaUrl(memory.file_url)}"></video><div class="play-button">▶</div>` : `<img src="${mediaUrl(memory.file_url)}" loading="lazy" />`;
+     if (isSecret && memory.file_type === 'image') { mediaHtml = `<div class="scratch-container" id="scratch-${memory.id}"><canvas class="scratch-canvas"></canvas></div>${mediaHtml}`; }
+     return `
+       <div class="memory-card" data-index="${index}">
+         <div class="memory-media" onclick="${isSecret ? '' : `openLightbox(${index})`}">${mediaHtml}<span class="memory-type-badge">${escapeHtml(memory.memory_type)}</span></div>
+         <div class="memory-content">
+           <div class="memory-author"><div class="memory-avatar">${escapeHtml((memory.student_name || 'A').charAt(0).toUpperCase())}</div><div class="memory-author-info"><div class="memory-author-name">${escapeHtml(memory.student_name)}</div></div></div>
+           <p class="memory-caption">${escapeHtml(memory.caption)}</p>
+           <div class="memory-actions"><button class="comments-open-btn" onclick="openLightbox(${index});">💬 Comments</button><div class="react-group">${renderReactionButtons(memory)}</div></div>
+         </div>
+       </div>`;
+   }).join('');
+   setTimeout(initScratchCards, 300);
+ };
+
+ let lastBellTriggered = false;
+ window.updateCountdown = function() {
+   const t = parseISTLocalToDate(state.settings.farewellIST); if (!t) return;
+   const diff = t - new Date();
+   const [d, h, m, s] = ['days','hours','minutes','seconds'].map(id => document.getElementById(id));
+   if (!d || !h || !m || !s) return;
+   if (diff <= 0) {
+     if (!lastBellTriggered) { lastBellTriggered = true; SFX.bell.play().catch(e=>{}); triggerConfetti(); setTimeout(triggerConfetti, 2000); }
+     d.textContent='00'; h.textContent="IT'S"; m.textContent='TIME'; s.textContent='00'; return;
+   }
+   d.textContent = String(Math.floor(diff / 86400000)).padStart(2, '0');
+   h.textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
+   m.textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+   s.textContent = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+ };
+
+ // =========================================
+ // RESTORING MISSING BASE FUNCTIONS
+ // =========================================
+ function initNavbar() { const nb = document.getElementById('navbar'), btn = document.getElementById('mobileMenuBtn'), lnks = document.getElementById('navLinks'); if(nb) window.addEventListener('scroll', ()=>nb.classList.toggle('scrolled', window.scrollY>50)); if(btn && lnks) { btn.addEventListener('click', ()=>{btn.classList.toggle('active'); lnks.classList.toggle('active');}); } }
+ async function loadSettings() { try { const r = await fetch(apiUrl('/api/settings')); const d = await r.json(); if(d.success) state.settings = mergeDeep(DEFAULT_SETTINGS, d.settings); } catch(e){} }
+ function initCountdown() { updateCountdown(); setInterval(updateCountdown, 1000); }
+ function initUpload() { const dz = document.getElementById('dropzone'), fi = document.getElementById('file-input'); if(dz && fi) { dz.onclick = ()=>fi.click(); fi.onchange = (e)=>handleFiles(e.target.files); document.getElementById('submitUpload')?.addEventListener('click', submitUpload); } }
+ function handleFiles(files) { state.selectedFiles = Array.from(files).filter(f => CONFIG.ALLOWED_TYPES.includes(f.type)); updateFilePreview(); }
+ function updateFilePreview() { const g = document.getElementById('filePreviewGrid'), f = document.getElementById('uploadFormFields'); if(!g) return; g.innerHTML=''; if(state.selectedFiles.length===0){ if(f) f.style.display='none'; return;} if(f) f.style.display='block'; state.selectedFiles.forEach(file => { const i = document.createElement('div'); i.className='file-preview-item'; if(file.type.startsWith('image/')){ const img=document.createElement('img'); img.src=URL.createObjectURL(file); i.appendChild(img); }else{ const v=document.createElement('video'); v.src=URL.createObjectURL(file); i.appendChild(v); } g.appendChild(i); }); }
+ async function submitUpload() { const n = document.getElementById('studentName')?.value, c = document.getElementById('caption')?.value, t = document.getElementById('memoryType')?.value; if(!n||!c||!t||!state.selectedFiles.length) return; const fd = new FormData(); fd.append('name',n); fd.append('caption',c); fd.append('type',t); state.selectedFiles.forEach(f=>fd.append('files',f)); try{ const r=await fetch(apiUrl('/api/upload'), {method:'POST',body:fd}); const d=await r.json(); if(d.success){ document.getElementById('uploadForm').style.display='none'; document.getElementById('uploadSuccess').classList.add('active'); triggerConfetti(); } }catch(e){} }
+ function initMemoryWall() { document.querySelectorAll('.filter-btn').forEach(b => b.onclick = async () => { document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); state.currentFilter=b.dataset.filter; await loadMemories(true); }); }
+ async function loadMemories(reset) { if(state.memLoading) return; state.memLoading=true; if(reset){ state.memPage=1; state.memories=[]; } try{ const r = await fetch(apiUrl(`/api/memories?page=${state.memPage}&limit=${state.memLimit}&type=${state.currentFilter==='all'?'':state.currentFilter}`)); const d = await r.json(); if(d.success){ state.memories = reset?d.memories:state.memories.concat(d.memories); renderMemories(); } }catch(e){} state.memLoading=false; }
+ async function react(id, type) { try{ const r = await fetch(apiUrl(`/api/reactions/${id}`),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type})}); const d=await r.json(); if(d.success){ const m=state.memories.find(x=>x.id===id); if(m) m.reactions=d.reactions; renderMemories(); } }catch(e){} }
+ async function updateLightbox() { const m = state.memories[state.lightboxIndex]; if(!m) return; document.getElementById('lightboxContent').innerHTML = m.file_type==='video'?`<video src="${mediaUrl(m.file_url)}" controls autoplay></video>`:`<img src="${mediaUrl(m.file_url)}" />`; await loadComments(m.id); }
+ function initLightboxComments() { document.getElementById('postCommentBtn')?.addEventListener('click', postComment); }
+ async function loadComments(id) { try{ const r=await fetch(apiUrl(`/api/comments/${id}`)); const d=await r.json(); if(d.success) document.getElementById('commentList').innerHTML = d.comments.map(c=>`<div class="comment-item"><b>${escapeHtml(c.name)}</b>: ${escapeHtml(c.text)}</div>`).join(''); }catch(e){} }
+ async function postComment() { const n=document.getElementById('commentName').value, t=document.getElementById('commentText').value, id=state.memories[state.lightboxIndex]?.id; if(!n||!t||!id) return; try{ await fetch(apiUrl(`/api/comments/${id}`),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,text:t})}); document.getElementById('commentText').value=''; loadComments(id); }catch(e){} }
+ async function loadPublicCompilations() { try{ const r=await fetch(apiUrl('/api/compilations')); const d=await r.json(); if(d.success && d.compilations.length){ document.getElementById('publicCompilationsGrid').innerHTML = d.compilations.map(c=>`<div class="memory-card" style="padding:20px;text-align:center;"><h3 style="margin-bottom:10px;">${escapeHtml(c.name)}</h3><button class="btn btn-primary" onclick="alert('Playing Compilation...')">▶ Play</button></div>`).join(''); } }catch(e){} }
+ function renderTeachers() { const g = document.getElementById('teachersGrid'); if(!g || !state.settings.teachers) return; g.innerHTML = state.settings.teachers.map(t=>`<div class="teacher-card"><h3>${escapeHtml(t.name)}</h3><p>${escapeHtml(t.subject)}</p></div>`).join(''); }
+ function renderTimeline() { const g = document.getElementById('timelineList'); if(!g || !state.settings.timeline) return; g.innerHTML = state.settings.timeline.map(t=>`<div class="timeline-item"><div class="timeline-content"><h3>${escapeHtml(t.year)}: ${escapeHtml(t.title)}</h3><p>${escapeHtml(t.description)}</p></div></div>`).join(''); }
+ function showNotification(t, title, msg) { const n = document.getElementById('notification'); if(!n) return; n.className=`notification ${t} active`; document.getElementById('notificationTitle').textContent=title; document.getElementById('notificationMessage').textContent=msg; setTimeout(()=>n.classList.remove('active'), 3000); }
+ function triggerConfetti() { const c = document.getElementById('confettiContainer'); if(!c) return; const colors = ['#D4AF37','#F4E5B2','#e94560']; for(let i=0;i<50;i++){ const el=document.createElement('div'); el.className='confetti'; el.style.left=Math.random()*100+'%'; el.style.backgroundColor=colors[Math.floor(Math.random()*colors.length)]; el.style.animationDelay=Math.random()+'s'; c.appendChild(el); setTimeout(()=>el.remove(),3000); } }
+ function initAdminTrigger() { let c=0; document.getElementById('logo')?.addEventListener('click', ()=>{ c++; if(c>=5){ document.getElementById('adminOverlay').classList.add('active'); c=0; } setTimeout(()=>c=0,2000); }); }
+ function adminLogin() { document.getElementById('adminOverlay').classList.remove('active'); document.getElementById('adminDashboard').classList.add('active'); }
+ window.initIntroVideo = async function() { const v = document.getElementById('introVideo'), o = document.getElementById('introVideoOverlay'); if(!v||!o) return; if(!state.settings.introVideoPath){ o.style.display='none'; return; } v.src = mediaUrl(state.settings.introVideoPath); v.muted=true; v.play().catch(e=>{}); document.getElementById('skipIntroBtn').onclick = () => { o.style.display='none'; v.pause(); }; v.onended = () => o.style.display='none'; };
+ window.forceUnmute = function() { const v = document.getElementById('introVideo'); if(v) { v.muted=false; v.currentTime=0; v.play(); } document.getElementById('unmuteOverlay').style.display='none'; };
+</script>
+</body>
+</html>
