@@ -2352,64 +2352,6 @@ app.use((err, req, res, next) => {
 })();
 
 
-
-
-// === SNIPER_SERVER_PATCH_V7_START ===
-(() => {
-  if (global.__SNIPER_SERVER_PATCH_V7__) return;
-  global.__SNIPER_SERVER_PATCH_V7__ = true;
-
-  const destinationsPathV7 = path.join(databaseDir, 'destinations.json');
-  const paperNotesPathV7 = path.join(databaseDir, 'paper_notes.json');
-
-  function readDestinationsV7() {
-    return safeReadJson(destinationsPathV7, { destinations: [], submissions: [], nextId: 1 });
-  }
-  function writeDestinationsV7(data) {
-    safeWriteJson(destinationsPathV7, data);
-  }
-  function readPaperNotesV7() {
-    return safeReadJson(paperNotesPathV7, { notes: [], nextId: 1 });
-  }
-
-  app.get('/api/sniper/runtime', (req, res) => {
-    res.json({ success: true, ws: true, multiplayer: true });
-  });
-
-  app.get('/api/destinations/pin-submissions', (req, res) => {
-    try {
-      const db = readDestinationsV7();
-      res.json({ success: true, submissions: db.submissions || [] });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  wss.on('connection', (ws) => {
-    ws.on('message', raw => {
-      let data = null;
-      try { data = JSON.parse(String(raw)); } catch (_) { return; }
-      if (!data || typeof data !== 'object') return;
-
-      if (data.type === 'ghost:move') {
-        broadcast('ghost:move', {
-          id: String(data.id || '').slice(0, 64),
-          x: Number(data.x || 0),
-          y: Number(data.y || 0),
-          initials: String(data.initials || 'GS').slice(0, 4)
-        });
-      }
-
-      if (data.type === 'paper:note:broadcast' && data.note) {
-        broadcast('paper:note', { note: data.note });
-      }
-    });
-  });
-
-  console.log('SNIPER patch server v7 loaded.');
-})();
-
-
 server.listen(PORT, '0.0.0.0', () => {
   console.log('');
   console.log('═══════════════════════════════════════════════════════════════════');
