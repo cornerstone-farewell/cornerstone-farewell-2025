@@ -1,14 +1,21 @@
 from weasyprint import HTML
+import html
 
-INPUT_FILE = "index.html"
+INPUT_HTML = "index.html"
+INPUT_JS = "server.js"
 OUTPUT_FILE = "html_code.pdf"
 
-with open(INPUT_FILE, "r", encoding="utf-8") as f:
-    code = f.read()
+# read html file
+with open(INPUT_HTML, "r", encoding="utf-8") as f:
+    html_code = f.read()
 
-# escape HTML so it prints as text
-import html
-escaped_code = html.escape(code)
+# read js file
+with open(INPUT_JS, "r", encoding="utf-8") as f:
+    js_code = f.read()
+
+# escape code so it prints as text
+escaped_html = html.escape(html_code)
+escaped_js = html.escape(js_code)
 
 document = f"""
 <!DOCTYPE html>
@@ -25,10 +32,25 @@ pre {{
     white-space: pre-wrap;
     word-break: break-word;
 }}
+
+.separator {{
+    margin-top: 20px;
+    margin-bottom: 20px;
+}}
 </style>
 </head>
 <body>
-<pre>{escaped_code}</pre>
+
+<h3>index.html</h3>
+<pre>{escaped_html}</pre>
+
+<div class="separator">
+<hr>
+</div>
+
+<h3>server.js</h3>
+<pre>{escaped_js}</pre>
+
 </body>
 </html>
 """
