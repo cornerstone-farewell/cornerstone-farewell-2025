@@ -2081,94 +2081,13 @@ app.use((err, req, res, next) => {
     }
   });
 
-  // Extra WebSocket message handling for ghost cursors
-  wss.on('connection', (ws) => {
-    ws.on('message', (raw) => {
-      let data = null;
-      try { data = JSON.parse(String(raw)); } catch (_) { return; }
-      if (!data || typeof data !== 'object') return;
-
-      if (data.type === 'ghost:move') {
-        sendWs('ghost:move', {
-          id: String(data.id || '').slice(0, 60),
-          x: Number(data.x || 0),
-          y: Number(data.y || 0),
-          initials: String(data.initials || 'GS').slice(0, 4)
-        });
-      }
-    });
-  });
-
   console.log('SNIPER patch server extension loaded.');
 })();
 
 
 
 
-// === SNIPER_SERVER_PATCH_V3_START ===
-(() => {
-  if (global.__SNIPER_SERVER_PATCH_V3__) return;
-  global.__SNIPER_SERVER_PATCH_V3__ = true;
 
-  const musicDir = path.join(__dirname, 'music');
-  if (!fs.existsSync(musicDir)) {
-    fs.mkdirSync(musicDir, { recursive: true });
-  }
-  app.use('/music', express.static(musicDir));
-
-  function readPaperNotesV3() {
-    const paperNotesPath = path.join(databaseDir, 'paper_notes.json');
-    return safeReadJson(paperNotesPath, { notes: [], nextId: 1 });
-  }
-  function writePaperNotesV3(data) {
-    const paperNotesPath = path.join(databaseDir, 'paper_notes.json');
-    safeWriteJson(paperNotesPath, data);
-  }
-
-  function getApprovedMemoryById(memoryId) {
-    const db = readDB();
-    return db.memories.find(m => m.id === Number(memoryId) && m.approved === 1 && !m.deletedAt && !m.purgedAt) || null;
-  }
-
-  app.post('/api/paper-notes/from-memory', (req, res) => {
-    try {
-      const memoryId = Number(req.body?.memoryId || 0);
-      if (!memoryId) return res.status(400).json({ success: false, error: 'memoryId required' });
-      const memory = getApprovedMemoryById(memoryId);
-      if (!memory) return res.status(404).json({ success: false, error: 'Approved memory not found' });
-
-      const notes = readPaperNotesV3();
-      const note = {
-        id: notes.nextId++,
-        memoryId: memory.id,
-        text: String(memory.caption || '').trim().substring(0, 400),
-        caption: String(memory.caption || '').trim().substring(0, 400),
-        createdAt: nowIso()
-      };
-      notes.notes.push(note);
-      if (notes.notes.length > 3000) notes.notes = notes.notes.slice(-3000);
-      writePaperNotesV3(notes);
-      broadcast('paper:note', { id: note.id, memoryId: note.memoryId });
-      res.json({ success: true, note });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  app.get('/api/paper-notes/random-memory', (req, res) => {
-    try {
-      const notes = readPaperNotesV3();
-      const eligible = (notes.notes || []).filter(n => n.memoryId && n.caption);
-      if (!eligible.length) return res.json({ success: true, note: null });
-      const note = eligible[Math.floor(Math.random() * eligible.length)];
-      res.json({ success: true, note });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  console.log('SNIPER patch server v3 loaded.');
-})();
 
 
 
@@ -2269,145 +2188,17 @@ app.use((err, req, res, next) => {
 
 
 
-// === SNIPER_SERVER_PATCH_V5_START ===
-(() => {
-  if (global.__SNIPER_SERVER_PATCH_V5__) return;
-  global.__SNIPER_SERVER_PATCH_V5__ = true;
-
-  const destinationsPathV5 = path.join(databaseDir, 'destinations.json');
-
-  function readDestinationsV5() {
-    return safeReadJson(destinationsPathV5, { destinations: [], submissions: [], nextId: 1 });
-  }
-  function writeDestinationsV5(data) {
-    safeWriteJson(destinationsPathV5, data);
-  }
-
-  app.post('/api/destinations/pin-submit', (req, res) => {
-    try {
-      const studentName = String(req.body?.studentName || '').trim().substring(0, 80);
-      const schoolPoint = req.body?.schoolPoint || null;
-      const universityPoint = req.body?.universityPoint || null;
-
-      if (!studentName) return res.status(400).json({ success: false, error: 'studentName required' });
-
-      const validPoint = (p) => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
-
-      if (!validPoint(schoolPoint) && !validPoint(universityPoint)) {
-        return res.status(400).json({ success: false, error: 'At least one valid point is required' });
-      }
-
-      const db = readDestinationsV5();
-      let existing = (db.submissions || []).find(x => String(x.studentName || '').trim().toLowerCase() === studentName.toLowerCase());
-
-      const payload = {
-        studentName,
-        schoolPoint: validPoint(schoolPoint) ? { lat: Number(schoolPoint.lat), lng: Number(schoolPoint.lng) } : null,
-        universityPoint: validPoint(universityPoint) ? { lat: Number(universityPoint.lat), lng: Number(universityPoint.lng) } : null,
-        updatedAt: nowIso()
-      };
-
-      if (existing) {
-        existing.studentName = payload.studentName;
-        existing.schoolPoint = payload.schoolPoint;
-        existing.universityPoint = payload.universityPoint;
-        existing.updatedAt = payload.updatedAt;
-      } else {
-        db.submissions.push({
-          id: db.nextId++,
-          createdAt: nowIso(),
-          ...payload
-        });
-      }
-
-      if (db.submissions.length > 5000) db.submissions = db.submissions.slice(-5000);
-      writeDestinationsV5(db);
-      broadcast('destinations:pin-update', { studentName });
-      res.json({ success: true });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  app.get('/api/destinations/pin-submissions', (req, res) => {
-    try {
-      const db = readDestinationsV5();
-      res.json({ success: true, submissions: db.submissions || [] });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  console.log('SNIPER patch server v5 loaded.');
-})();
 
 
 
 
-// === SNIPER_SERVER_PATCH_V6_START ===
-(() => {
-  if (global.__SNIPER_SERVER_PATCH_V6__) return;
-  global.__SNIPER_SERVER_PATCH_V6__ = true;
-  console.log('SNIPER patch server v6 loaded.');
-})();
 
 
 
 
-// === SNIPER_SERVER_PATCH_V7_START ===
-(() => {
-  if (global.__SNIPER_SERVER_PATCH_V7__) return;
-  global.__SNIPER_SERVER_PATCH_V7__ = true;
 
-  const destinationsPathV7 = path.join(databaseDir, 'destinations.json');
-  const paperNotesPathV7 = path.join(databaseDir, 'paper_notes.json');
 
-  function readDestinationsV7() {
-    return safeReadJson(destinationsPathV7, { destinations: [], submissions: [], nextId: 1 });
-  }
-  function writeDestinationsV7(data) {
-    safeWriteJson(destinationsPathV7, data);
-  }
-  function readPaperNotesV7() {
-    return safeReadJson(paperNotesPathV7, { notes: [], nextId: 1 });
-  }
 
-  app.get('/api/sniper/runtime', (req, res) => {
-    res.json({ success: true, ws: true, multiplayer: true });
-  });
-
-  app.get('/api/destinations/pin-submissions', (req, res) => {
-    try {
-      const db = readDestinationsV7();
-      res.json({ success: true, submissions: db.submissions || [] });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  wss.on('connection', (ws) => {
-    ws.on('message', raw => {
-      let data = null;
-      try { data = JSON.parse(String(raw)); } catch (_) { return; }
-      if (!data || typeof data !== 'object') return;
-
-      if (data.type === 'ghost:move') {
-        broadcast('ghost:move', {
-          id: String(data.id || '').slice(0, 64),
-          x: Number(data.x || 0),
-          y: Number(data.y || 0),
-          initials: String(data.initials || 'GS').slice(0, 4)
-        });
-      }
-
-      if (data.type === 'paper:note:broadcast' && data.note) {
-        broadcast('paper:note', { note: data.note });
-      }
-    });
-  });
-
-  console.log('SNIPER patch server v7 loaded.');
-})();
 
 
 server.listen(PORT, '0.0.0.0', () => {
