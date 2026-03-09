@@ -120,6 +120,7 @@ const commentsPath = path.join(databaseDir, 'comments.json');
 const reactionsPath = path.join(databaseDir, 'reactions.json');
 const auditPath = path.join(databaseDir, 'audit.json');
 const compilationsPath = path.join(databaseDir, 'compilations.json');
+const studentDirectoryPath = path.join(databaseDir, 'student_directory.json');
 
 function initDatabase() {
   if (!fs.existsSync(dbPath)) {
@@ -1422,6 +1423,32 @@ app.get('/api/admin/download-all', (req, res) => {
   }
 });
 
+
+app.get('/api/student-directory', (req, res) => {
+ try {
+  const db = readStudentDirectory();
+  res.json({ success: true, students: db.students || [] });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/admin/student-directory', (req, res) => {
+ try {
+  const auth = requireAdmin(req, res);
+  if (!auth) return;
+  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+  const students = Array.isArray(req.body?.students) ? req.body.students : [];
+  const cleaned = students.map(s => ({
+   name: String(s?.name || '').trim().substring(0, 80),
+   section: String(s?.section || '').trim().substring(0, 20)
+  })).filter(s => s.name && s.section);
+  writeStudentDirectory({ students: cleaned });
+  audit(auth.user.id, 'save-student-directory', { count: cleaned.length });
+  res.json({ success: true, count: cleaned.length });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
 // Settings save
 app.post('/api/admin/settings', (req, res) => {
   try {
@@ -2089,7 +2116,46 @@ res.json({ success: true, destinations: items });
     }
   });
 
-  console.log('SNIPER patch server extension loaded.');
+ 
+ app.post('/api/paper-notes/from-memory', (req, res) => {
+ try {
+  const memoryId = Number(req.body?.memoryId);
+  const dbMem = readDB();
+  const memory = dbMem.memories.find(m => m.id === memoryId && m.approved === 1 && !m.deletedAt && !m.purgedAt);
+  if (!memory) return res.status(404).json({ success: false, error: 'Memory not found' });
+  const db = readPaperNotes();
+  const ip = getClientIp(req);
+  if (isRateLimited(db.notes || [], ip, 5, 60 * 1000)) {
+   return res.status(429).json({ success: false, error: 'Rate limit exceeded. Maximum 5 notes per minute.' });
+  }
+  const note = {
+   id: db.nextId++,
+   memoryId,
+   caption: String(memory.caption || '').substring(0, 400),
+   text: String(memory.caption || '').substring(0, 400),
+   ip,
+   createdAt: nowIso()
+  };
+  db.notes.push(note);
+  if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
+  writePaperNotes(db);
+  sendWs('paper:note', { note });
+  res.json({ success: true, note });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+ });
+ app.get('/api/paper-notes/random-memory', (req, res) => {
+ try {
+  const db = readPaperNotes();
+  const notes = (db.notes || []).filter(note => note.memoryId || note.caption || note.text);
+  if (!notes.length) return res.json({ success: true, note: null });
+  const note = notes[Math.floor(Math.random() * notes.length)];
+  res.json({ success: true, note });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+ }); console.log('SNIPER patch server extension loaded.');
 })();
 
 

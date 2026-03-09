@@ -1,1193 +1,1247 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-
 from pathlib import Path
 import re
 import sys
 
-
-INDEX_HTML = Path("index.html")
-SERVER_JS = Path("server.js")
-
-
-NEW_NAV_LINKS = """<ul class="nav-links" id="navLinks">
- <li><a href="#home">Home</a></li>
- <li><a href="#countdown">Countdown</a></li>
- <li><a href="#memories">Memories</a></li>
- <li><a href="#teachers">Teachers</a></li>
- <li><a href="#timeline">Journey</a></li>
- <li><a href="#compilations">Compilations</a></li>
- <li><a href="#stereoDeckSection">StereoDeck</a></li>
- <li><a href="#distanceMapSection">Future Globe</a></li>
- <li><a href="#upload" class="nav-cta">Upload Memory</a></li>
- </ul>"""
+INDEX_HTML = "index.html"
+SERVER_JS = "server.js"
 
 
-STEREO_SECTION = """
-<section id="stereoDeckSection" style="background: linear-gradient(180deg, var(--navy-medium) 0%, var(--navy-dark) 100%); padding: 80px 20px 40px;">
- <div class="container">
-  <div class="section-header" style="margin-bottom: 30px;">
-   <span class="section-badge">Music Controls</span>
-   <h2 class="section-title">Cornerstone <span class="highlight">StereoDeck</span></h2>
-   <p class="section-description">Pick a vibe and play it from the built-in deck.</p>
-  </div>
-  <div id="boomboxDock" style="display:flex; gap:16px; align-items:flex-end; justify-content:center; flex-wrap:wrap;">
-   <div id="cassetteRack" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; width:min(560px, 100%);"></div>
-   <div id="boomboxUnit" style="width:min(400px,100%); background:linear-gradient(180deg,#4c4c54,#2a2a31); border:1px solid rgba(255,255,255,.18); border-radius:24px; box-shadow:0 20px 60px rgba(0,0,0,.45); padding:16px;">
-    <div class="boombox-top" style="display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px;">
-     <div class="boombox-brand" style="font-weight:700; color:var(--primary-gold);">Cornerstone StereoDeck</div>
-     <button class="btn btn-secondary" type="button" id="ejectTapeBtn">Eject</button>
-    </div>
-    <div class="boombox-door" id="boomboxDoor" style="height:96px; border-radius:16px; border:2px solid rgba(255,255,255,.12); background:#111; display:flex; align-items:center; justify-content:center; color:#bbb; position:relative; overflow:hidden;">Choose a vibe</div>
-    <div class="boombox-speakers" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
-     <div class="boombox-speaker" style="aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,#0d0d0f 0 20%,#2b2b33 21% 45%,#0c0c0f 46% 60%,#444 61% 100%); border:2px solid rgba(255,255,255,.08);"></div>
-     <div class="boombox-speaker" style="aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,#0d0d0f 0 20%,#2b2b33 21% 45%,#0c0c0f 46% 60%,#444 61% 100%); border:2px solid rgba(255,255,255,.08);"></div>
-    </div>
-   </div>
-  </div>
-  <div id="sniperMusicHint" style="text-align:center; color:var(--text-muted); font-size:.85rem; margin-top:8px;">Music controls</div>
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def write_text(path: Path, content: str) -> None:
+    path.write_text(content, encoding="utf-8", newline="\n")
+
+
+def replace_once(content: str, old: str, new: str, label: str) -> str:
+    if old not in content:
+        raise RuntimeError(f"Could not find expected block for {label}")
+    return content.replace(old, new, 1)
+
+
+def replace_if_present(content: str, old: str, new: str) -> str:
+    if old in content:
+        return content.replace(old, new, 1)
+    return content
+
+
+def insert_before_once(content: str, marker: str, block: str, label: str) -> str:
+    if block in content:
+        return content
+    if marker not in content:
+        raise RuntimeError(f"Could not find expected marker for {label}")
+    return content.replace(marker, block + marker, 1)
+
+
+def insert_after_once(content: str, marker: str, block: str, label: str) -> str:
+    if block in content:
+        return content
+    if marker not in content:
+        raise RuntimeError(f"Could not find expected marker for {label}")
+    return content.replace(marker, marker + block, 1)
+
+
+def regex_replace_first(content: str, pattern: str, repl: str, label: str, flags: int = 0) -> str:
+    new_content, count = re.subn(pattern, repl, content, count=1, flags=flags)
+    if count != 1:
+        raise RuntimeError(f"Could not replace expected pattern for {label}")
+    return new_content
+
+
+def regex_remove_all(content: str, pattern: str, flags: int = 0) -> str:
+    return re.sub(pattern, "", content, flags=flags)
+
+
+def patch_index_html(path: Path) -> None:
+    content = read_text(path)
+
+    content = replace_if_present(
+        content,
+        "const FF_DEFAULTS={gratitudeWall:true,superlatives:true,wishJar:true,songDedications:true,moodBoard:true,timeCapsule:true,memoryMosaic:true};",
+        "const FF_DEFAULTS={gratitudeWall:true,superlatives:true,wishJar:true,songDedications:true,moodBoard:true,timeCapsule:true,memoryMosaic:false};",
+    )
+    content = replace_if_present(
+        content,
+        " window.enableAllFunFeatures=function(){['gratitudeWall','superlatives','wishJar','songDedications','moodBoard','timeCapsule','memoryMosaic'].forEach(k=>{const el=document.getElementById(`ffToggle_${k}`);if(el)el.checked=true;window.previewFunFeatureToggle(k,true)})};",
+        " window.enableAllFunFeatures=function(){['gratitudeWall','superlatives','wishJar','songDedications','moodBoard','timeCapsule','memoryMosaic'].forEach(k=>{const el=document.getElementById(`ffToggle_${k}`);if(el)el.checked=(k!=='memoryMosaic');window.previewFunFeatureToggle(k,k!=='memoryMosaic')})};",
+    )
+    content = replace_if_present(content, " setTimeout(loadMemoryMosaic,3000);", "")
+
+    content = replace_if_present(content, " await autoFillMemoriesOnLoad();\n", "")
+    content = regex_remove_all(
+        content,
+        r"\n async function autoFillMemoriesOnLoad\(\) \{.*?\n\}\n",
+        flags=re.S,
+    )
+
+    content = replace_if_present(
+        content,
+        " memLimit: 2000,",
+        " memLimit: 2000,\n previewLimit: 6,\n viewingAllMemoriesPage: false,",
+    )
+
+    patch_css = """
+ <style id="fixer-stable-ui-patch">
+ html.hard-refresh-top, body.hard-refresh-top { scroll-behavior: auto !important; }
+ .feature-tour-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:11000; display:none;
+ }
+ .feature-tour-overlay.active{ display:block; }
+ .feature-tour-spotlight{
+  position:fixed; z-index:11001; pointer-events:none; border-radius:18px;
+  border:2px solid var(--primary-gold); background:transparent;
+  box-shadow:0 0 0 9999px rgba(0,0,0,0.45);
+  transition:all 0.35s ease;
+  left:-9999px; top:-9999px; width:0; height:0;
+ }
+ .feature-tour-card{
+  position:fixed; z-index:11002; width:min(360px, calc(100vw - 24px)); background:var(--navy-medium);
+  border:1px solid var(--glass-border); border-radius:18px; padding:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.45); left:-9999px; top:-9999px;
+ }
+ .feature-tour-card h3{ color:var(--primary-gold); margin-bottom:8px; font-family:var(--font-display); }
+ .feature-tour-card p{ color:var(--text-muted); margin-bottom:12px; font-size:0.95rem; }
+ .feature-tour-actions{ display:flex; justify-content:space-between; gap:10px; }
+ .feature-tour-fab{
+  position:fixed; right:18px; bottom:18px; z-index:2501; border:none;
+  background:var(--gradient-gold); color:var(--navy-dark); border-radius:999px;
+  padding:10px 14px; font-weight:700; cursor:pointer; box-shadow:var(--shadow-gold);
+ }
+ .memories-preview-actions{ display:flex; justify-content:center; margin-top:28px; }
+ .memories-page{
+  min-height:100vh; background:linear-gradient(180deg, var(--navy-dark) 0%, var(--navy-medium) 100%);
+  color:var(--text-light); padding:110px 20px 60px;
+ }
+ .memories-page.hidden{ display:none; }
+ .memories-page-header{
+  max-width:var(--container-width); margin:0 auto 28px; display:flex; justify-content:space-between;
+  gap:16px; align-items:center; flex-wrap:wrap;
+ }
+ .memories-page-grid{
+  max-width:var(--container-width); margin:0 auto;
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:24px;
+ }
+ #livePill,
+ #ghostCursorToggle,
+ #ghostCursorPopup,
+ #ghostOffModal,
+ #paperTutorial,
+ #wsStatusBadge,
+ .ghost-cursor{ display:none !important; }
+ #distanceMapWrap{
+  display:block !important; position:relative !important; max-width:1200px !important; margin:0 auto !important;
+ }
+ #distanceGlobeCanvas{
+  width:100% !important; height:650px !important; position:relative !important;
+ }
+ #distanceMapSection #distanceGlobeUi{
+  position:relative !important; max-width:1200px !important; margin:0 auto 14px !important;
+ }
+ #distanceMapSection #distanceGlobeCanvas canvas,
+ #distanceMapSection #distanceGlobeCanvas > div{
+  margin:0 auto !important;
+ }
+ #distanceSearchResultsV7 .btn{
+  width:100%;
+  justify-content:flex-start;
+  text-align:left;
+  white-space:normal;
+ }
+ @media (max-width: 900px){
+  .feature-tour-card{ left:12px !important; right:12px !important; width:auto; top:auto !important; bottom:12px !important; }
+ }
+ </style>
+"""
+    content = insert_before_once(content, "</head>", patch_css, "stable css")
+
+    old_memories_end = """ <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+ <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" type="button">Load More</button>
  </div>
-</section>
-""".strip()
-
-
-GLOBE_SECTION = """
-<section id="distanceMapSection" style="background:
- radial-gradient(circle at 50% 0%, rgba(212,175,55,.14), transparent 30%),
- linear-gradient(180deg, #060a14 0%, #0d1730 60%, #081120 100%);
- padding: 90px 20px 70px;">
- <div class="container">
-  <div class="section-header" style="margin-bottom: 26px;">
-   <span class="section-badge">Erase the Distance</span>
-   <h2 class="section-title">One <span class="highlight">Starting Point</span>, Many Destinations</h2>
-   <p class="section-description">Select your future place in Google Maps, come back automatically, and watch it appear on the live 3D globe.</p>
-  </div>
-
-  <div style="max-width:1080px;margin:0 auto 18px;padding:18px 20px;border-radius:20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);color:var(--text-muted);text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.22);">
-   <strong style="color:var(--text-light);">How it works:</strong>
-   enter your name, choose whether you are saving your 11th / 12th place or your university place, open Google Maps, choose the place, and return. The coordinates will auto-fill and pins will appear on the globe.
-  </div>
-
-  <div id="distanceControls" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;align-items:end;max-width:1080px;margin:0 auto 18px;">
-   <div class="form-group" style="margin-bottom:0;">
-    <label>Your Name</label>
-    <input class="form-input" id="distanceStudentName" placeholder="Enter your name" maxlength="80" />
-   </div>
-   <div class="form-group" style="margin-bottom:0;">
-    <label>Section</label>
-    <select class="form-select" id="distanceSection">
-     <option value="10A">10A</option>
-     <option value="10B">10B</option>
-     <option value="10C">10C</option>
-     <option value="10D">10D</option>
-    </select>
-   </div>
-   <div class="form-group" style="margin-bottom:0;">
-    <label>Place Type</label>
-    <select class="form-select" id="distancePlaceType">
-     <option value="school">11th / 12th place</option>
-     <option value="university">University place</option>
-    </select>
-   </div>
-   <div class="form-group" style="margin-bottom:0;">
-    <label>Place Name</label>
-    <input class="form-input" id="distancePlaceName" placeholder="Will auto-fill after maps selection" />
-   </div>
-   <div class="form-group" style="margin-bottom:0;">
-    <label>Coordinates</label>
-    <input class="form-input" id="selectedCoords" placeholder="Will auto-fill after maps selection" readonly />
-   </div>
-   <div class="form-group" style="margin-bottom:0;">
-    <label>Class Ranking</label>
-    <input class="form-input" id="distanceClassRanking" placeholder="Optional ranking/note from teachers" maxlength="120" />
-   </div>
-   <div style="grid-column:1 / -1;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-    <button class="btn btn-primary" type="button" id="destinationLaunchBtn">Open Google Maps Selector</button>
-    <button class="btn btn-secondary" type="button" id="destinationSaveBtn">Save On Globe</button>
-    <button class="btn btn-secondary" type="button" id="distanceRefreshBtn">Refresh Globe</button>
-   </div>
-  </div>
-
-  <div id="distanceGlobeUi" style="position:relative;display:grid;grid-template-columns:minmax(280px, 430px) minmax(260px, 1fr);gap:12px;max-width:1200px;margin:0 auto 14px;">
-   <div style="background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);border-radius:18px;backdrop-filter:blur(10px);color:#fff;padding:12px 14px;">
-    <h4 style="margin:0 0 8px;font-family:var(--font-display);color:var(--primary-gold);">Live Globe Details</h4>
-    <p style="margin:0 0 10px;color:rgba(255,255,255,.82);font-size:.92rem;line-height:1.6;">
-     Gold is the school origin. Blue marks 11th / 12th places. Rose marks university places. The latest Google Maps selection fills below automatically.
-    </p>
-    <div id="distanceSelectedInfo" style="display:grid;gap:8px;">
-     <div style="font-size:.88rem;color:rgba(255,255,255,.88);"><strong style="color:var(--primary-gold-light);">11th / 12th:</strong> <span id="distanceSchoolSelectedText">Not placed yet</span></div>
-     <div style="font-size:.88rem;color:rgba(255,255,255,.88);"><strong style="color:var(--primary-gold-light);">University:</strong> <span id="distanceUniversitySelectedText">Not placed yet</span></div>
-    </div>
-   </div>
-   <div style="background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);border-radius:18px;backdrop-filter:blur(10px);color:#fff;padding:12px 14px;">
-    <div id="distanceOverlayStats" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;">
-     <div style="border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);font-size:.8rem;">Gold = School origin</div>
-     <div style="border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);font-size:.8rem;">Blue = 11th / 12th</div>
-     <div style="border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);font-size:.8rem;">Rose = University</div>
-     <div style="border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);font-size:.8rem;">Sections = 10A / 10B / 10C / 10D</div>
-    </div>
-   </div>
-  </div>
-
-  <div id="distanceMapWrap" style="min-height:760px;height:760px;position:relative;max-width:1200px;margin:0 auto;overflow:hidden;border-radius:24px;border:1px solid rgba(255,255,255,.10);background:
-   radial-gradient(circle at 50% 30%, rgba(43,76,140,.35), rgba(3,7,15,.95) 60%),
-   linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));box-shadow:0 24px 80px rgba(0,0,0,.35);">
-   <div id="distanceGlobeCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></div>
-   <div id="distanceSelectionStatus" style="position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:3;padding:10px 16px;border-radius:999px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);color:#fff;backdrop-filter:blur(10px);max-width:92%;text-align:center;">
-    Open Google Maps, pick a place, return here, and save it on the globe.
-   </div>
-  </div>
  </div>
-</section>
-""".strip()
+ </section>"""
+    new_memories_end = """ <div class="memories-preview-actions">
+ <button class="btn btn-secondary" id="viewAllMemoriesBtn" type="button">View All Memories</button>
+ </div>
+ <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+ <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" type="button">Load More</button>
+ </div>
+ </div>
+ </section>
+ <section id="memoriesPage" class="memories-page hidden">
+ <div class="memories-page-header">
+ <div>
+ <span class="section-badge">All Memories</span>
+ <h2 class="section-title">Every <span class="highlight">Memory</span></h2>
+ </div>
+ <button class="btn btn-secondary" id="backToHomeFromMemoriesPage" type="button">Back to Home</button>
+ </div>
+ <div class="memories-page-grid" id="memoriesPageGrid" aria-live="polite"></div>
+ </section>"""
+    if 'id="memoriesPage"' not in content and old_memories_end in content:
+        content = content.replace(old_memories_end, new_memories_end, 1)
 
+    init_memory_old = """ function initMemoryWall() {
+ document.querySelectorAll('.memory-filters .filter-btn').forEach(btn => {
+ btn.addEventListener('click', async () => {
+ document.querySelectorAll('.memory-filters .filter-btn').forEach(b => b.classList.remove('active'));
+ btn.classList.add('active');
+ state.currentFilter = btn.dataset.filter;
+ await loadMemories(true);
+ });
+ });
+ const loadMoreBtn = document.getElementById('loadMoreBtn');
+ if (loadMoreBtn) {
+ loadMoreBtn.addEventListener('click', async () => {
+ await loadMemories(false);
+ });
+ }
+}"""
+    init_memory_new = """ function initMemoryWall() {
+ document.querySelectorAll('.memory-filters .filter-btn').forEach(btn => {
+ btn.addEventListener('click', async () => {
+ document.querySelectorAll('.memory-filters .filter-btn').forEach(b => b.classList.remove('active'));
+ btn.classList.add('active');
+ state.currentFilter = btn.dataset.filter;
+ await loadMemories(true);
+ });
+ });
+ const loadMoreBtn = document.getElementById('loadMoreBtn');
+ if (loadMoreBtn) {
+ loadMoreBtn.addEventListener('click', async () => {
+ await loadMemories(false);
+ });
+ }
+}
+function getDisplayMemories() {
+ return state.viewingAllMemoriesPage ? state.memories : state.memories.slice(0, state.previewLimit);
+}
+function renderMemoriesPage() {
+ const grid = document.getElementById('memoriesPageGrid');
+ if (!grid) return;
+ if (!state.memories.length) {
+  grid.innerHTML = `<div class="memory-empty" style="grid-column: 1/-1;"><div class="memory-empty-icon"> </div><h3>No Memories Yet</h3><p>Be the first to share!</p></div>`;
+  return;
+ }
+ grid.innerHTML = state.memories.map((memory, index) => `
+ <div class="memory-card" data-index="${index}">
+ <div class="memory-media" onclick="openLightbox(${index})">
+ ${memory.file_type === 'video'
+ ? `<video src="${memory.file_url}" preload="metadata"></video><div class="play-button">▶</div>`
+ : `<img src="${memory.file_url}" alt="${escapeAttr(memory.caption)}" loading="lazy" />`}
+ <span class="memory-type-badge">${escapeHtml(memory.memory_type)}</span>
+ ${memory.featured ? `<span class="memory-featured-badge">Featured</span>` : ''}
+ </div>
+ <div class="memory-content">
+ <div class="memory-author">
+ <div class="memory-avatar">${escapeHtml((memory.student_name || '').charAt(0).toUpperCase())}</div>
+ <div class="memory-author-info">
+ <div class="memory-author-name">${escapeHtml(memory.student_name || '')}</div>
+ <div class="memory-time">${timeAgo(memory.created_at)}</div>
+ </div>
+ </div>
+ <p class="memory-caption">${escapeHtml(memory.caption || '')}</p>
+ </div>
+ </div>
+ `).join('');
+}
+function openMemoriesPage() {
+ state.viewingAllMemoriesPage = true;
+ const page = document.getElementById('memoriesPage');
+ if (page) page.classList.remove('hidden');
+ const topTarget = document.getElementById('memoriesPage');
+ if (topTarget) topTarget.scrollIntoView({ behavior: 'auto', block: 'start' });
+ renderMemoriesPage();
+ history.replaceState(null, '', '#memories-page');
+}
+function backToMainPage() {
+ state.viewingAllMemoriesPage = false;
+ const page = document.getElementById('memoriesPage');
+ if (page) page.classList.add('hidden');
+ history.replaceState(null, '', '#home');
+ const home = document.getElementById('home');
+ if (home) home.scrollIntoView({ behavior: 'auto', block: 'start' });
+}"""
+    if "function getDisplayMemories()" not in content and init_memory_old in content:
+        content = content.replace(init_memory_old, init_memory_new, 1)
 
-GLOBE_DEPENDENCIES = """
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-<script src="https://unpkg.com/globe.gl"></script>
-""".strip()
+    render_memories_old = """function renderMemories() {
+ const grid = document.getElementById('memoryGrid');
+ if (!grid) return;
+ const countPill = document.getElementById('memCountPill');
+ if (countPill) {
+ countPill.textContent = `${state.memories.length} loaded${state.memHasMore ? ' • more available' : ''}`;
+ }
+ if (displayMemories.length === 0) {"""
+    render_memories_new = """function renderMemories() {
+ const grid = document.getElementById('memoryGrid');
+ if (!grid) return;
+ const displayMemories = getDisplayMemories();
+ const countPill = document.getElementById('memCountPill');
+ if (countPill) {
+ countPill.textContent = state.viewingAllMemoriesPage ? `${state.memories.length} loaded` : `${displayMemories.length} of ${state.memories.length} shown`;
+ }
+ if (displayMemories.length === 0) {"""
+    if render_memories_old in content:
+        content = content.replace(render_memories_old, render_memories_new, 1)
 
+    content = content.replace(" grid.innerHTML = state.memories.map((memory, index) => `", " grid.innerHTML = displayMemories.map((memory, index) => `")
+    content = content.replace(" loadMoreWrap.style.display = (!state.infiniteScroll && state.memHasMore) ? 'flex' : 'none';", " loadMoreWrap.style.display = (!state.infiniteScroll && state.memHasMore && state.viewingAllMemoriesPage) ? 'flex' : 'none';")
 
-PRODUCTION_SCRIPT = r"""
-<script>
-(function () {
- if (window.__PRODUCTION_GLOBE_AND_STEREO_PATCH__) return;
- window.__PRODUCTION_GLOBE_AND_STEREO_PATCH__ = true;
+    memory_bindings = """
+ document.addEventListener('DOMContentLoaded', () => {
+ const viewAllBtn = document.getElementById('viewAllMemoriesBtn');
+ if (viewAllBtn) viewAllBtn.addEventListener('click', openMemoriesPage);
+ const backBtn = document.getElementById('backToHomeFromMemoriesPage');
+ if (backBtn) backBtn.addEventListener('click', backToMainPage);
+ document.querySelectorAll('a[href="#home"]').forEach(el => {
+  el.addEventListener('click', (evt) => {
+   evt.preventDefault();
+   backToMainPage();
+  });
+ });
+ });
+ window.addEventListener('popstate', () => {
+ const page = document.getElementById('memoriesPage');
+ if (!page) return;
+ if (location.hash === '#memories-page') {
+  state.viewingAllMemoriesPage = true;
+  page.classList.remove('hidden');
+  renderMemoriesPage();
+ } else {
+  state.viewingAllMemoriesPage = false;
+  page.classList.add('hidden');
+ }
+ });
+"""
+    content = insert_before_once(content, " document.addEventListener('keydown', (e) => {", memory_bindings, "memory bindings")
 
- const SCHOOL_ORIGIN = {
-  lat: 12.9716,
-  lng: 77.5946,
-  label: 'Cornerstone International School'
- };
-
- const SECTION_COLORS = {
-  '10A': '#55b9ff',
-  '10B': '#74d680',
-  '10C': '#ff9f55',
-  '10D': '#ff7aa8'
- };
-
- const statePatch = {
-  activeBoomboxAudio: null,
-  globe: null,
-  globeReady: false,
-  lastStatsRows: [],
-  pendingSchoolPoint: null,
-  pendingUniversityPoint: null
- };
-
- function ensureFooterAtBottom() {
-  const footer = document.querySelector('footer');
-  if (!footer) return;
-  const quote = document.getElementById('quote');
-  if (quote && footer.previousElementSibling !== quote) {
-   footer.parentNode.appendChild(footer);
+    stable_tour_script = """
+<script id="fixer-stable-tour-script">
+(function(){
+ if (window.__FIXER_STABLE_TOUR__) return;
+ window.__FIXER_STABLE_TOUR__ = true;
+ const TOUR_KEY = 'cornerstone_tour_seen_v2';
+ function addTourFab(){
+  if (document.getElementById('featureTourFab')) return;
+  const btn = document.createElement('button');
+  btn.id = 'featureTourFab';
+  btn.className = 'feature-tour-fab';
+  btn.type = 'button';
+  btn.textContent = 'Tutorial';
+  btn.addEventListener('click', startSiteTour);
+  document.body.appendChild(btn);
+ }
+ function ensureTourNodes(){
+  if (!document.getElementById('featureTourOverlay')){
+   const overlay = document.createElement('div');
+   overlay.id = 'featureTourOverlay';
+   overlay.className = 'feature-tour-overlay';
+   overlay.innerHTML = '<div id="featureTourSpotlight" class="feature-tour-spotlight"></div><div id="featureTourCard" class="feature-tour-card"></div>';
+   document.body.appendChild(overlay);
   }
  }
-
- function patchTopNavigation() {
-  const navLinks = document.getElementById('navLinks');
-  if (!navLinks) return;
-
-  const ensureLink = (href, label, className='') => {
-   if (navLinks.querySelector('a[href="' + href + '"]')) return;
-   const li = document.createElement('li');
-   li.innerHTML = '<a href="' + href + '"' + (className ? ' class="' + className + '"' : '') + '>' + label + '</a>';
-   navLinks.appendChild(li);
-  };
-
-  ensureLink('#stereoDeckSection', 'StereoDeck');
-  ensureLink('#distanceMapSection', 'Future Globe');
- }
-
- function getMusicSettings() {
-  const settings = (window.state && window.state.settings) ? window.state.settings : {};
-  return Object.assign({
-   boomboxGraduationVibes: '',
-   boomboxSadBoiHours: '',
-   boomboxHype: ''
-  }, settings.music || {});
- }
-
- function resolveMusicPath(value) {
-  if (!value) return '';
-  if (/^https?:\/\//i.test(String(value)) || String(value).startsWith('/')) return String(value);
-  return '/music/' + String(value).replace(/^\/+/, '');
- }
-
- function stopBoombox() {
-  if (statePatch.activeBoomboxAudio) {
-   try { statePatch.activeBoomboxAudio.pause(); } catch (error) {}
-   statePatch.activeBoomboxAudio = null;
-  }
-  const door = document.getElementById('boomboxDoor');
-  if (door) {
-   door.classList.remove('has-tape');
-   door.textContent = 'Choose a vibe';
-  }
- }
-
- function playBoombox(label, key) {
-  const music = getMusicSettings();
-  const src = resolveMusicPath(music[key]);
-  if (!src) {
-   showNotification('info', 'Music missing', label + ' has not been configured yet.');
-   return;
-  }
-  stopBoombox();
-  try {
-   const audio = new Audio(src);
-   audio.loop = true;
-   audio.volume = 0.32;
-   audio.play().catch(() => {});
-   statePatch.activeBoomboxAudio = audio;
-   const door = document.getElementById('boomboxDoor');
-   if (door) {
-    door.classList.add('has-tape');
-    door.innerHTML = '<div style="text-align:center;"><div style="font-weight:700;color:var(--primary-gold);">' + label + '</div><div style="opacity:.7;font-size:.82rem;">Now playing</div></div>';
-   }
-  } catch (error) {
-   console.error(error);
-   showNotification('error', 'Playback failed', 'Could not play ' + label + '.');
-  }
- }
-
- function buildStereoDeck() {
-  const rack = document.getElementById('cassetteRack');
-  if (!rack) return;
-  rack.innerHTML = '';
-
-  const tracks = [
-   { label: 'Graduation Vibes', key: 'boomboxGraduationVibes' },
-   { label: 'Sad Boi Hours', key: 'boomboxSadBoiHours' },
-   { label: 'Hype', key: 'boomboxHype' }
+ function buildSteps(){
+  return [
+   { selector:'#home .hero-buttons', title:'Welcome', text:'Use these buttons to upload a memory or explore the memory wall.' },
+   { selector:'#countdown', title:'Countdown', text:'This section shows the live countdown to the farewell event.' },
+   { selector:'#memories', title:'Memories Preview', text:'The homepage shows six selected memories only for faster loading.' },
+   { selector:'#viewAllMemoriesBtn', title:'View All', text:'Open the full dedicated memories page from here.' },
+   { selector:'#upload', title:'Upload', text:'Approved uploads appear after admin review only.' },
+   { selector:'#distanceMapSection', title:'Future Path Globe', text:'Select your name, section, and future places, then save them to the globe.' },
+   { selector:'#compilations', title:'Compilations', text:'Curated slideshows appear here.' }
   ];
-
-  tracks.forEach(track => {
-   const btn = document.createElement('button');
-   btn.type = 'button';
-   btn.className = 'cassette btn btn-secondary';
-   btn.style.width = '100%';
-   btn.style.justifyContent = 'center';
-   btn.textContent = track.label;
-   btn.addEventListener('click', () => playBoombox(track.label, track.key));
-   rack.appendChild(btn);
-  });
-
-  const eject = document.getElementById('ejectTapeBtn');
-  if (eject && !eject.dataset.bound) {
-   eject.dataset.bound = '1';
-   eject.addEventListener('click', stopBoombox);
+ }
+ function stopSiteTour(){
+  const overlay = document.getElementById('featureTourOverlay');
+  const spot = document.getElementById('featureTourSpotlight');
+  const card = document.getElementById('featureTourCard');
+  if (overlay) overlay.classList.remove('active');
+  if (spot) {
+   spot.style.left = '-9999px';
+   spot.style.top = '-9999px';
+   spot.style.width = '0px';
+   spot.style.height = '0px';
+  }
+  if (card) {
+   card.style.left = '-9999px';
+   card.style.top = '-9999px';
   }
  }
-
- function updateSelectionTexts() {
-  const schoolText = document.getElementById('distanceSchoolSelectedText');
-  const uniText = document.getElementById('distanceUniversitySelectedText');
-
-  if (schoolText) {
-   schoolText.textContent = statePatch.pendingSchoolPoint
-    ? statePatch.pendingSchoolPoint.label + ' (' + statePatch.pendingSchoolPoint.lat.toFixed(4) + ', ' + statePatch.pendingSchoolPoint.lng.toFixed(4) + ')'
-    : 'Not placed yet';
-  }
-
-  if (uniText) {
-   uniText.textContent = statePatch.pendingUniversityPoint
-    ? statePatch.pendingUniversityPoint.label + ' (' + statePatch.pendingUniversityPoint.lat.toFixed(4) + ', ' + statePatch.pendingUniversityPoint.lng.toFixed(4) + ')'
-    : 'Not placed yet';
-  }
- }
-
- function updateCoordsFieldFromPending() {
-  const input = document.getElementById('selectedCoords');
-  if (!input) return;
-  const parts = [];
-  if (statePatch.pendingSchoolPoint) {
-   parts.push('11th/12th: ' + statePatch.pendingSchoolPoint.lat.toFixed(6) + ',' + statePatch.pendingSchoolPoint.lng.toFixed(6));
-  }
-  if (statePatch.pendingUniversityPoint) {
-   parts.push('University: ' + statePatch.pendingUniversityPoint.lat.toFixed(6) + ',' + statePatch.pendingUniversityPoint.lng.toFixed(6));
-  }
-  input.value = parts.join(' | ');
- }
-
- function setGlobeStatus(message) {
-  const el = document.getElementById('distanceSelectionStatus');
-  if (el) el.textContent = message;
- }
-
- function getHashParams() {
-  const hash = window.location.hash || '';
-  const idx = hash.indexOf('?');
-  if (idx === -1) return new URLSearchParams();
-  return new URLSearchParams(hash.slice(idx + 1));
- }
-
- function buildMapsReturnUrl() {
-  return window.location.origin + window.location.pathname + '#distanceMapSection';
- }
-
- function openGoogleMapsSelector() {
-  const studentName = String(document.getElementById('distanceStudentName')?.value || '').trim();
-  const placeType = String(document.getElementById('distancePlaceType')?.value || 'school').trim();
-  const section = String(document.getElementById('distanceSection')?.value || '10A').trim();
-  const placeName = String(document.getElementById('distancePlaceName')?.value || '').trim();
-  const ranking = String(document.getElementById('distanceClassRanking')?.value || '').trim();
-
-  if (!studentName) {
-   showNotification('error', 'Name needed', 'Enter your name first.');
-   return;
-  }
-
-  const returnUrl = buildMapsReturnUrl();
-  const query = placeName || 'future place';
-  const mapsUrl =
-   'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query) +
-   '&travelmode=driving';
-
-  const payload = {
-   studentName,
-   placeType,
-   section,
-   ranking,
-   returnUrl
-  };
-
-  sessionStorage.setItem('cornerstone_globe_pending', JSON.stringify(payload));
-  window.open(mapsUrl, '_blank');
-  setGlobeStatus('Google Maps opened. After selecting a place, come back here and paste or trigger the final coordinates link.');
-  showNotification('info', 'Google Maps opened', 'Select the place there, then return here.');
- }
-
- function extractCoordinatesFromText(value) {
-  const m = String(value || '').match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
-  if (!m) return null;
-  const lat = Number(m[1]);
-  const lng = Number(m[2]);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  return { lat, lng };
- }
-
- async function geocodePlaceName(placeName) {
-  const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(placeName);
-  const res = await fetch(url, {
-   headers: { 'Accept': 'application/json' }
-  });
-  if (!res.ok) throw new Error('Could not resolve place');
-  const data = await res.json();
-  if (!Array.isArray(data) || !data.length) throw new Error('No coordinates found');
-  return {
-   lat: Number(data[0].lat),
-   lng: Number(data[0].lon),
-   label: data[0].display_name || placeName
-  };
- }
-
- async function autoHandleReturnFromMaps() {
-  const pendingRaw = sessionStorage.getItem('cornerstone_globe_pending');
-  if (!pendingRaw) return;
-
-  let pending = null;
-  try {
-   pending = JSON.parse(pendingRaw);
-  } catch (error) {
-   sessionStorage.removeItem('cornerstone_globe_pending');
-   return;
-  }
-
-  const coordsField = document.getElementById('selectedCoords');
-  const placeField = document.getElementById('distancePlaceName');
-  const studentField = document.getElementById('distanceStudentName');
-  const typeField = document.getElementById('distancePlaceType');
-  const sectionField = document.getElementById('distanceSection');
-  const rankingField = document.getElementById('distanceClassRanking');
-
-  if (studentField && pending.studentName) studentField.value = pending.studentName;
-  if (typeField && pending.placeType) typeField.value = pending.placeType;
-  if (sectionField && pending.section) sectionField.value = pending.section;
-  if (rankingField && pending.ranking) rankingField.value = pending.ranking;
-
-  const hashParams = getHashParams();
-  const textCandidates = [
-   hashParams.get('coords'),
-   hashParams.get('q'),
-   hashParams.get('query'),
-   hashParams.get('place'),
-   placeField ? placeField.value : ''
-  ].filter(Boolean);
-
-  let resolved = null;
-  for (const candidate of textCandidates) {
-   const coords = extractCoordinatesFromText(candidate);
-   if (coords) {
-    resolved = {
-     lat: coords.lat,
-     lng: coords.lng,
-     label: candidate
-    };
-    break;
-   }
-  }
-
-  if (!resolved && placeField && placeField.value.trim()) {
-   try {
-    resolved = await geocodePlaceName(placeField.value.trim());
-   } catch (error) {}
-  }
-
-  if (!resolved && pending.lastPlaceName) {
-   try {
-    resolved = await geocodePlaceName(String(pending.lastPlaceName));
-   } catch (error) {}
-  }
-
-  if (!resolved) return;
-
-  const prettyLabel = placeField && placeField.value.trim() ? placeField.value.trim() : resolved.label;
-  if (placeField) placeField.value = prettyLabel;
-  if (coordsField) coordsField.value = resolved.lat.toFixed(6) + ',' + resolved.lng.toFixed(6);
-
-  if (String(pending.placeType) === 'university') {
-   statePatch.pendingUniversityPoint = {
-    lat: resolved.lat,
-    lng: resolved.lng,
-    label: prettyLabel,
-    section: pending.section || '10A',
-    ranking: pending.ranking || '',
-    studentName: pending.studentName || ''
-   };
-  } else {
-   statePatch.pendingSchoolPoint = {
-    lat: resolved.lat,
-    lng: resolved.lng,
-    label: prettyLabel,
-    section: pending.section || '10A',
-    ranking: pending.ranking || '',
-    studentName: pending.studentName || ''
-   };
-  }
-
-  updateSelectionTexts();
-  updateCoordsFieldFromPending();
-  renderSavedGlobe();
-  setGlobeStatus('Coordinates auto-filled after return.');
-  showNotification('success', 'Coordinates filled', 'The place was loaded back into the globe form.');
- }
-
- function initGlobe() {
-  const el = document.getElementById('distanceGlobeCanvas');
-  if (!el || statePatch.globe || typeof Globe !== 'function') return;
-
-  const globe = Globe()
-   .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-   .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-   .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
-   .atmosphereColor('#9cc8ff')
-   .atmosphereAltitude(0.22)
-   .arcColor(d => d.color)
-   .arcStroke(0.9)
-   .arcDashLength(0.35)
-   .arcDashGap(0.18)
-   .arcDashAnimateTime(2400)
-   .pointAltitude(d => d.alt || 0.03)
-   .pointRadius(d => d.radius || 0.28)
-   .pointColor(d => d.color)
-   .labelText(d => d.label)
-   .labelLat(d => d.lat)
-   .labelLng(d => d.lng)
-   .labelSize(1.3)
-   .labelDotRadius(0.35)
-   .labelColor(() => '#ffffff');
-
-  globe(el);
-  globe.pointOfView({ lat: 18, lng: 20, altitude: 2.05 }, 0);
-  globe.controls().autoRotate = true;
-  globe.controls().autoRotateSpeed = 0.55;
-
-  statePatch.globe = globe;
-  statePatch.globeReady = true;
- }
-
- function getSectionColor(section) {
-  return SECTION_COLORS[String(section || '').toUpperCase()] || '#55b9ff';
- }
-
- function renderStats(rows) {
-  const box = document.getElementById('distanceOverlayStats');
-  if (!box) return;
-
-  const totalStudents = rows.length;
-  const schoolCount = rows.filter(r => r.schoolPoint).length;
-  const uniCount = rows.filter(r => r.universityPoint).length;
-
-  const sections = { '10A': 0, '10B': 0, '10C': 0, '10D': 0 };
-  rows.forEach(row => {
-   const s = String(row.section || '').toUpperCase();
-   if (sections[s] !== undefined) sections[s] += 1;
-  });
-
-  box.innerHTML = [
-   '<div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;font-size:.82rem;">' + totalStudents + ' students plotted</div>',
-   '<div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;font-size:.82rem;">' + schoolCount + ' school paths</div>',
-   '<div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;font-size:.82rem;">' + uniCount + ' university dreams</div>',
-   '<div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;font-size:.82rem;">10A: ' + sections['10A'] + '</div>',
-   '<div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;font-size:.82rem;">10B: ' + sections['10B'] + '</div>',
-   '<div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;font-size:.82rem;">10C: ' + sections['10C'] + '</div>',
-   '<div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;font-size:.82rem;">10D: ' + sections['10D'] + '</div>'
-  ].join('');
- }
-
- function renderSavedGlobe() {
-  if (!statePatch.globeReady || !statePatch.globe) return;
-
-  const rows = statePatch.lastStatsRows || [];
-  const points = [
-   { lat: SCHOOL_ORIGIN.lat, lng: SCHOOL_ORIGIN.lng, color: '#ffd84d', radius: 0.42, alt: 0.065, label: SCHOOL_ORIGIN.label }
-  ];
-  const arcs = [];
-
-  rows.forEach(row => {
-   const section = String(row.section || '10A').toUpperCase();
-   const sectionColor = getSectionColor(section);
-
-   if (row.schoolPoint && Number.isFinite(row.schoolPoint.lat) && Number.isFinite(row.schoolPoint.lng)) {
-    points.push({
-     lat: row.schoolPoint.lat,
-     lng: row.schoolPoint.lng,
-     color: sectionColor,
-     radius: 0.28,
-     alt: 0.05,
-     label: (row.studentName || 'Student') + ' • ' + section + ' • 11th / 12th' + (row.ranking ? ' • ' + row.ranking : '')
-    });
-    arcs.push({
-     startLat: SCHOOL_ORIGIN.lat,
-     startLng: SCHOOL_ORIGIN.lng,
-     endLat: row.schoolPoint.lat,
-     endLng: row.schoolPoint.lng,
-     color: [sectionColor]
-    });
-   }
-
-   if (row.universityPoint && Number.isFinite(row.universityPoint.lat) && Number.isFinite(row.universityPoint.lng)) {
-    points.push({
-     lat: row.universityPoint.lat,
-     lng: row.universityPoint.lng,
-     color: '#ff7aa8',
-     radius: 0.28,
-     alt: 0.05,
-     label: (row.studentName || 'Student') + ' • ' + section + ' • University' + (row.ranking ? ' • ' + row.ranking : '')
-    });
-    arcs.push({
-     startLat: SCHOOL_ORIGIN.lat,
-     startLng: SCHOOL_ORIGIN.lng,
-     endLat: row.universityPoint.lat,
-     endLng: row.universityPoint.lng,
-     color: ['#ff7aa8']
-    });
-   }
-  });
-
-  if (statePatch.pendingSchoolPoint) {
-   points.push({
-    lat: statePatch.pendingSchoolPoint.lat,
-    lng: statePatch.pendingSchoolPoint.lng,
-    color: getSectionColor(statePatch.pendingSchoolPoint.section),
-    radius: 0.33,
-    alt: 0.055,
-    label: 'Pending school place • ' + statePatch.pendingSchoolPoint.label
-   });
-  }
-
-  if (statePatch.pendingUniversityPoint) {
-    points.push({
-     lat: statePatch.pendingUniversityPoint.lat,
-     lng: statePatch.pendingUniversityPoint.lng,
-     color: '#ff9ebd',
-     radius: 0.33,
-     alt: 0.055,
-     label: 'Pending university place • ' + statePatch.pendingUniversityPoint.label
-    });
-  }
-
-  statePatch.globe.pointsData(points);
-  statePatch.globe.arcsData(arcs);
- }
-
- async function loadSavedPins() {
-  try {
-   const res = await fetch(apiUrl('/api/destinations/pin-submissions'));
-   const data = await res.json();
-   if (data.success && Array.isArray(data.submissions)) {
-    statePatch.lastStatsRows = data.submissions;
-    renderStats(statePatch.lastStatsRows);
-    renderSavedGlobe();
+ function startSiteTour(){
+  ensureTourNodes();
+  const steps = buildSteps();
+  let idx = 0;
+  const overlay = document.getElementById('featureTourOverlay');
+  const spot = document.getElementById('featureTourSpotlight');
+  const card = document.getElementById('featureTourCard');
+  function render(){
+   if (idx >= steps.length) {
+    stopSiteTour();
     return;
    }
-  } catch (error) {
-   console.error('Pin submissions endpoint failed', error);
-  }
-
-  try {
-   const res = await fetch(apiUrl('/api/destinations/submissions'));
-   const data = await res.json();
-   if (data.success && Array.isArray(data.submissions)) {
-    statePatch.lastStatsRows = data.submissions.map(row => ({
-     studentName: row.studentName,
-     section: row.section || '10A',
-     ranking: row.ranking || '',
-     schoolPoint: null,
-     universityPoint: null,
-     schoolPlace: row.schoolPlace,
-     universityPlace: row.universityPlace
-    }));
-    renderStats(statePatch.lastStatsRows);
-    renderSavedGlobe();
+   const step = steps[idx];
+   const el = document.querySelector(step.selector);
+   if (!el) {
+    idx += 1;
+    render();
+    return;
    }
-  } catch (error) {
-   console.error('Submissions fallback failed', error);
-  }
- }
-
- async function saveToGlobe() {
-  const studentName = String(document.getElementById('distanceStudentName')?.value || '').trim();
-  const section = String(document.getElementById('distanceSection')?.value || '10A').trim();
-  const ranking = String(document.getElementById('distanceClassRanking')?.value || '').trim();
-  const placeName = String(document.getElementById('distancePlaceName')?.value || '').trim();
-  const coords = String(document.getElementById('selectedCoords')?.value || '').trim();
-
-  if (!studentName) {
-   showNotification('error', 'Name needed', 'Enter your name first.');
-   return;
-  }
-
-  let schoolPoint = statePatch.pendingSchoolPoint ? {
-   lat: statePatch.pendingSchoolPoint.lat,
-   lng: statePatch.pendingSchoolPoint.lng
-  } : null;
-
-  let universityPoint = statePatch.pendingUniversityPoint ? {
-   lat: statePatch.pendingUniversityPoint.lat,
-   lng: statePatch.pendingUniversityPoint.lng
-  } : null;
-
-  if (!schoolPoint && !universityPoint && coords) {
-   const direct = extractCoordinatesFromText(coords);
-   if (direct) {
-    const type = String(document.getElementById('distancePlaceType')?.value || 'school').trim();
-    if (type === 'university') {
-     universityPoint = { lat: direct.lat, lng: direct.lng };
-     statePatch.pendingUniversityPoint = {
-      lat: direct.lat,
-      lng: direct.lng,
-      label: placeName || 'Selected place',
-      studentName,
-      section,
-      ranking
-     };
-    } else {
-     schoolPoint = { lat: direct.lat, lng: direct.lng };
-     statePatch.pendingSchoolPoint = {
-      lat: direct.lat,
-      lng: direct.lng,
-      label: placeName || 'Selected place',
-      studentName,
-      section,
-      ranking
-     };
+   el.scrollIntoView({ behavior:'smooth', block:'center' });
+   setTimeout(() => {
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) {
+     idx += 1;
+     render();
+     return;
     }
-   }
+    overlay.classList.add('active');
+    spot.style.left = Math.max(8, r.left - 8) + 'px';
+    spot.style.top = Math.max(8, r.top - 8) + 'px';
+    spot.style.width = Math.max(40, r.width + 16) + 'px';
+    spot.style.height = Math.max(40, r.height + 16) + 'px';
+    card.style.left = Math.min(window.innerWidth - 380, Math.max(12, r.left)) + 'px';
+    card.style.top = Math.min(window.innerHeight - 170, Math.max(12, r.bottom + 12)) + 'px';
+    card.innerHTML = `<h3>${step.title}</h3><p>${step.text}</p><div class="feature-tour-actions"><button class="btn btn-secondary" type="button" id="tourSkipBtn">Close</button><button class="btn btn-primary" type="button" id="tourNextBtn">${idx === steps.length - 1 ? 'Done' : 'Next'}</button></div>`;
+    document.getElementById('tourSkipBtn')?.addEventListener('click', stopSiteTour);
+    document.getElementById('tourNextBtn')?.addEventListener('click', () => {
+     idx += 1;
+     render();
+    });
+   }, 450);
   }
-
-  if (!schoolPoint && !universityPoint) {
-   showNotification('error', 'No coordinates', 'Open Google Maps first so the coordinates can be filled.');
-   return;
+  render();
+ }
+ window.startSiteTour = startSiteTour;
+ document.addEventListener('DOMContentLoaded', () => {
+  addTourFab();
+  ensureTourNodes();
+  const page = document.getElementById('memoriesPage');
+  if (location.hash === '#memories-page' && page) {
+   state.viewingAllMemoriesPage = true;
+   page.classList.remove('hidden');
+   if (typeof renderMemoriesPage === 'function') renderMemoriesPage();
   }
+  const navType = performance.getEntriesByType && performance.getEntriesByType('navigation')[0] ? performance.getEntriesByType('navigation')[0].type : '';
+  if (navType === 'reload') {
+   document.documentElement.classList.add('hard-refresh-top');
+   document.body.classList.add('hard-refresh-top');
+   window.scrollTo(0, 0);
+   setTimeout(() => {
+    document.documentElement.classList.remove('hard-refresh-top');
+    document.body.classList.remove('hard-refresh-top');
+   }, 1200);
+  }
+  if (!localStorage.getItem(TOUR_KEY)) {
+   setTimeout(() => {
+    startSiteTour();
+    localStorage.setItem(TOUR_KEY, '1');
+   }, 1200);
+  }
+ });
+})();
+</script>
+"""
+    content = insert_before_once(content, "</body>", stable_tour_script, "stable tour script")
 
-  try {
-   const res = await fetch(apiUrl('/api/destinations/pin-submit'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-     studentName,
-     section,
-     ranking,
-     schoolPoint,
-     universityPoint,
-     schoolPlaceName: statePatch.pendingSchoolPoint?.label || '',
-     universityPlaceName: statePatch.pendingUniversityPoint?.label || ''
-    })
+    content = insert_before_once(
+        content,
+        '<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>',
+        '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\n<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>\n',
+        "leaflet assets",
+    )
+
+    content = replace_if_present(
+        content,
+        """ function installCleanMultiplayer(){
+ const base = (window.CONFIG && window.CONFIG.API_BASE) ? window.CONFIG.API_BASE : null;
+ if (!base) {
+ setWsBadge(false, 'Multiplayer: no backend URL');
+ return;
+ }
+ connectMultiplayerWS();
+ installGhostTracking();
+ installSharedNotes();
+ }""",
+        """ function installCleanMultiplayer(){
+ setWsBadge(false, 'Multiplayer removed');
+ installSharedNotes();
+ }""",
+    )
+
+    content = replace_if_present(
+        content,
+        """ function connectMultiplayerWS(){
+ try{
+ const base = new URL(window.CONFIG.API_BASE);
+ const wsUrl = `${base.protocol === 'https:' ? 'wss' : 'ws'}://${base.host}`;
+ const ws = new WebSocket(wsUrl);
+ window.__SNIPER_WS__ = ws;
+ ws.onopen = () => {
+ SNIPER.wsConnected = true;
+ setWsBadge(true, 'Multiplayer: live');
+ };
+ ws.onclose = () => {
+ SNIPER.wsConnected = false;
+ setWsBadge(false, 'Multiplayer: disconnected');
+ clearTimeout(SNIPER.wsReconnectTimer);
+ SNIPER.wsReconnectTimer = setTimeout(connectMultiplayerWS, 2000);
+ };
+ ws.onerror = () => {
+ SNIPER.wsConnected = false;
+ setWsBadge(false, 'Multiplayer: error');
+ };
+ ws.onmessage = (msg) => {
+ let data = null;
+ try { data = JSON.parse(msg.data); } catch(_) { return; }
+ if (!data) return;
+ if (data.event === 'ghost:move') handleGhostMove(data.payload);
+ if (data.event === 'paper:note' && data.payload?.note) handleIncomingNote(data.payload.note);
+ };
+ }catch(_){
+ setWsBadge(false, 'Multiplayer: unavailable');
+ }
+ }""",
+        """ function connectMultiplayerWS(){
+ return;
+ }""",
+    )
+
+    content = replace_if_present(
+        content,
+        """ function installGhostTracking(){
+ document.addEventListener('mousemove', (e) => {
+ if (introVisible()) return;
+ if (Date.now() - SNIPER.wsSendThrottle < 35) return;
+ SNIPER.wsSendThrottle = Date.now();
+ const initials = getInitialsForGhost();
+ sendWS({
+ type: 'ghost:move',
+ id: SNIPER.ghostId,
+ x: e.clientX,
+ y: e.clientY,
+ initials
+ });
+ }, { passive: true });
+ }""",
+        """ function installGhostTracking(){
+ return;
+ }""",
+    )
+
+    content = replace_if_present(
+        content,
+        """ function handleGhostMove(p){
+ if (!p || p.id === SNIPER.ghostId) return;
+ let ghost = SNIPER.ghosts.get(p.id);
+ if (!ghost){
+ const el = document.createElement('div');
+ el.className = 'ghost-cursor';
+ el.innerHTML = '<div class="tip"></div><div class="label"></div>';
+ document.body.appendChild(el);
+ ghost = { el };
+ SNIPER.ghosts.set(p.id, ghost);
+ }
+ ghost.el.querySelector('.label').textContent = p.initials || 'GS';
+ ghost.el.style.left = p.x + 'px';
+ ghost.el.style.top = p.y + 'px';
+ }""",
+        """ function handleGhostMove(p){
+ return;
+ }""",
+    )
+
+    content = replace_if_present(
+        content,
+        """ function installSharedNotes(){
+ clearInterval(SNIPER.notePoller);
+ SNIPER.notePoller = setInterval(async () => {
+ if (introVisible()) return;
+ try{
+ const res = await fetch(apiUrl('/api/paper-notes/random-memory'));
+ const data = await res.json();
+ if (!data.success || !data.note) return;
+ if (SNIPER.lastIncomingNoteId === data.note.id) return;
+ SNIPER.lastIncomingNoteId = data.note.id;
+ handleIncomingNote(data.note);
+ }catch(_){}
+ }, 12000);
+ const btn = document.getElementById('sendNoteBtn');
+ if (btn && !btn.dataset.sniperV7Bound){
+ btn.dataset.sniperV7Bound = '1';
+ btn.onclick = null;
+ btn.addEventListener('click', async () => {
+ const memories = ((window.state && window.state.memories) || []).filter(m => m && m.id && (m.caption || '').trim());
+ if (!memories.length) {
+ return window.showNotification?.('info', 'No memories', 'No approved memories are available yet.');
+ }
+ const selected = memories[Math.floor(Math.random() * memories.length)];
+ try{
+ const res = await fetch(apiUrl('/api/paper-notes/from-memory'), {
+ method:'POST',
+ headers:{'Content-Type':'application/json'},
+ body:JSON.stringify({ memoryId: selected.id })
+ });
+ const data = await res.json();
+ if (data.success && data.note) {
+ sendWS({ type:'paper:note:broadcast', note: data.note });
+ launchSharedPlane(data.note);
+ }
+ }catch(_){}
+ });
+ }
+ }""",
+        """ function installSharedNotes(){
+ const btn = document.getElementById('sendNoteBtn');
+ if (!btn || btn.dataset.sniperV7Bound === '1') return;
+ btn.dataset.sniperV7Bound = '1';
+ btn.onclick = null;
+ btn.addEventListener('click', async () => {
+  const memories = ((window.state && window.state.memories) || []).filter(m => m && m.id && (m.caption || '').trim());
+  if (!memories.length) {
+   return window.showNotification?.('info', 'No memories', 'No approved memories are available yet.');
+  }
+  const selected = memories[Math.floor(Math.random() * memories.length)];
+  try{
+   const res = await fetch(apiUrl('/api/paper-notes/from-memory'), {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ memoryId: selected.id })
    });
    const data = await res.json();
    if (!data.success) {
-    showNotification('error', 'Could not save', data.error || 'Save failed.');
-    return;
+    return window.showNotification?.('error', 'Could not post note', data.error || 'Failed to post note.');
    }
-   setGlobeStatus('Saved on the globe successfully.');
-   showNotification('success', 'Saved', 'Your future path is now on the globe.');
-   await loadSavedPins();
-  } catch (error) {
-   console.error(error);
-   showNotification('error', 'Could not save', error.message || 'Save failed.');
+   window.showNotification?.('success', 'Memory note sent', 'Your memory note was posted.');
+  }catch(e){
+   window.showNotification?.('error', 'Could not post note', e.message);
   }
+ });
+ }""",
+    )
+
+    content = replace_if_present(
+        content,
+        """ function handleIncomingNote(note){
+ launchSharedPlane(note);
+ }""",
+        """ function handleIncomingNote(note){
+ return;
+ }""",
+    )
+
+    content = replace_if_present(
+        content,
+        """ function launchSharedPlane(note){
+ const layer = document.getElementById('paperAirplaneLayer');
+ if (!layer) return;
+ const plane = document.createElement('div');
+ plane.className = 'paper-plane';
+ plane.title = 'Catch this memory note';
+ plane.innerHTML = '<div class="plane-fold"></div><div class="plane-memory-badge">MEMORY</div>';
+ layer.appendChild(plane);
+ let x = -90;
+ let yBase = 90 + Math.random() * Math.min(window.innerHeight * 0.48, 300);
+ let t = 0;
+ let vx = 3.4 + Math.random() * 1.5;
+ const step = () => {
+ t += 0.04;
+ x += vx;
+ const y = yBase + Math.sin(t * 2.3) * 16 + Math.cos(t * 1.2) * 8;
+ plane.style.left = x + 'px';
+ plane.style.top = y + 'px';
+ plane.style.transform = `rotate(${Math.sin(t * 2.3) * 8 - 8}deg)`;
+ if (x > window.innerWidth + 120){
+ plane.remove();
+ return;
  }
+ requestAnimationFrame(step);
+ };
+ plane.addEventListener('click', () => {
+ alert(note.caption || note.text || 'A memory from someone.');
+ plane.remove();
+ });
+ step();
+ }""",
+        """ function launchSharedPlane(note){
+ return;
+ }""",
+    )
 
- function patchAdminSettingsForPlacesAndMusic() {
-  const oldRender = window.renderSettingsPanelHtml;
-  if (typeof oldRender !== 'function' || oldRender.__globeAdminPatched) return;
-
-  window.renderSettingsPanelHtml = function () {
-   let html = oldRender.apply(this, arguments);
-
-   if (!html.includes('id="distanceDestinationsAdvancedAdmin"')) {
-    const placesInject = `
-<div id="distanceDestinationsAdvancedAdmin" style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
- <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Future Globe Places</h4>
- <p class="mini-pill" style="margin-bottom:10px;">One place per line. You can write only the place name, or use <strong>Place Name|lat|lng</strong> for perfect coordinates.</p>
- <textarea class="form-textarea" id="destinationsAdminTextAdvanced" style="min-height:160px;" placeholder="Bangalore|12.9716|77.5946&#10;Delhi|28.6139|77.2090&#10;London|51.5072|-0.1276"></textarea>
- <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-  <button class="admin-btn admin-btn-primary" type="button" onclick="saveAdvancedDestinationsAdmin()">Save Places</button>
-  <button class="admin-btn admin-btn-secondary" type="button" onclick="loadAdvancedDestinationSubmissionsAdmin()">View Globe Entries</button>
+    old_flow = """ function upgradeDistanceFlowToMaps(){
+ const section = document.getElementById('distanceMapSection');
+ const controls = document.getElementById('distanceControls');
+ if (!section || !controls || document.getElementById('distanceMapsFlowCard')) return;
+ const info = document.createElement('div');
+ info.id = 'distanceMapsFlowCard';
+ info.innerHTML = `
+ <strong>How this works:</strong>
+ choose whether you are pinning your 11th / 12th place or your university dream,
+ click the map button to open Google Maps in a new tab, find the place there, copy the
+ coordinates or map search result, then come back and confirm it below.
+ `;
+ controls.insertAdjacentElement('beforebegin', info);
+ const panel = document.createElement('div');
+ panel.id = 'distanceConfirmPanel';
+ panel.innerHTML = `
+ <div class="row">
+ <div class="form-group">
+ <label>Your Name</label>
+ <input class="form-input" id="distanceStudentNameV7" maxlength="80" placeholder="Enter your name" />
  </div>
- <div id="advancedDestinationSubmissionsAdmin" style="margin-top:12px;"></div>
-</div>`;
-    html = html.replace('</div></div></div>', placesInject + '</div></div></div>');
-   }
-
-   if (!html.includes('id="sniperMusicUploadPanelAdvanced"')) {
-    const musicInject = `
-<div id="sniperMusicUploadPanelAdvanced" style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
- <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Music Upload and Set</h4>
- <p class="mini-pill" style="margin-bottom:10px;">Upload songs directly just like videos, then save the returned file names into the music fields.</p>
- <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end;">
+ <div class="form-group">
+ <label>What are you pinning?</label>
+ <select class="form-select" id="distancePinTypeV7">
+ <option value="school">11th / 12th future place</option>
+ <option value="university">University aim place</option>
+ </select>
+ </div>
+ </div>
+ <div class="row">
+ <div class="form-group">
+ <label>Google Maps coordinates</label>
+ <input class="form-input" id="distanceCoordsV7" placeholder="Example: 12.9716,77.5946" />
+ </div>
+ <div class="form-group">
+ <label>Place label</label>
+ <input class="form-input" id="distancePlaceLabelV7" maxlength="120" placeholder="Example: Bangalore" />
+ </div>
+ </div>
+ <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+ <button class="btn btn-primary" type="button" id="distanceOpenMapsV7">Open Google Maps</button>
+ <button class="btn btn-secondary" type="button" id="distanceUseCoordsV7">Use These Coordinates</button>
+ <button class="btn btn-primary" type="button" id="distanceSavePinsV7">Confirm Future Path</button>
+ </div>
+ <div class="hint">The site will only ask for this after the intro is done and after you scroll below the countdown.</div>
+ <div id="distanceSelectedReview"></div>
+ `;
+ controls.insertAdjacentElement('afterend', panel);
+ controls.innerHTML = `
+ <button class="btn btn-primary" type="button" id="distanceLaunchBtnV7">Start Future Pinning</button>
+ <button class="btn btn-secondary" type="button" id="distanceRefreshBtnV7">Refresh Globe</button>
+ `;
+ document.getElementById('distanceLaunchBtnV7')?.addEventListener('click', () => {
+ panel.classList.add('active');
+ section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+ });
+ document.getElementById('distanceOpenMapsV7')?.addEventListener('click', () => {
+ if (introVisible()) return;
+ const label = document.getElementById('distancePlaceLabelV7')?.value?.trim() || 'future college';
+ window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(label), '_blank');
+ });
+ document.getElementById('distanceUseCoordsV7')?.addEventListener('click', applyCoordsToPendingV7);
+ document.getElementById('distanceSavePinsV7')?.addEventListener('click', saveFuturePathV7);
+ document.getElementById('distanceRefreshBtnV7')?.addEventListener('click', () => loadClassPathsGlobeV7());
+ loadClassPathsGlobeV7();
+ }"""
+    new_flow = """ function upgradeDistanceFlowToMaps(){
+ const section = document.getElementById('distanceMapSection');
+ const controls = document.getElementById('distanceControls');
+ if (!section || !controls || document.getElementById('distanceMapsFlowCard')) return;
+ const info = document.createElement('div');
+ info.id = 'distanceMapsFlowCard';
+ info.innerHTML = `
+ <strong>How this works:</strong>
+ first select your name and section from the admin-created list, then choose whether you are placing your 11th/12th point or university point.
+ Search for the place, choose a result, fine-tune it on the map if needed, and save it. Curved lines on the globe connect Cornerstone School,
+ your 11th/12th point, and your university point.
+ `;
+ controls.insertAdjacentElement('beforebegin', info);
+ const panel = document.createElement('div');
+ panel.id = 'distanceConfirmPanel';
+ panel.innerHTML = `
+ <div class="row">
   <div class="form-group">
-   <label>Upload Song File</label>
-   <input type="file" class="form-input" id="adminMusicUploadFile" accept="audio/*" style="padding:6px;" />
+   <label>Your Name</label>
+   <select class="form-select" id="distanceStudentNameV7"><option value="">Select your name</option></select>
   </div>
   <div class="form-group">
-   <label>Music Slot</label>
-   <select class="form-select" id="adminMusicUploadSlot">
-    <option value="boomboxGraduationVibes">Boombox - Graduation Vibes</option>
-    <option value="boomboxSadBoiHours">Boombox - Sad Boi Hours</option>
-    <option value="boomboxHype">Boombox - Hype</option>
+   <label>Section</label>
+   <select class="form-select" id="distanceSectionV7"><option value="">Select section</option></select>
+  </div>
+ </div>
+ <div class="row">
+  <div class="form-group">
+   <label>What are you pinning?</label>
+   <select class="form-select" id="distancePinTypeV7">
+    <option value="school">11th / 12th future place</option>
+    <option value="university">University aim place</option>
    </select>
   </div>
+  <div class="form-group">
+   <label>Place label</label>
+   <input class="form-input" id="distancePlaceLabelV7" maxlength="120" placeholder="Chosen place name" />
+  </div>
  </div>
- <button class="admin-btn admin-btn-primary" style="margin-top:10px;" type="button" onclick="uploadAndAssignMusicFile()">Upload and Set Music</button>
- <div class="mini-pill" id="adminMusicUploadStatus" style="margin-top:10px;">No upload yet.</div>
-</div>`;
-    html = html.replace('</div></div></div>', musicInject + '</div></div></div>');
-   }
+ <div class="row">
+  <div class="form-group">
+   <label>Search place</label>
+   <input class="form-input" id="distancePlaceSearchV7" placeholder="Search for a place" />
+   <div id="distanceSearchResultsV7" style="margin-top:8px; display:grid; gap:8px;"></div>
+  </div>
+  <div class="form-group">
+   <label>Coordinates</label>
+   <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+    <input class="form-input" id="distanceLatV7" placeholder="Latitude" readonly />
+    <input class="form-input" id="distanceLngV7" placeholder="Longitude" readonly />
+   </div>
+  </div>
+ </div>
+ <div style="margin-top:12px;">
+  <div id="distanceLeafletPicker" style="height:420px; width:100%; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,0.12);"></div>
+ </div>
+ <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+  <button class="btn btn-secondary" type="button" id="distanceSearchBtnV7">Search</button>
+  <button class="btn btn-primary" type="button" id="distanceSavePinsV7">Confirm Future Path</button>
+ </div>
+ <div class="hint">Nothing can be selected here unless it was configured by the admin first.</div>
+ <div id="distanceSelectedReview"></div>
+ `;
+ controls.insertAdjacentElement('afterend', panel);
+ controls.innerHTML = `
+ <button class="btn btn-primary" type="button" id="distanceLaunchBtnV7">Start Future Pinning</button>
+ <button class="btn btn-secondary" type="button" id="distanceRefreshBtnV7">Refresh Globe</button>
+ `;
+ document.getElementById('distanceLaunchBtnV7')?.addEventListener('click', () => {
+  panel.classList.add('active');
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => {
+   initLeafletDistancePickerV7();
+   loadStudentDirectoryV7();
+  }, 120);
+ });
+ document.getElementById('distanceSearchBtnV7')?.addEventListener('click', searchLeafletPlaceV7);
+ document.getElementById('distanceSavePinsV7')?.addEventListener('click', saveFuturePathV7);
+ document.getElementById('distanceRefreshBtnV7')?.addEventListener('click', () => loadClassPathsGlobeV7());
+ loadClassPathsGlobeV7();
+ }"""
+    content = replace_if_present(content, old_flow, new_flow)
 
-   return html;
-  };
-
-  window.renderSettingsPanelHtml.__globeAdminPatched = true;
-
-  const oldSync = window.syncSettingsEditor;
-  if (typeof oldSync === 'function' && !oldSync.__globeAdminPatched) {
-   window.syncSettingsEditor = function () {
-    oldSync.apply(this, arguments);
-    loadAdvancedDestinationsIntoEditor();
-   };
-   window.syncSettingsEditor.__globeAdminPatched = true;
+    if "async function loadStudentDirectoryV7()" not in content:
+        helper_block = """ async function loadStudentDirectoryV7(){
+ try{
+  const res = await fetch(apiUrl('/api/student-directory'));
+  const data = await res.json();
+  if (!data.success) return;
+  const nameSel = document.getElementById('distanceStudentNameV7');
+  const sectionSel = document.getElementById('distanceSectionV7');
+  if (nameSel) {
+   nameSel.innerHTML = '<option value="">Select your name</option>' + (data.students || []).map(s => `<option value="${escapeAttr(s.name)}">${escapeHtml(s.name)}</option>`).join('');
   }
-
-  window.saveAdvancedDestinationsAdmin = async function () {
-   const textarea = document.getElementById('destinationsAdminTextAdvanced');
-   const raw = String(textarea?.value || '');
-   const lines = raw.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-
-   const places = lines.map(line => {
-    const parts = line.split('|').map(x => x.trim());
-    if (parts.length >= 3) {
-     return {
-      place: parts[0],
-      lat: Number(parts[1]),
-      lng: Number(parts[2])
-     };
-    }
-    return { place: parts[0] };
+  if (sectionSel) {
+   const sections = Array.from(new Set((data.students || []).map(s => String(s.section || '').trim()).filter(Boolean)));
+   sectionSel.innerHTML = '<option value="">Select section</option>' + sections.map(s => `<option value="${escapeAttr(s)}">${escapeHtml(s)}</option>`).join('');
+  }
+ }catch(_){}
+ }
+ let distanceLeafletMapV7 = null;
+ let distanceLeafletMarkerV7 = null;
+ function setLeafletPickedPointV7(lat, lng, label){
+  const latEl = document.getElementById('distanceLatV7');
+  const lngEl = document.getElementById('distanceLngV7');
+  const labelEl = document.getElementById('distancePlaceLabelV7');
+  if (latEl) latEl.value = String(Number(lat).toFixed(6));
+  if (lngEl) lngEl.value = String(Number(lng).toFixed(6));
+  if (labelEl && label) labelEl.value = label;
+  if (!distanceLeafletMapV7) return;
+  if (!distanceLeafletMarkerV7) {
+   distanceLeafletMarkerV7 = L.marker([lat, lng]).addTo(distanceLeafletMapV7);
+  } else {
+   distanceLeafletMarkerV7.setLatLng([lat, lng]);
+  }
+  distanceLeafletMapV7.setView([lat, lng], Math.max(distanceLeafletMapV7.getZoom(), 4));
+ }
+ function initLeafletDistancePickerV7(){
+  const mapEl = document.getElementById('distanceLeafletPicker');
+  if (!mapEl || typeof L === 'undefined') return;
+  if (!distanceLeafletMapV7) {
+   distanceLeafletMapV7 = L.map(mapEl, { center:[17.3850, 78.4867], zoom:4, worldCopyJump:true });
+   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap contributors'
+   }).addTo(distanceLeafletMapV7);
+   distanceLeafletMapV7.on('click', (e) => {
+    setLeafletPickedPointV7(e.latlng.lat, e.latlng.lng);
+    applyCoordsToPendingV7();
    });
-
-   try {
-    const res = await fetch(apiUrl('/api/admin/destinations-v2'), {
-     method: 'POST',
-     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + (window.state?.adminToken || '')
-     },
-     body: JSON.stringify({ places })
-    });
-    const data = await res.json();
-    if (!data.success) {
-     showNotification('error', 'Save failed', data.error || 'Could not save places.');
-     return;
-    }
-    showNotification('success', 'Saved', 'Advanced globe places updated.');
-   } catch (error) {
-    showNotification('error', 'Save failed', error.message || 'Could not save places.');
-   }
-  };
-
-  window.loadAdvancedDestinationSubmissionsAdmin = async function () {
-   const box = document.getElementById('advancedDestinationSubmissionsAdmin');
-   if (!box) return;
-   box.innerHTML = '<div class="mini-pill">Loading globe entries...</div>';
-
-   try {
-    const res = await fetch(apiUrl('/api/destinations/pin-submissions'));
-    const data = await res.json();
-    if (!data.success || !Array.isArray(data.submissions) || !data.submissions.length) {
-     box.innerHTML = '<div class="mini-pill">No globe entries yet.</div>';
-     return;
-    }
-
-    box.innerHTML = data.submissions.slice().reverse().map(row => `
-<div class="admin-memory-card" style="padding:12px; margin-bottom:10px;">
- <div style="font-weight:800;">${escapeHtml(row.studentName || 'Student')} <span class="mini-pill" style="margin-left:8px;">${escapeHtml(row.section || '10A')}</span></div>
- <div style="color:var(--text-muted); font-size:.9rem; margin-top:6px;">11th / 12th: <strong style="color:var(--text-light);">${escapeHtml(row.schoolPlaceName || (row.schoolPoint ? row.schoolPoint.lat + ',' + row.schoolPoint.lng : '—'))}</strong></div>
- <div style="color:var(--text-muted); font-size:.9rem; margin-top:4px;">University: <strong style="color:var(--text-light);">${escapeHtml(row.universityPlaceName || (row.universityPoint ? row.universityPoint.lat + ',' + row.universityPoint.lng : '—'))}</strong></div>
- <div style="color:var(--text-muted); font-size:.9rem; margin-top:4px;">Ranking: <strong style="color:var(--text-light);">${escapeHtml(row.ranking || '—')}</strong></div>
-</div>`).join('');
-   } catch (error) {
-    box.innerHTML = '<div class="mini-pill">Error loading globe entries.</div>';
-   }
-  };
-
-  async function loadAdvancedDestinationsIntoEditor() {
-   const textarea = document.getElementById('destinationsAdminTextAdvanced');
-   if (!textarea) return;
-
-   try {
-    const res = await fetch(apiUrl('/api/destinations'));
-    const data = await res.json();
-    const rows = Array.isArray(data?.destinations) ? data.destinations : [];
-    textarea.value = rows.map(item => {
-     const place = String(item.place || item.name || '').trim();
-     const lat = Number(item.lat);
-     const lng = Number(item.lng);
-     if (Number.isFinite(lat) && Number.isFinite(lng)) {
-      return place + '|' + lat + '|' + lng;
-     }
-     return place;
-    }).filter(Boolean).join('\n');
-   } catch (error) {}
+  } else {
+   distanceLeafletMapV7.invalidateSize();
   }
-
-  window.uploadAndAssignMusicFile = async function () {
-   const file = document.getElementById('adminMusicUploadFile')?.files?.[0];
-   const slot = document.getElementById('adminMusicUploadSlot')?.value;
-   const status = document.getElementById('adminMusicUploadStatus');
-
-   if (!file || !slot) {
-    showNotification('error', 'Missing fields', 'Choose a music file and slot.');
+ }
+ async function searchLeafletPlaceV7(){
+  const search = document.getElementById('distancePlaceSearchV7')?.value?.trim();
+  const box = document.getElementById('distanceSearchResultsV7');
+  if (box) box.innerHTML = '';
+  if (!search) {
+   return window.showNotification?.('error', 'Search needed', 'Enter a place to search.');
+  }
+  try{
+   const res = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=' + encodeURIComponent(search), {
+    headers: { 'Accept': 'application/json' }
+   });
+   const data = await res.json();
+   if (!Array.isArray(data) || !data.length) {
+    return window.showNotification?.('error', 'Not found', 'Could not find that place.');
+   }
+   if (!box) {
+    const item = data[0];
+    const lat = Number(item.lat);
+    const lng = Number(item.lon);
+    const label = String(item.display_name || search).split(',').slice(0, 2).join(',').trim();
+    setLeafletPickedPointV7(lat, lng, label);
+    applyCoordsToPendingV7();
     return;
    }
-
-   try {
-    const fd = new FormData();
-    fd.append('audio', file);
-    fd.append('teacherName', '__music__' + slot);
-
-    const res = await fetch(apiUrl('/api/admin/teacher-audio'), {
-     method: 'POST',
-     headers: {
-      'Authorization': 'Bearer ' + (window.state?.adminToken || '')
-     },
-     body: fd
+   box.innerHTML = data.map(item => {
+    const label = String(item.display_name || search);
+    return `<button type="button" class="btn btn-secondary" data-lat="${escapeAttr(item.lat)}" data-lng="${escapeAttr(item.lon)}" data-label="${escapeAttr(label)}">${escapeHtml(label)}</button>`;
+   }).join('');
+   box.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+     const lat = Number(btn.getAttribute('data-lat'));
+     const lng = Number(btn.getAttribute('data-lng'));
+     const label = btn.getAttribute('data-label') || '';
+     setLeafletPickedPointV7(lat, lng, label);
+     applyCoordsToPendingV7();
     });
-    const data = await res.json();
-    if (!data.success) {
-     showNotification('error', 'Upload failed', data.error || 'Could not upload music.');
-     if (status) status.textContent = 'Upload failed.';
-     return;
-    }
-
-    const savedPath = data.item?.audioPath || data.item?.path || '';
-    if (!savedPath) {
-      showNotification('error', 'Upload failed', 'No saved file path returned.');
-      return;
-    }
-
-    if (!window.state.settings.music) window.state.settings.music = {};
-    window.state.settings.music[slot] = savedPath;
-
-    const settingsPayload = structuredClone(window.state.settings);
-    const saveRes = await fetch(apiUrl('/api/admin/settings'), {
-     method: 'POST',
-     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + (window.state?.adminToken || '')
-     },
-     body: JSON.stringify({ settings: settingsPayload })
-    });
-    const saveData = await saveRes.json();
-    if (!saveData.success) {
-     showNotification('error', 'Save failed', saveData.error || 'Music uploaded but settings could not be saved.');
-     return;
-    }
-
-    if (status) status.textContent = 'Uploaded and set: ' + savedPath;
-    showNotification('success', 'Uploaded', 'Music file uploaded and assigned.');
-   } catch (error) {
-    showNotification('error', 'Upload failed', error.message || 'Could not upload music.');
-   }
-  };
- }
-
- function patchReadSettingsToKeepMusic() {
-  const oldRead = window.readSettingsFromEditor;
-  if (typeof oldRead !== 'function' || oldRead.__musicPreservedPatched) return;
-
-  window.readSettingsFromEditor = function () {
-   const settings = oldRead.apply(this, arguments);
-   settings.music = structuredClone((window.state && window.state.settings && window.state.settings.music) ? window.state.settings.music : {});
-   return settings;
-  };
-  window.readSettingsFromEditor.__musicPreservedPatched = true;
- }
-
- function boot() {
-  ensureFooterAtBottom();
-  patchTopNavigation();
-  buildStereoDeck();
-  initGlobe();
-  updateSelectionTexts();
-  updateCoordsFieldFromPending();
-  autoHandleReturnFromMaps();
-  loadSavedPins();
-  patchAdminSettingsForPlacesAndMusic();
-  patchReadSettingsToKeepMusic();
-
-  document.getElementById('destinationLaunchBtn')?.addEventListener('click', openGoogleMapsSelector);
-  document.getElementById('destinationSaveBtn')?.addEventListener('click', saveToGlobe);
-  document.getElementById('distanceRefreshBtn')?.addEventListener('click', loadSavedPins);
- }
-
- document.addEventListener('DOMContentLoaded', boot);
-})();
-</script>
-""".strip()
-
-
-def clean_text(text: str) -> str:
-    return text.replace("￾", "").replace("\uFFFE", "")
-
-
-def replace_first(pattern: str, repl: str, text: str, flags: int = re.DOTALL) -> str:
-    return re.sub(pattern, repl, text, count=1, flags=flags)
-
-
-def patch_html() -> None:
-    text = clean_text(INDEX_HTML.read_text(encoding="utf-8", errors="ignore"))
-
-    text = replace_first(
-        r'<ul class="nav-links" id="navLinks">.*?</ul>',
-        NEW_NAV_LINKS,
-        text,
-    )
-
-    text = replace_first(
-        r'<section id="stereoDeckSection".*?</section>',
-        STEREO_SECTION,
-        text,
-    )
-
-    text = replace_first(
-        r'<section id="distanceMapSection".*?</section>',
-        GLOBE_SECTION,
-        text,
-    )
-
-    text = re.sub(
-        r'<script>\s*\(function\s*\(\)\s*\{\s*if \(window\.__TOP_NAV_PATCH__\).*?</script>',
-        '',
-        text,
-        flags=re.DOTALL,
-    )
-    text = re.sub(
-        r'<script>\s*\(function\s*\(\)\s*\{\s*if \(window\.__PRODUCTION_STEREODECK_PATCH__\).*?</script>',
-        '',
-        text,
-        flags=re.DOTALL,
-    )
-    text = re.sub(
-        r'<script>\s*\(function\s*\(\)\s*\{\s*if \(window\.__DISTANCE_SELECTOR_PRODUCTION_PATCH__\).*?</script>',
-        '',
-        text,
-        flags=re.DOTALL,
-    )
-
-    if "https://unpkg.com/globe.gl" not in text:
-        text = text.replace("</body>", GLOBE_DEPENDENCIES + "\n" + PRODUCTION_SCRIPT + "\n</body>")
-    else:
-        text = text.replace("</body>", PRODUCTION_SCRIPT + "\n</body>")
-
-    # Keep footer at bottom by making sure it remains after all main sections.
-    footer_match = re.search(r'<footer>.*?</footer>', text, flags=re.DOTALL)
-    if footer_match:
-        footer_html = footer_match.group(0)
-        text = re.sub(r'<footer>.*?</footer>', '', text, flags=re.DOTALL)
-        text = text.replace("</body>", footer_html + "\n</body>")
-
-    INDEX_HTML.write_text(text, encoding="utf-8")
-
-
-SERVER_APPEND = r"""
-// === PRODUCTION_GLOBE_AND_MUSIC_PATCH_START ===
-(() => {
- if (global.__PRODUCTION_GLOBE_AND_MUSIC_PATCH__) return;
- global.__PRODUCTION_GLOBE_AND_MUSIC_PATCH__ = true;
-
- const musicDir = path.join(__dirname, 'music');
- if (!fs.existsSync(musicDir)) {
-  fs.mkdirSync(musicDir, { recursive: true });
- }
- app.use('/music', express.static(musicDir));
-
- const destinationsPathAdvanced = path.join(databaseDir, 'destinations.json');
-
- function readDestinationsAdvanced() {
-  return safeReadJson(destinationsPathAdvanced, { destinations: [], submissions: [], nextId: 1 });
- }
-
- function writeDestinationsAdvanced(data) {
-  safeWriteJson(destinationsPathAdvanced, data);
- }
-
- app.post('/api/admin/destinations-v2', (req, res) => {
-  try {
-   const auth = requireAdmin(req, res);
-   if (!auth) return;
-   if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-
-   const places = Array.isArray(req.body?.places) ? req.body.places : [];
-   const cleaned = places.map(item => {
-    if (typeof item === 'string') {
-     return { place: item.trim() };
-    }
-    return {
-     place: String(item?.place || item?.name || '').trim(),
-     lat: Number(item?.lat),
-     lng: Number(item?.lng)
-    };
-   }).filter(item => item.place).slice(0, 1000);
-
-   const db = readDestinationsAdvanced();
-   db.destinations = cleaned;
-   writeDestinationsAdvanced(db);
-   audit(auth.user.id, 'save-destinations-v2-advanced', { count: cleaned.length });
-   res.json({ success: true, count: cleaned.length });
-  } catch (e) {
-   res.status(500).json({ success: false, error: e.message });
+   });
+  }catch(e){
+   window.showNotification?.('error', 'Search failed', e.message);
   }
- });
+ }
+"""
+        content = insert_before_once(content, " function parseCoords(str){", helper_block, "leaflet helper block")
 
- app.get('/api/destinations', (req, res) => {
-  try {
-   const db = readDestinationsAdvanced();
-   const items = (db.destinations || []).map(item => ({
-    place: String(item.place || item.name || '').trim(),
-    name: String(item.place || item.name || '').trim(),
-    lat: Number.isFinite(Number(item.lat)) ? Number(item.lat) : undefined,
-    lng: Number.isFinite(Number(item.lng)) ? Number(item.lng) : undefined
-   })).filter(item => item.place);
-   res.json({ success: true, destinations: items });
-  } catch (e) {
-   res.status(500).json({ success: false, error: e.message });
+    old_apply = """ function applyCoordsToPendingV7(){
+ const type = document.getElementById('distancePinTypeV7')?.value || 'school';
+ const coords = parseCoords(document.getElementById('distanceCoordsV7')?.value || '');
+ const label = document.getElementById('distancePlaceLabelV7')?.value?.trim() || '';
+ if (!coords) {
+ return window.showNotification?.('error', 'Bad coordinates', 'Use format: latitude,longitude');
+ }
+ if (!window.__SNIPER_RUNTIME__.selectedSchool) window.__SNIPER_RUNTIME__.selectedSchool = null;
+ if (!window.__SNIPER_RUNTIME__.selectedUniversity) window.__SNIPER_RUNTIME__.selectedUniversity = null;
+ if (type === 'school') {
+ window.__SNIPER_RUNTIME__.selectedSchool = { ...coords, label };
+ } else {
+ window.__SNIPER_RUNTIME__.selectedUniversity = { ...coords, label };
+ }
+ refreshDistanceReviewV7();
+ renderSavedAndPendingV7();
+ }"""
+    new_apply = """ function applyCoordsToPendingV7(){
+ const type = document.getElementById('distancePinTypeV7')?.value || 'school';
+ const lat = Number(document.getElementById('distanceLatV7')?.value || '');
+ const lng = Number(document.getElementById('distanceLngV7')?.value || '');
+ const coords = (Number.isFinite(lat) && Number.isFinite(lng)) ? { lat, lng } : null;
+ const label = document.getElementById('distancePlaceLabelV7')?.value?.trim() || '';
+ if (!coords) {
+  return window.showNotification?.('error', 'Location needed', 'Search and select a place on the map first.');
+ }
+ if (!window.__SNIPER_RUNTIME__.selectedSchool) window.__SNIPER_RUNTIME__.selectedSchool = null;
+ if (!window.__SNIPER_RUNTIME__.selectedUniversity) window.__SNIPER_RUNTIME__.selectedUniversity = null;
+ if (type === 'school') {
+  window.__SNIPER_RUNTIME__.selectedSchool = { ...coords, label };
+ } else {
+  window.__SNIPER_RUNTIME__.selectedUniversity = { ...coords, label };
+ }
+ refreshDistanceReviewV7();
+ if (typeof renderSavedAndPendingV7 === 'function') {
+  renderSavedAndPendingV7();
+ } else if (typeof renderGlobeV7 === 'function') {
+  loadClassPathsGlobeV7();
+ }
+ }"""
+    content = replace_if_present(content, old_apply, new_apply)
+
+    old_save = """ async function saveFuturePathV7(){
+ const studentName = document.getElementById('distanceStudentNameV7')?.value?.trim();
+ const schoolPoint = window.__SNIPER_RUNTIME__.selectedSchool || null;
+ const universityPoint = window.__SNIPER_RUNTIME__.selectedUniversity || null;
+ if (!studentName) return window.showNotification?.('error', 'Name needed', 'Enter your name first.');
+ if (!schoolPoint && !universityPoint) return window.showNotification?.('error', 'No pin selected', 'Open Google Maps, then enter coordinates and confirm them here.');
+ try{
+ const res = await fetch(apiUrl('/api/destinations/pin-submit'), {
+ method:'POST',
+ headers:{'Content-Type':'application/json'},
+ body:JSON.stringify({ studentName, schoolPoint, universityPoint })
+ });
+ const data = await res.json();
+ if (!data.success) return window.showNotification?.('error', 'Could not save', data.error || 'Save failed.');
+ window.showNotification?.('success', 'Saved', 'Your future path is now on the class globe.');
+ loadClassPathsGlobeV7();
+ }catch(e){
+ window.showNotification?.('error', 'Could not save', e.message);
+ }
+ }"""
+    new_save = """ async function saveFuturePathV7(){
+ const pinType = document.getElementById('distancePinTypeV7')?.value || 'school';
+ const lat = Number(document.getElementById('distanceLatV7')?.value || '');
+ const lng = Number(document.getElementById('distanceLngV7')?.value || '');
+ const label = document.getElementById('distancePlaceLabelV7')?.value?.trim() || '';
+ const section = document.getElementById('distanceSectionV7')?.value?.trim() || '';
+ const studentName = document.getElementById('distanceStudentNameV7')?.value?.trim();
+ if (Number.isFinite(lat) && Number.isFinite(lng)) {
+  if (pinType === 'school') {
+   window.__SNIPER_RUNTIME__.selectedSchool = { lat, lng, label };
+  } else {
+   window.__SNIPER_RUNTIME__.selectedUniversity = { lat, lng, label };
   }
- });
+ }
+ refreshDistanceReviewV7();
+ const schoolPoint = window.__SNIPER_RUNTIME__.selectedSchool || null;
+ const universityPoint = window.__SNIPER_RUNTIME__.selectedUniversity || null;
+ if (!studentName) return window.showNotification?.('error', 'Name needed', 'Select your name first.');
+ if (!section) return window.showNotification?.('error', 'Section needed', 'Select your section first.');
+ if (!schoolPoint && !universityPoint) return window.showNotification?.('error', 'No pin selected', 'Search and select a place first.');
+ try{
+  const res = await fetch(apiUrl('/api/destinations/pin-submit'), {
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({ studentName, section, schoolPoint, universityPoint })
+  });
+  const data = await res.json();
+  if (!data.success) return window.showNotification?.('error', 'Could not save', data.error || 'Save failed.');
+  window.showNotification?.('success', 'Saved', 'Your future path is now on the class globe.');
+  loadClassPathsGlobeV7();
+ }catch(e){
+  window.showNotification?.('error', 'Could not save', e.message);
+ }
+ }"""
+    content = replace_if_present(content, old_save, new_save)
 
- app.post('/api/destinations/pin-submit', (req, res) => {
-  try {
-   const studentName = String(req.body?.studentName || '').trim().substring(0, 80);
-   const section = String(req.body?.section || '10A').trim().substring(0, 10);
-   const ranking = String(req.body?.ranking || '').trim().substring(0, 120);
-   const schoolPlaceName = String(req.body?.schoolPlaceName || '').trim().substring(0, 160);
-   const universityPlaceName = String(req.body?.universityPlaceName || '').trim().substring(0, 160);
-   const schoolPoint = req.body?.schoolPoint || null;
-   const universityPoint = req.body?.universityPoint || null;
-
-   if (!studentName) {
-    return res.status(400).json({ success: false, error: 'studentName required' });
-   }
-
-   const validPoint = p => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
-   if (!validPoint(schoolPoint) && !validPoint(universityPoint)) {
-    return res.status(400).json({ success: false, error: 'At least one valid point is required' });
-   }
-
-   const db = readDestinationsAdvanced();
-   let existing = (db.submissions || []).find(x => String(x.studentName || '').trim().toLowerCase() === studentName.toLowerCase());
-
-   const payload = {
-    studentName,
-    section,
-    ranking,
-    schoolPlaceName,
-    universityPlaceName,
-    schoolPoint: validPoint(schoolPoint) ? { lat: Number(schoolPoint.lat), lng: Number(schoolPoint.lng) } : null,
-    universityPoint: validPoint(universityPoint) ? { lat: Number(universityPoint.lat), lng: Number(universityPoint.lng) } : null,
-    updatedAt: nowIso()
-   };
-
-   if (existing) {
-    Object.assign(existing, payload);
-   } else {
-    db.submissions.push({
-     id: db.nextId++,
-     createdAt: nowIso(),
-     ...payload
-    });
-   }
-
-   if (db.submissions.length > 5000) {
-    db.submissions = db.submissions.slice(-5000);
-   }
-
-   writeDestinationsAdvanced(db);
-   broadcast('destinations:pin-update', { studentName, section });
-   res.json({ success: true });
-  } catch (e) {
-   res.status(500).json({ success: false, error: e.message });
-  }
- });
-
- app.get('/api/destinations/pin-submissions', (req, res) => {
-  try {
-   const db = readDestinationsAdvanced();
-   res.json({ success: true, submissions: db.submissions || [] });
-  } catch (e) {
-   res.status(500).json({ success: false, error: e.message });
-  }
- });
-
- console.log('Production globe and music patch loaded.');
-})();
-// === PRODUCTION_GLOBE_AND_MUSIC_PATCH_END ===
-""".strip()
+    write_text(path, content)
 
 
-def patch_server() -> None:
-    text = clean_text(SERVER_JS.read_text(encoding="utf-8", errors="ignore"))
+def patch_server_js(path: Path) -> None:
+    content = read_text(path)
 
-    if "PRODUCTION_GLOBE_AND_MUSIC_PATCH_START" not in text:
-        text = text.replace("server.listen(PORT, '0.0.0.0', () => {", SERVER_APPEND + "\nserver.listen(PORT, '0.0.0.0', () => {")
+    content = replace_if_present(
+        content,
+        "const compilationsPath = path.join(databaseDir, 'compilations.json');",
+        "const compilationsPath = path.join(databaseDir, 'compilations.json');\nconst studentDirectoryPath = path.join(databaseDir, 'student_directory.json');",
+    )
 
-    SERVER_JS.write_text(text, encoding="utf-8")
+    content = replace_if_present(
+        content,
+        """ if (!fs.existsSync(compilationsPath)) {
+ fs.writeFileSync(compilationsPath, JSON.stringify({ compilations: [], nextId: 1 }, null, 2));
+ console.log(' Created compilations database');
+ }
+}""",
+        """ if (!fs.existsSync(compilationsPath)) {
+ fs.writeFileSync(compilationsPath, JSON.stringify({ compilations: [], nextId: 1 }, null, 2));
+ console.log(' Created compilations database');
+ }
+ if (!fs.existsSync(studentDirectoryPath)) {
+ fs.writeFileSync(studentDirectoryPath, JSON.stringify({ students: [] }, null, 2));
+ console.log(' Created student directory database');
+ }
+}""",
+    )
+
+    content = replace_if_present(
+        content,
+        """function writeCompilations(data) {
+ safeWriteJson(compilationsPath, data);
+}""",
+        """function writeCompilations(data) {
+ safeWriteJson(compilationsPath, data);
+}
+function readStudentDirectory() {
+ return safeReadJson(studentDirectoryPath, { students: [] });
+}
+function writeStudentDirectory(data) {
+ safeWriteJson(studentDirectoryPath, data);
+}""",
+    )
+
+    if "function getClientIp(req)" not in content:
+        content = replace_if_present(
+            content,
+            """function nowIso() {
+ return new Date().toISOString();
+}""",
+            """function nowIso() {
+ return new Date().toISOString();
+}
+function getClientIp(req) {
+ return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+}
+function isRateLimited(items, key, limit, windowMs) {
+ const cutoff = Date.now() - windowMs;
+ let count = 0;
+ for (const item of items) {
+  const ts = new Date(item.createdAt || item.created_at || 0).getTime();
+  if (!Number.isFinite(ts) || ts < cutoff) continue;
+  if (String(item.ip || '') === key) count++;
+ }
+ return count >= limit;
+}""",
+        )
+
+    student_dir_block = """
+app.get('/api/student-directory', (req, res) => {
+ try {
+  const db = readStudentDirectory();
+  res.json({ success: true, students: db.students || [] });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/admin/student-directory', (req, res) => {
+ try {
+  const auth = requireAdmin(req, res);
+  if (!auth) return;
+  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+  const students = Array.isArray(req.body?.students) ? req.body.students : [];
+  const cleaned = students.map(s => ({
+   name: String(s?.name || '').trim().substring(0, 80),
+   section: String(s?.section || '').trim().substring(0, 20)
+  })).filter(s => s.name && s.section);
+  writeStudentDirectory({ students: cleaned });
+  audit(auth.user.id, 'save-student-directory', { count: cleaned.length });
+  res.json({ success: true, count: cleaned.length });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+"""
+    content = insert_before_once(content, "// Settings save", student_dir_block, "student directory endpoints")
+
+    content = replace_if_present(
+        content,
+        """ app.post('/api/paper-notes', (req, res) => {
+ try {
+ const text = String(req.body?.text || '').trim().substring(0, 400);
+ if (!text) return res.status(400).json({ success: false, error: 'text required' });
+ const db = readPaperNotes();
+ const note = {
+ id: db.nextId++,
+ text,
+ ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || '',
+ createdAt: nowIso()
+ };
+ db.notes.push(note);
+ if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
+ writePaperNotes(db);
+ sendWs('paper:note', { id: note.id });
+ res.json({ success: true, noteId: note.id });
+ } catch (e) {
+ res.status(500).json({ success: false, error: e.message });
+ }
+ });""",
+        """ app.post('/api/paper-notes', (req, res) => {
+ try {
+ const text = String(req.body?.text || '').trim().substring(0, 400);
+ if (!text) return res.status(400).json({ success: false, error: 'text required' });
+ if (containsProfanity(text)) return res.status(400).json({ success: false, error: 'Memory note rejected by profanity filter.' });
+ const db = readPaperNotes();
+ const ip = getClientIp(req);
+ if (isRateLimited(db.notes || [], ip, 5, 60 * 1000)) {
+  return res.status(429).json({ success: false, error: 'Rate limit exceeded. Maximum 5 notes per minute.' });
+ }
+ const note = {
+  id: db.nextId++,
+  text,
+  ip,
+  createdAt: nowIso()
+ };
+ db.notes.push(note);
+ if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
+ writePaperNotes(db);
+ sendWs('paper:note', { id: note.id });
+ res.json({ success: true, noteId: note.id });
+ } catch (e) {
+ res.status(500).json({ success: false, error: e.message });
+ }
+ });""",
+    )
+
+    content = replace_if_present(
+        content,
+        """ app.post('/api/paper-notes/from-memory', (req, res) => {
+ try {
+ const memoryId = Number(req.body?.memoryId);
+ const dbMem = readDB();
+ const memory = dbMem.memories.find(m => m.id === memoryId && m.approved === 1 && !m.deletedAt && !m.purgedAt);
+ if (!memory) return res.status(404).json({ success: false, error: 'Memory not found' });
+ const db = readPaperNotes();
+ const ip = getClientIp(req);
+ if (isRateLimited(db.notes || [], ip, 5, 60 * 1000)) {
+ return res.status(429).json({ success: false, error: 'Rate limit exceeded. Maximum 5 notes per minute.' });
+ }
+ const note = {
+ id: db.nextId++,
+ memoryId,
+ caption: String(memory.caption || '').substring(0, 400),
+ text: String(memory.caption || '').substring(0, 400),
+ ip,
+ createdAt: nowIso()
+ };
+ db.notes.push(note);
+ if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
+ writePaperNotes(db);
+ sendWs('paper:note', { note });
+ res.json({ success: true, note });
+ } catch (e) {
+ res.status(500).json({ success: false, error: e.message });
+ }
+ });""",
+        """ app.post('/api/paper-notes/from-memory', (req, res) => {
+ try {
+ const memoryId = Number(req.body?.memoryId);
+ const dbMem = readDB();
+ const memory = dbMem.memories.find(m => m.id === memoryId && m.approved === 1 && !m.deletedAt && !m.purgedAt);
+ if (!memory) return res.status(404).json({ success: false, error: 'Memory not found' });
+ const noteText = String(memory.caption || '').substring(0, 400);
+ if (containsProfanity(noteText)) return res.status(400).json({ success: false, error: 'Memory note rejected by profanity filter.' });
+ const db = readPaperNotes();
+ const ip = getClientIp(req);
+ if (isRateLimited(db.notes || [], ip, 5, 60 * 1000)) {
+  return res.status(429).json({ success: false, error: 'Rate limit exceeded. Maximum 5 notes per minute.' });
+ }
+ const note = {
+  id: db.nextId++,
+  memoryId,
+  caption: noteText,
+  text: noteText,
+  ip,
+  createdAt: nowIso()
+ };
+ db.notes.push(note);
+ if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
+ writePaperNotes(db);
+ sendWs('paper:note', { note });
+ res.json({ success: true, note });
+ } catch (e) {
+ res.status(500).json({ success: false, error: e.message });
+ }
+ });""",
+    )
+
+    write_text(path, content)
 
 
-def main() -> None:
-    if not INDEX_HTML.exists():
-        raise FileNotFoundError("index.html not found")
-    if not SERVER_JS.exists():
-        raise FileNotFoundError("server.js not found")
+def main() -> int:
+    root = Path.cwd()
+    index_path = root / INDEX_HTML
+    server_path = root / SERVER_JS
 
-    patch_html()
-    patch_server()
-    sys.stdout.write("Production-grade globe, footer order, stereo deck, admin place editing, and music upload patch applied successfully.\n")
+    if not index_path.exists():
+        raise FileNotFoundError(f"Missing {INDEX_HTML}")
+    if not server_path.exists():
+        raise FileNotFoundError(f"Missing {SERVER_JS}")
+
+    patch_index_html(index_path)
+    patch_server_js(server_path)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        raise SystemExit(main())
+    except Exception as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        raise
