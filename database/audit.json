@@ -6818,7 +6818,28 @@
       "action": "login",
       "meta": {},
       "createdAt": "2026-03-09T08:31:12.388Z"
+    },
+    {
+      "id": 800,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-09T08:46:54.251Z"
+    },
+    {
+      "id": 801,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-09T08:47:48.049Z"
+    },
+    {
+      "id": 802,
+      "userId": "techteam",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-09T08:49:59.809Z"
     }
   ],
-  "nextId": 800
+  "nextId": 803
 }

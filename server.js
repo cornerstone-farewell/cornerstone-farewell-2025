@@ -1997,7 +1997,15 @@ app.use((err, req, res, next) => {
   app.get('/api/destinations', (req, res) => {
     try {
       const db = readDestinationsDb();
-      res.json({ success: true, destinations: db.destinations || [] });
+      const items = (db.destinations || []).map(item => {
+ const name = String(item.place || item.name || '').trim();
+ return {
+  ...item,
+  name,
+  place: item.place || name
+ };
+});
+res.json({ success: true, destinations: items });
     } catch (e) {
       res.status(500).json({ success: false, error: e.message });
     }
@@ -2201,6 +2209,137 @@ app.use((err, req, res, next) => {
 
 
 
+// === PRODUCTION_GLOBE_AND_MUSIC_PATCH_START ===
+(() => {
+ if (global.__PRODUCTION_GLOBE_AND_MUSIC_PATCH__) return;
+ global.__PRODUCTION_GLOBE_AND_MUSIC_PATCH__ = true;
+
+ const musicDir = path.join(__dirname, 'music');
+ if (!fs.existsSync(musicDir)) {
+  fs.mkdirSync(musicDir, { recursive: true });
+ }
+ app.use('/music', express.static(musicDir));
+
+ const destinationsPathAdvanced = path.join(databaseDir, 'destinations.json');
+
+ function readDestinationsAdvanced() {
+  return safeReadJson(destinationsPathAdvanced, { destinations: [], submissions: [], nextId: 1 });
+ }
+
+ function writeDestinationsAdvanced(data) {
+  safeWriteJson(destinationsPathAdvanced, data);
+ }
+
+ app.post('/api/admin/destinations-v2', (req, res) => {
+  try {
+   const auth = requireAdmin(req, res);
+   if (!auth) return;
+   if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+
+   const places = Array.isArray(req.body?.places) ? req.body.places : [];
+   const cleaned = places.map(item => {
+    if (typeof item === 'string') {
+     return { place: item.trim() };
+    }
+    return {
+     place: String(item?.place || item?.name || '').trim(),
+     lat: Number(item?.lat),
+     lng: Number(item?.lng)
+    };
+   }).filter(item => item.place).slice(0, 1000);
+
+   const db = readDestinationsAdvanced();
+   db.destinations = cleaned;
+   writeDestinationsAdvanced(db);
+   audit(auth.user.id, 'save-destinations-v2-advanced', { count: cleaned.length });
+   res.json({ success: true, count: cleaned.length });
+  } catch (e) {
+   res.status(500).json({ success: false, error: e.message });
+  }
+ });
+
+ app.get('/api/destinations', (req, res) => {
+  try {
+   const db = readDestinationsAdvanced();
+   const items = (db.destinations || []).map(item => ({
+    place: String(item.place || item.name || '').trim(),
+    name: String(item.place || item.name || '').trim(),
+    lat: Number.isFinite(Number(item.lat)) ? Number(item.lat) : undefined,
+    lng: Number.isFinite(Number(item.lng)) ? Number(item.lng) : undefined
+   })).filter(item => item.place);
+   res.json({ success: true, destinations: items });
+  } catch (e) {
+   res.status(500).json({ success: false, error: e.message });
+  }
+ });
+
+ app.post('/api/destinations/pin-submit', (req, res) => {
+  try {
+   const studentName = String(req.body?.studentName || '').trim().substring(0, 80);
+   const section = String(req.body?.section || '10A').trim().substring(0, 10);
+   const ranking = String(req.body?.ranking || '').trim().substring(0, 120);
+   const schoolPlaceName = String(req.body?.schoolPlaceName || '').trim().substring(0, 160);
+   const universityPlaceName = String(req.body?.universityPlaceName || '').trim().substring(0, 160);
+   const schoolPoint = req.body?.schoolPoint || null;
+   const universityPoint = req.body?.universityPoint || null;
+
+   if (!studentName) {
+    return res.status(400).json({ success: false, error: 'studentName required' });
+   }
+
+   const validPoint = p => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
+   if (!validPoint(schoolPoint) && !validPoint(universityPoint)) {
+    return res.status(400).json({ success: false, error: 'At least one valid point is required' });
+   }
+
+   const db = readDestinationsAdvanced();
+   let existing = (db.submissions || []).find(x => String(x.studentName || '').trim().toLowerCase() === studentName.toLowerCase());
+
+   const payload = {
+    studentName,
+    section,
+    ranking,
+    schoolPlaceName,
+    universityPlaceName,
+    schoolPoint: validPoint(schoolPoint) ? { lat: Number(schoolPoint.lat), lng: Number(schoolPoint.lng) } : null,
+    universityPoint: validPoint(universityPoint) ? { lat: Number(universityPoint.lat), lng: Number(universityPoint.lng) } : null,
+    updatedAt: nowIso()
+   };
+
+   if (existing) {
+    Object.assign(existing, payload);
+   } else {
+    db.submissions.push({
+     id: db.nextId++,
+     createdAt: nowIso(),
+     ...payload
+    });
+   }
+
+   if (db.submissions.length > 5000) {
+    db.submissions = db.submissions.slice(-5000);
+   }
+
+   writeDestinationsAdvanced(db);
+   broadcast('destinations:pin-update', { studentName, section });
+   res.json({ success: true });
+  } catch (e) {
+   res.status(500).json({ success: false, error: e.message });
+  }
+ });
+
+ app.get('/api/destinations/pin-submissions', (req, res) => {
+  try {
+   const db = readDestinationsAdvanced();
+   res.json({ success: true, submissions: db.submissions || [] });
+  } catch (e) {
+   res.status(500).json({ success: false, error: e.message });
+  }
+ });
+
+ console.log('Production globe and music patch loaded.');
+})();
+// === PRODUCTION_GLOBE_AND_MUSIC_PATCH_END ===
 server.listen(PORT, '0.0.0.0', () => {
   console.log('');
   console.log('═══════════════════════════════════════════════════════════════════');
