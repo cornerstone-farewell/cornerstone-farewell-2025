@@ -7,43 +7,89 @@ import sys
 from pathlib import Path
 
 
-def die(message: str) -> None:
-    print(f"ERROR: {message}", file=sys.stderr)
+def fail(message: str) -> None:
+    print(json.dumps({"success": False, "error": message}, ensure_ascii=False), file=sys.stderr)
     sys.exit(1)
 
 
-def read_file(path: Path) -> str:
+def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        die(f"Missing file: {path}")
     except Exception as exc:
-        die(f"Could not read {path}: {exc}")
+        fail(f"Could not read {path}: {exc}")
 
 
-def write_file(path: Path, content: str) -> None:
+def write_text(path: Path, content: str) -> None:
     try:
         path.write_text(content, encoding="utf-8", newline="\n")
     except Exception as exc:
-        die(f"Could not write {path}: {exc}")
+        fail(f"Could not write {path}: {exc}")
 
 
-def backup(path: Path) -> None:
-    bak = path.with_suffix(path.suffix + ".blindrun.bak")
-    if not bak.exists():
-        write_file(bak, read_file(path))
+def backup_file(path: Path) -> str:
+    backup = path.with_suffix(path.suffix + ".sniperfix.bak")
+    if not backup.exists():
+        write_text(backup, read_text(path))
+    return backup.name
 
 
-def inject_after_line_if_found(text: str, exact_line: str, block: str) -> str:
-    if block.strip() in text:
-        return text
-    marker = exact_line + "\n"
-    idx = text.find(marker)
-    if idx == -1:
-        return text
-    pos = idx + len(marker)
-    return text[:pos] + block + "\n" + text[pos:]
+def replace_function(source: str, function_name: str, replacement: str) -> str:
+    pattern = re.compile(rf"function\s+{re.escape(function_name)}\s*\([^)]*\)\s*\{{", re.S)
+    match = pattern.search(source)
+    if not match:
+        return source
+    start = match.start()
+    brace_start = source.find("{", match.start())
+    depth = 0
+    end = None
+    for index in range(brace_start, len(source)):
+        ch = source[index]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                end = index + 1
+                break
+    if end is None:
+        return source
+    return source[:start] + replacement + source[end:]
 
+
+def replace_route(source: str, route_signature: str, replacement: str) -> str:
+    start = source.find(route_signature)
+    if start == -1:
+        return source
+    brace_start = source.find("{", start)
+    if brace_start == -1:
+        return source
+    depth = 0
+    end = None
+    for index in range(brace_start, len(source)):
+        ch = source[index]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                semi = source.find(");", index)
+                if semi == -1:
+                    return source
+                end = semi + 2
+                break
+    if end is None:
+        return source
+    return source[:start] + replacement + source[end:]
+
+
+def ensure_block_after(source: str, anchor: str, block: str) -> str:
+    if block.strip() in source:
+        return source
+    pos = source.find(anchor)
+    if pos == -1:
+        return source
+    pos += len(anchor)
+    return source[:pos] + "\n" + block + "\n" + source[pos:]
 
 def inject_before_if_found(text: str, marker: str, block: str) -> str:
     if block.strip() in text:
@@ -52,85 +98,145 @@ def inject_before_if_found(text: str, marker: str, block: str) -> str:
     if idx == -1:
         return text
     return text[:idx] + block + "\n" + text[idx:]
+def patch_server_js(server_text: str) -> tuple[str, list[str]]:
+    changes: list[str] = []
+    text = server_text.replace("\r\n", "\n")
 
+    broken_safe_routing = """// --- SNIPER SAFE ROUTING --- 
+app.use(express.static(__dirname));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/music', express.static(path.join(__dirname, 'music')));
+// Prevent infinite loops: Block missing frontend components from fetching index.html
+app.get('/sections/*', (req, res) => res.status(404).send('Component not found'));
+app.get('/api/*', (req, res) => res.status(404).json({success: false, error: 'Endpoint not found'}));
+// Standard fallback for Single Page Apps
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+// ---------------------------
+// Serve static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));"""
+    fixed_safe_routing = """// --- SNIPER SAFE ROUTING --- 
+app.use(express.static(__dirname));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/music', express.static(path.join(__dirname, 'music')));"""
+    if broken_safe_routing in text:
+        text = text.replace(broken_safe_routing, fixed_safe_routing, 1)
+        changes.append("server: fixed early wildcard routing that broke all API endpoints")
 
-def inject_after_function_if_found(text: str, function_name: str, block: str) -> str:
-    if block.strip() in text:
-        return text
-    needle = f"function {function_name}("
-    start = text.find(needle)
-    if start == -1:
-        return text
-    brace_start = text.find("{", start)
-    if brace_start == -1:
-        return text
-    depth = 0
-    end = None
-    for i in range(brace_start, len(text)):
-        ch = text[i]
-        if ch == "{":
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0:
-                end = i + 1
-                break
-    if end is None:
-        return text
-    return text[:end] + block + "\n" + text[end:]
-
-
-def replace_route_if_found(text: str, route_signature: str, replacement: str) -> str:
-    start = text.find(route_signature)
-    if start == -1:
-        return text
-    brace_start = text.find("{", start)
-    if brace_start == -1:
-        return text
-    depth = 0
-    end = None
-    i = brace_start
-    while i < len(text):
-        ch = text[i]
-        if ch == "{":
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0:
-                semi = text.find(");", i)
-                if semi == -1:
-                    return text
-                end = semi + 2
-                break
-        i += 1
-    if end is None:
-        return text
-    return text[:start] + replacement + text[end:]
-
-
-def patch_server_js(server_path: Path) -> None:
-    original = read_file(server_path).replace("\r\n", "\n")
-    text = original
-
-    if "app.use('/music', express.static(path.join(__dirname, 'music')));" not in text:
-        text = text.replace(
-            "app.use('/uploads', express.static(path.join(__dirname, 'uploads')));",
-            "app.use('/uploads', express.static(path.join(__dirname, 'uploads')));\napp.use('/music', express.static(path.join(__dirname, 'music')));",
-            1,
-        )
-
-    extra_paths_block = """const funPath = path.join(databaseDir, 'fun_features.json');
+    if "const funPath = path.join(databaseDir, 'fun_features.json');" not in text:
+        text = ensure_block_after(
+            text,
+            "const studentDirectoryPath = path.join(databaseDir, 'student_directory.json');",
+            """const funPath = path.join(databaseDir, 'fun_features.json');
 const teacherAudioPath = path.join(databaseDir, 'teacher_audio.json');
 const paperNotesPath = path.join(databaseDir, 'paper_notes.json');
-const destinationsPath = path.join(databaseDir, 'destinations.json');"""
-    text = inject_after_line_if_found(
-        text,
-        "const studentDirectoryPath = path.join(databaseDir, 'student_directory.json');",
-        extra_paths_block,
-    )
+const destinationsPath = path.join(databaseDir, 'destinations.json');""",
+        )
+        if "const funPath = path.join(databaseDir, 'fun_features.json');" in text:
+            changes.append("server: restored missing extra database path constants")
 
-    helper_block = """
-function readStudentDirectory() {
+    broken_init = re.search(
+        r"function initDatabase\(\) \{.*?\n\}\n if \(!fs\.existsSync\(studentDirectoryPath\)\) \{.*?function safeReadJson",
+        text,
+        re.S,
+    )
+    if broken_init:
+        fixed_init = """function initDatabase() {
+ if (!fs.existsSync(dbPath)) {
+  fs.writeFileSync(dbPath, JSON.stringify({ memories: [], nextId: 1 }, null, 2));
+  console.log(' Created memories database');
+ }
+ if (!fs.existsSync(sessionsPath)) {
+  fs.writeFileSync(sessionsPath, JSON.stringify({ sessions: [] }, null, 2));
+  console.log(' Created sessions database');
+ }
+ if (!fs.existsSync(settingsPath)) {
+  fs.writeFileSync(settingsPath, JSON.stringify({ settings: {} }, null, 2));
+  console.log(' Created settings database');
+ }
+ if (!fs.existsSync(commentsPath)) {
+  fs.writeFileSync(commentsPath, JSON.stringify({ comments: [], nextId: 1 }, null, 2));
+  console.log(' Created comments database');
+ }
+ if (!fs.existsSync(reactionsPath)) {
+  fs.writeFileSync(reactionsPath, JSON.stringify({ reactions: [] }, null, 2));
+  console.log(' Created reactions database');
+ }
+ if (!fs.existsSync(auditPath)) {
+  fs.writeFileSync(auditPath, JSON.stringify({ events: [], nextId: 1 }, null, 2));
+  console.log(' Created audit database');
+ }
+ if (!fs.existsSync(adminPath)) {
+  const now = new Date().toISOString();
+  fs.writeFileSync(adminPath, JSON.stringify({
+   users: [
+    {
+     id: 'super',
+     name: 'Super Admin',
+     role: 'superadmin',
+     password: ADMIN_PASSWORD,
+     createdAt: now,
+     updatedAt: now,
+     disabled: false,
+     permissions: {
+      moderation: true,
+      settings: true,
+      theme: true,
+      export: true,
+      users: true,
+      trash: true,
+      replaceFile: true,
+      editMemory: true,
+      bulk: true,
+      featured: true
+     }
+    }
+   ]
+  }, null, 2));
+  console.log(' Created admin database with super admin');
+ }
+ if (!fs.existsSync(compilationsPath)) {
+  fs.writeFileSync(compilationsPath, JSON.stringify({ compilations: [], nextId: 1 }, null, 2));
+  console.log(' Created compilations database');
+ }
+ if (!fs.existsSync(studentDirectoryPath)) {
+  fs.writeFileSync(studentDirectoryPath, JSON.stringify({ students: [] }, null, 2));
+  console.log(' Created student directory database');
+ }
+ if (!fs.existsSync(funPath)) {
+  fs.writeFileSync(funPath, JSON.stringify({ settings: {}, gratitude: [], superlatives: { categories: [] }, wishes: [], dedications: [], mood: { votes: {} }, capsules: [] }, null, 2));
+  console.log(' Created fun features database');
+ }
+ if (!fs.existsSync(teacherAudioPath)) {
+  fs.writeFileSync(teacherAudioPath, JSON.stringify({ items: [], nextId: 1 }, null, 2));
+  console.log(' Created teacher audio database');
+ }
+ if (!fs.existsSync(paperNotesPath)) {
+  fs.writeFileSync(paperNotesPath, JSON.stringify({ notes: [], nextId: 1 }, null, 2));
+  console.log(' Created paper notes database');
+ }
+ if (!fs.existsSync(destinationsPath)) {
+  fs.writeFileSync(destinationsPath, JSON.stringify({ destinations: [], submissions: [], nextId: 1 }, null, 2));
+  console.log(' Created destinations database');
+ }
+}
+
+function safeReadJson"""
+        text = re.sub(
+            r"function initDatabase\(\) \{.*?\n\}\n if \(!fs\.existsSync\(studentDirectoryPath\)\) \{.*?function safeReadJson",
+            fixed_init,
+            text,
+            count=1,
+            flags=re.S,
+        )
+        changes.append("server: repaired broken initDatabase structure")
+
+    if "function readStudentDirectory()" not in text:
+        text = ensure_block_after(
+            text,
+            """function writeCompilations(data) {
+ safeWriteJson(compilationsPath, data);
+}""",
+            """function readStudentDirectory() {
  return safeReadJson(studentDirectoryPath, { students: [] });
 }
 function writeStudentDirectory(data) {
@@ -159,593 +265,207 @@ function readDestinationsDb() {
 }
 function writeDestinationsDb(data) {
  safeWriteJson(destinationsPath, data);
-}"""
-    if "function readStudentDirectory()" not in text:
-        text = inject_after_function_if_found(text, "writeCompilations", helper_block)
+}""",
+        )
+        if "function readStudentDirectory()" in text:
+            changes.append("server: restored helper read/write functions")
 
-    init_insert = """
- if (!fs.existsSync(studentDirectoryPath)) {
- fs.writeFileSync(studentDirectoryPath, JSON.stringify({ students: [] }, null, 2));
- console.log(' Created student directory database');
- }
- if (!fs.existsSync(funPath)) {
- fs.writeFileSync(funPath, JSON.stringify({ settings: {}, gratitude: [], superlatives: { categories: [] }, wishes: [], dedications: [], mood: { votes: {} }, capsules: [] }, null, 2));
- console.log(' Created fun features database');
- }
- if (!fs.existsSync(teacherAudioPath)) {
- fs.writeFileSync(teacherAudioPath, JSON.stringify({ items: [], nextId: 1 }, null, 2));
- console.log(' Created teacher audio database');
- }
- if (!fs.existsSync(paperNotesPath)) {
- fs.writeFileSync(paperNotesPath, JSON.stringify({ notes: [], nextId: 1 }, null, 2));
- console.log(' Created paper notes database');
- }
- if (!fs.existsSync(destinationsPath)) {
- fs.writeFileSync(destinationsPath, JSON.stringify({ destinations: [], submissions: [], nextId: 1 }, null, 2));
- console.log(' Created destinations database');
- }"""
-    if "if (!fs.existsSync(studentDirectoryPath)) {" not in text:
-        text = inject_after_function_if_found(text, "initDatabase", init_insert)
-
-    text = text.replace(
-        "transitionType: ['fade', 'slide', 'zoom', 'flip'].includes(transitionType) ? transitionType : 'fade',",
-        "transitionType: ['fade', 'slide', 'zoom', 'flip', 'blur'].includes(transitionType) ? transitionType : 'fade',",
-    )
-    text = text.replace(
-        "if (transitionType && ['fade', 'slide', 'zoom', 'flip'].includes(transitionType)) {",
-        "if (transitionType && ['fade', 'slide', 'zoom', 'flip', 'blur'].includes(transitionType)) {",
-    )
-
-    compilations_list_route = """app.get('/api/compilations', (req, res) => {
+    memories_route = """app.get('/api/memories', (req, res) => {
  try {
- const data = readCompilations();
- const db = readDB();
- const compilations = (data.compilations || []).map(comp => ({
-  ...comp,
-  slides: (comp.slides || []).map(s => {
-   const memory = db.memories.find(m => m.id === Number(s.memoryId) && !m.purgedAt);
-   return { ...s, file_url: memory ? `/uploads/${memory.file_path}` : null };
-  })
- }));
- res.json({ success: true, compilations });
- } catch (e) {
- res.status(500).json({ success: false, error: e.message });
+  const db = readDB();
+  const page = Math.max(1, parseInt(req.query.page || '1', 10));
+  const limit = Math.min(5000, Math.max(1, parseInt(req.query.limit || '20', 10)));
+  const type = req.query.type || 'all';
+  let memories = db.memories.filter(m => m.approved === 1 && !m.deletedAt && !m.purgedAt);
+  if (type !== 'all') memories = memories.filter(m => m.memory_type === type);
+  memories.sort((a, b) => {
+   if ((b.featured || 0) !== (a.featured || 0)) return (b.featured || 0) - (a.featured || 0);
+   return new Date(b.created_at) - new Date(a.created_at);
+  });
+  const total = memories.length;
+  const start = (page - 1) * limit;
+  const items = memories.slice(start, start + limit).map(m => {
+   const shaped = memoryPublicShape(m);
+   shaped.reactions = getReactionCountsForMemory(m.id);
+   return shaped;
+  });
+  res.json({
+   success: true,
+   memories: items,
+   page,
+   limit,
+   total,
+   nextCursor: items.length ? items[items.length - 1].created_at : null,
+   hasMore: start + limit < total
+  });
+ } catch (error) {
+  console.error('Get memories error:', error);
+  res.status(500).json({ success: false, error: error.message });
  }
 });"""
-    if "app.get('/api/compilations', (req, res) => {" in text and "const db = readDB();" not in text[text.find("app.get('/api/compilations', (req, res) => {"):text.find("app.get('/api/compilations/:id', (req, res) => {") if "app.get('/api/compilations/:id', (req, res) => {" in text else len(text)]:
-        text = replace_route_if_found(text, "app.get('/api/compilations', (req, res) => {", compilations_list_route)
+    text = replace_route(text, "app.get('/api/memories', (req, res) => {", memories_route)
 
-    compilations_single_route = """app.get('/api/compilations/:id', (req, res) => {
+    student_directory_get = """app.get('/api/student-directory', (req, res) => {
  try {
- const id = parseInt(req.params.id, 10);
- const data = readCompilations();
- const db = readDB();
- const comp = data.compilations.find(c => c.id === id);
- if (!comp) return res.status(404).json({ success: false, error: 'Not found' });
- const slides = (comp.slides || []).map(s => {
-  const memory = db.memories.find(m => m.id === Number(s.memoryId) && !m.purgedAt);
-  return { ...s, file_url: memory ? `/uploads/${memory.file_path}` : null };
- });
- res.json({ success: true, compilation: { ...comp, slides } });
+  const db = readStudentDirectory();
+  res.json({ success: true, students: db.students || [] });
  } catch (e) {
- res.status(500).json({ success: false, error: e.message });
+  res.status(500).json({ success: false, error: e.message });
  }
 });"""
-    if "app.get('/api/compilations/:id', (req, res) => {" in text:
-        start = text.find("app.get('/api/compilations/:id', (req, res) => {")
-        chunk = text[start:start + 1200]
-        if "const db = readDB();" not in chunk:
-            text = replace_route_if_found(text, "app.get('/api/compilations/:id', (req, res) => {", compilations_single_route)
+    if "app.get('/api/student-directory'" not in text:
+        text = inject_before_if_found(text, "// Settings save", student_directory_get)
 
-    fun_block = """// --- FUN FEATURES API INJECTED ---
-app.get('/api/fun/settings', (req, res) => res.json({ success: true, settings: readFun().settings || {} }));
-app.post('/api/fun/settings', (req, res) => {
- try {
-  const auth = requireAdmin(req, res); if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const db = readFun();
-  db.settings = req.body?.settings || {};
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/fun/gratitude', (req, res) => res.json({ success: true, notes: readFun().gratitude || [] }));
-app.post('/api/fun/gratitude', (req, res) => {
- try {
-  const db = readFun();
-  db.gratitude = Array.isArray(db.gratitude) ? db.gratitude : [];
-  db.gratitude.unshift({ ...req.body, created_at: new Date().toISOString() });
-  db.gratitude = db.gratitude.slice(0, 500);
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/fun/superlatives', (req, res) => {
- try {
-  const db = readFun();
-  res.json({ success: true, categories: Array.isArray(db.superlatives?.categories) ? db.superlatives.categories : [] });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/fun/superlatives/nominee', (req, res) => {
- try {
-  const db = readFun();
-  db.superlatives = db.superlatives || { categories: [] };
-  db.superlatives.categories = Array.isArray(db.superlatives.categories) ? db.superlatives.categories : [];
-  let cat = db.superlatives.categories.find(c => Number(c.id) === Number(req.body?.categoryId));
-  if (!cat) {
-   cat = { id: Number(req.body?.categoryId), emoji: '🏆', title: 'Category ' + String(req.body?.categoryId || ''), nominees: [] };
-   db.superlatives.categories.push(cat);
-  }
-  cat.nominees = Array.isArray(cat.nominees) ? cat.nominees : [];
-  const name = String(req.body?.name || '').trim().substring(0, 60);
-  if (!name) return res.status(400).json({ success: false, error: 'name required' });
-  if (!cat.nominees.find(n => String(n.name || '').toLowerCase() === name.toLowerCase())) {
-   cat.nominees.push({ id: Date.now(), name, votes: 0 });
-  }
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/fun/superlatives/vote', (req, res) => {
- try {
-  const db = readFun();
-  const cat = db.superlatives?.categories?.find(c => Number(c.id) === Number(req.body?.categoryId));
-  if (!cat) return res.status(404).json({ success: false, error: 'Category not found' });
-  const nom = (cat.nominees || []).find(n => String(n.id) === String(req.body?.nomineeId) || String(n.name) === String(req.body?.nomineeId));
-  if (!nom) return res.status(404).json({ success: false, error: 'Nominee not found' });
-  nom.votes = (nom.votes || 0) + 1;
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/fun/wishes', (req, res) => res.json({ success: true, wishes: readFun().wishes || [] }));
-app.post('/api/fun/wishes', (req, res) => {
- try {
-  const db = readFun();
-  db.wishes = Array.isArray(db.wishes) ? db.wishes : [];
-  db.wishes.unshift({ ...req.body, created_at: new Date().toISOString() });
-  db.wishes = db.wishes.slice(0, 500);
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/fun/dedications', (req, res) => res.json({ success: true, dedications: readFun().dedications || [] }));
-app.post('/api/fun/dedications', (req, res) => {
- try {
-  const db = readFun();
-  db.dedications = Array.isArray(db.dedications) ? db.dedications : [];
-  db.dedications.unshift({ ...req.body, created_at: new Date().toISOString() });
-  db.dedications = db.dedications.slice(0, 500);
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/fun/mood', (req, res) => res.json({ success: true, votes: (readFun().mood || {}).votes || {} }));
-app.post('/api/fun/mood', (req, res) => {
- try {
-  const db = readFun();
-  db.mood = db.mood || { votes: {} };
-  db.mood.votes = db.mood.votes || {};
-  const mood = String(req.body?.mood || '').trim();
-  if (!mood) return res.status(400).json({ success: false, error: 'mood required' });
-  db.mood.votes[mood] = (db.mood.votes[mood] || 0) + 1;
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/fun/capsules', (req, res) => res.json({ success: true, capsules: readFun().capsules || [] }));
-app.post('/api/fun/capsules', (req, res) => {
- try {
-  const db = readFun();
-  db.capsules = Array.isArray(db.capsules) ? db.capsules : [];
-  db.capsules.unshift({ ...req.body, created_at: new Date().toISOString() });
-  db.capsules = db.capsules.slice(0, 500);
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-// ----------------------------------"""
-    if "app.get('/api/fun/settings', (req, res) => res.json({ success: true, settings: readFun().settings || {} }));" not in text:
-        if "// --- FUN FEATURES API INJECTED ---" in text and "// ----------------------------------" in text:
-            text = re.sub(
-                r"// --- FUN FEATURES API INJECTED ---.*?// ----------------------------------",
-                fun_block,
-                text,
-                count=1,
-                flags=re.S,
-            )
-        else:
-            text = inject_before_if_found(
-                text,
-                "// ═══════════════════════════════════════════════════════════════════════════════\n// START SERVER",
-                fun_block,
-            )
-
-    addon_block = """
-function getClientIp(req) {
- return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-}
-function isRateLimited(items, ip, maxCount, windowMs) {
- const now = Date.now();
- return items.filter(x => String(x.ip || '') === ip && (now - new Date(x.createdAt).getTime()) <= windowMs).length >= maxCount;
-}
-app.get('/api/teacher-audio', (req, res) => {
- try {
-  const db = readTeacherAudio();
-  res.json({ success: true, items: db.items || [] });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/admin/teacher-audio', adminUpload.single('audio'), (req, res) => {
+    student_directory_post = """app.post('/api/admin/student-directory', (req, res) => {
  try {
   const auth = requireAdmin(req, res);
   if (!auth) return;
   if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const teacherName = String(req.body?.teacherName || '').trim().substring(0, 80);
-  const file = req.file;
-  if (!teacherName) return res.status(400).json({ success: false, error: 'teacherName required' });
-  if (!file) return res.status(400).json({ success: false, error: 'audio file required' });
-  const db = readTeacherAudio();
-  let item = db.items.find(x => String(x.teacherName || '').toLowerCase() === teacherName.toLowerCase());
-  if (!item) {
-   item = { id: db.nextId++, teacherName, audioPath: file.filename, createdAt: nowIso(), updatedAt: nowIso() };
-   db.items.push(item);
-  } else {
-   const old = item.audioPath;
-   item.audioPath = file.filename;
-   item.updatedAt = nowIso();
-   if (old) {
-    const fp = path.join(uploadsDir, old);
-    if (fs.existsSync(fp)) {
-     try { fs.unlinkSync(fp); } catch (_) {}
-    }
-   }
-  }
-  writeTeacherAudio(db);
-  const settings = readSettings();
-  settings.settings = settings.settings || {};
-  settings.settings.teachers = Array.isArray(settings.settings.teachers) ? settings.settings.teachers : [];
-  const teacher = settings.settings.teachers.find(t => String(t.name || '').toLowerCase() === teacherName.toLowerCase());
-  if (teacher) teacher.audioPath = file.filename;
-  writeSettings(settings);
-  audit(auth.user.id, 'upload-teacher-audio', { teacherName });
-  broadcast('settings:update', {});
-  res.json({ success: true, item });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/admin/settings/intro-video', adminUpload.single('file'), (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const file = req.file;
-  if (!file) return res.status(400).json({ success: false, error: 'No video file' });
-  const settings = readSettings();
-  settings.settings = settings.settings || {};
-  settings.settings.introVideoPath = file.filename;
-  writeSettings(settings);
-  audit(auth.user.id, 'upload-intro-video-alias', { filename: file.filename });
-  broadcast('settings:update', {});
-  res.json({ success: true, path: file.filename });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.delete('/api/admin/settings/intro-video', (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const settings = readSettings();
-  settings.settings = settings.settings || {};
-  const old = settings.settings.introVideoPath;
-  settings.settings.introVideoPath = null;
-  writeSettings(settings);
-  if (old) {
-   const fp = path.join(uploadsDir, old);
-   if (fs.existsSync(fp)) {
-    try { fs.unlinkSync(fp); } catch (_) {}
-   }
-  }
-  audit(auth.user.id, 'remove-intro-video-alias', {});
-  broadcast('settings:update', {});
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/destinations', (req, res) => {
- try {
-  const db = readDestinationsDb();
-  const items = (db.destinations || []).map(item => ({
-   place: String(item.place || item.name || '').trim(),
-   name: String(item.place || item.name || '').trim(),
-   lat: Number.isFinite(Number(item.lat)) ? Number(item.lat) : undefined,
-   lng: Number.isFinite(Number(item.lng)) ? Number(item.lng) : undefined
-  })).filter(item => item.place);
-  res.json({ success: true, destinations: items });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/admin/destinations', (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const raw = Array.isArray(req.body?.destinations) ? req.body.destinations : [];
-  const cleaned = raw.map(x => ({ place: String(typeof x === 'string' ? x : x?.name || x?.place || '').trim() })).filter(x => x.place).slice(0, 500);
-  const db = readDestinationsDb();
-  db.destinations = cleaned;
-  writeDestinationsDb(db);
-  audit(auth.user.id, 'save-destinations', { count: cleaned.length });
+  const students = Array.isArray(req.body?.students) ? req.body.students : [];
+  const cleaned = students.map(s => ({
+   name: String(s?.name || '').trim().substring(0, 80),
+   section: String(s?.section || '').trim().substring(0, 20)
+  })).filter(s => s.name && s.section);
+  writeStudentDirectory({ students: cleaned });
+  audit(auth.user.id, 'save-student-directory', { count: cleaned.length });
   res.json({ success: true, count: cleaned.length });
  } catch (e) {
   res.status(500).json({ success: false, error: e.message });
  }
-});
-app.post('/api/admin/destinations-v2', (req, res) => {
+});"""
+    if "app.post('/api/admin/student-directory'" not in text:
+        text = inject_before_if_found(text, "// Settings save", student_directory_post)
+
+    if "app.get('/api/settings', (req, res) => {" in text and "studentDirectory:" not in text:
+        settings_route = """app.get('/api/settings', (req, res) => {
+ try {
+  const data = readSettings();
+  const settings = data.settings || {};
+  const studentDirectory = readStudentDirectory().students || [];
+  res.json({ success: true, settings: { ...settings, studentDirectory } });
+ } catch (error) {
+  console.error('Get settings error:', error);
+  res.status(500).json({ success: false, error: error.message });
+ }
+});"""
+        text = replace_route(text, "app.get('/api/settings', (req, res) => {", settings_route)
+        changes.append("server: settings endpoint now returns studentDirectory too")
+
+    if "app.post('/api/admin/settings', (req, res) => {" in text and "incoming.studentDirectory" not in text:
+        admin_settings_route = """app.post('/api/admin/settings', (req, res) => {
  try {
   const auth = requireAdmin(req, res);
   if (!auth) return;
   if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const places = Array.isArray(req.body?.places) ? req.body.places : [];
-  const cleaned = places.map(item => {
-   if (typeof item === 'string') return { place: item.trim() };
-   return { place: String(item?.place || item?.name || '').trim(), lat: Number(item?.lat), lng: Number(item?.lng) };
-  }).filter(item => item.place).slice(0, 1000);
-  const db = readDestinationsDb();
-  db.destinations = cleaned;
-  writeDestinationsDb(db);
-  audit(auth.user.id, 'save-destinations-v2-advanced', { count: cleaned.length });
-  res.json({ success: true, count: cleaned.length });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/destinations/submit', (req, res) => {
- try {
-  const destination = String(req.body?.destination || '').trim();
-  if (!destination) return res.status(400).json({ success: false, error: 'destination required' });
-  const db = readDestinationsDb();
-  const ok = (db.destinations || []).find(x => String(x.place || x.name || '').trim().toLowerCase() === destination.toLowerCase());
-  if (!ok) return res.status(400).json({ success: false, error: 'Destination is not allowed' });
-  db.submissions = Array.isArray(db.submissions) ? db.submissions : [];
-  db.submissions.push({ id: db.nextId++, destination, ip: getClientIp(req), createdAt: nowIso() });
-  if (db.submissions.length > 5000) db.submissions = db.submissions.slice(-5000);
-  writeDestinationsDb(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/destinations/submit-v2', (req, res) => {
- try {
-  const studentName = String(req.body?.studentName || '').trim().substring(0, 80);
-  const schoolPlace = String(req.body?.schoolPlace || '').trim().substring(0, 120);
-  const universityPlace = String(req.body?.universityPlace || '').trim().substring(0, 120);
-  if (!studentName) return res.status(400).json({ success: false, error: 'studentName required' });
-  if (!schoolPlace && !universityPlace) return res.status(400).json({ success: false, error: 'At least one place is required' });
-  const db = readDestinationsDb();
-  const allowed = new Set((db.destinations || []).map(x => String(x.place || x.name || '').trim().toLowerCase()));
-  if (schoolPlace && !allowed.has(schoolPlace.toLowerCase())) return res.status(400).json({ success: false, error: 'School place is not allowed' });
-  if (universityPlace && !allowed.has(universityPlace.toLowerCase())) return res.status(400).json({ success: false, error: 'University place is not allowed' });
-  const existing = (db.submissions || []).find(x => String(x.studentName || '').trim().toLowerCase() === studentName.toLowerCase());
-  if (existing) {
-   existing.schoolPlace = schoolPlace;
-   existing.universityPlace = universityPlace;
-   existing.updatedAt = nowIso();
-  } else {
-   db.submissions.push({ id: db.nextId++, studentName, schoolPlace, universityPlace, createdAt: nowIso(), updatedAt: nowIso() });
+  const incoming = req.body?.settings;
+  if (!incoming || typeof incoming !== 'object') return res.status(400).json({ success: false, error: 'Missing settings object' });
+  const istFields = ['farewellIST', 'uploadWindowStartIST', 'uploadWindowEndIST', 'autoApproveStartIST', 'autoApproveEndIST'];
+  for (const f of istFields) {
+   if (incoming[f] && !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$/.test(incoming[f])) {
+    return res.status(400).json({ success: false, error: `Invalid ${f} format. Use YYYY-MM-DDTHH:mm` });
+   }
   }
-  if (db.submissions.length > 5000) db.submissions = db.submissions.slice(-5000);
-  writeDestinationsDb(db);
-  broadcast('destinations:update', { studentName });
+  if (incoming.theme && !hasPerm(auth.user, 'theme')) {
+   return res.status(403).json({ success: false, error: 'No permission to edit theme' });
+  }
+  if (Array.isArray(incoming.studentDirectory)) {
+   const cleanedStudents = incoming.studentDirectory.map(s => ({
+    name: String(s?.name || '').trim().substring(0, 80),
+    section: String(s?.section || '').trim().substring(0, 20)
+   })).filter(s => s.name && s.section);
+   writeStudentDirectory({ students: cleanedStudents });
+  }
+  const settingsOnly = { ...incoming };
+  delete settingsOnly.studentDirectory;
+  writeSettings({ settings: settingsOnly });
+  audit(auth.user.id, 'save-settings', {});
+  broadcast('settings:update', {});
   res.json({ success: true });
  } catch (e) {
   res.status(500).json({ success: false, error: e.message });
  }
-});
-app.get('/api/destinations/submissions', (req, res) => {
- try {
-  const db = readDestinationsDb();
-  res.json({ success: true, submissions: db.submissions || [] });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/destinations/pin-submit', (req, res) => {
- try {
-  const studentName = String(req.body?.studentName || '').trim().substring(0, 80);
-  const section = String(req.body?.section || '').trim().substring(0, 10);
-  const ranking = String(req.body?.ranking || '').trim().substring(0, 120);
-  const schoolPlaceName = String(req.body?.schoolPlaceName || '').trim().substring(0, 160);
-  const universityPlaceName = String(req.body?.universityPlaceName || '').trim().substring(0, 160);
-  const schoolPoint = req.body?.schoolPoint || null;
-  const universityPoint = req.body?.universityPoint || null;
-  if (!studentName) return res.status(400).json({ success: false, error: 'studentName required' });
-  const validPoint = p => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
-  if (!validPoint(schoolPoint) && !validPoint(universityPoint)) return res.status(400).json({ success: false, error: 'At least one valid point is required' });
-  const db = readDestinationsDb();
-  let existing = (db.submissions || []).find(x => String(x.studentName || '').trim().toLowerCase() === studentName.toLowerCase());
-  const payload = {
-   studentName,
-   section,
-   ranking,
-   schoolPlaceName,
-   universityPlaceName,
-   schoolPoint: validPoint(schoolPoint) ? { lat: Number(schoolPoint.lat), lng: Number(schoolPoint.lng) } : null,
-   universityPoint: validPoint(universityPoint) ? { lat: Number(universityPoint.lat), lng: Number(universityPoint.lng) } : null,
-   updatedAt: nowIso()
-  };
-  if (existing) Object.assign(existing, payload);
-  else db.submissions.push({ id: db.nextId++, createdAt: nowIso(), ...payload });
-  if (db.submissions.length > 5000) db.submissions = db.submissions.slice(-5000);
-  writeDestinationsDb(db);
-  broadcast('destinations:pin-update', { studentName, section });
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/destinations/pin-submissions', (req, res) => {
- try {
-  const db = readDestinationsDb();
-  res.json({ success: true, submissions: db.submissions || [] });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/paper-notes', (req, res) => {
- try {
-  const text = String(req.body?.text || '').trim().substring(0, 400);
-  if (!text) return res.status(400).json({ success: false, error: 'text required' });
-  const db = readPaperNotes();
-  db.notes = Array.isArray(db.notes) ? db.notes : [];
-  const note = { id: db.nextId++, text, ip: getClientIp(req), createdAt: nowIso() };
-  db.notes.push(note);
-  if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
-  writePaperNotes(db);
-  broadcast('paper:note', { note });
-  res.json({ success: true, note });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/paper-notes/random', (req, res) => {
- try {
-  const db = readPaperNotes();
-  const items = db.notes || [];
-  if (!items.length) return res.json({ success: true, note: null });
-  const note = items[Math.floor(Math.random() * items.length)];
-  res.json({ success: true, note });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/paper-notes/from-memory', (req, res) => {
- try {
-  const memoryId = Number(req.body?.memoryId);
-  const dbMem = readDB();
-  const memory = dbMem.memories.find(m => m.id === memoryId && m.approved === 1 && !m.deletedAt && !m.purgedAt);
-  if (!memory) return res.status(404).json({ success: false, error: 'Memory not found' });
-  const db = readPaperNotes();
-  db.notes = Array.isArray(db.notes) ? db.notes : [];
-  const ip = getClientIp(req);
-  if (isRateLimited(db.notes, ip, 5, 60 * 1000)) return res.status(429).json({ success: false, error: 'Rate limit exceeded. Maximum 5 notes per minute.' });
-  const note = { id: db.nextId++, memoryId, caption: String(memory.caption || '').substring(0, 400), text: String(memory.caption || '').substring(0, 400), ip, createdAt: nowIso() };
-  db.notes.push(note);
-  if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
-  writePaperNotes(db);
-  broadcast('paper:note', { note });
-  res.json({ success: true, note });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/paper-notes/random-memory', (req, res) => {
- try {
-  const db = readPaperNotes();
-  const notes = (db.notes || []).filter(note => note.memoryId || note.caption || note.text);
-  if (!notes.length) return res.json({ success: true, note: null });
-  const note = notes[Math.floor(Math.random() * notes.length)];
-  res.json({ success: true, note });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-wss.on('connection', (ws) => {
- ws.on('message', raw => {
-  try {
-   const data = JSON.parse(String(raw));
-   if (!data || typeof data !== 'object') return;
-   if (data.type === 'ghost:move') broadcast('ghost:move', data);
-   if (data.type === 'paper:note:broadcast' && data.note) broadcast('paper:note', { note: data.note });
-  } catch (_) {}
- });
 });"""
-    if "function getClientIp(req)" not in text:
+        text = replace_route(text, "app.post('/api/admin/settings', (req, res) => {", admin_settings_route)
+        changes.append("server: admin settings save now persists studentDirectory")
+
+    openstreetmap_destinations_block = """
+app.post('/api/admin/destinations-search', async (req, res) => {
+ try {
+  const auth = requireAdmin(req, res);
+  if (!auth) return;
+  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+  const query = String(req.body?.query || '').trim();
+  if (!query) return res.status(400).json({ success: false, error: 'query required' });
+  const response = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&q=' + encodeURIComponent(query), {
+   headers: { 'User-Agent': 'cornerstone-farewell/1.0', 'Accept': 'application/json' }
+  });
+  const rows = await response.json();
+  const results = Array.isArray(rows) ? rows.map(row => ({
+   place: String(row.display_name || '').trim(),
+   name: String(row.display_name || '').trim(),
+   lat: Number(row.lat),
+   lng: Number(row.lon)
+  })).filter(x => x.place && Number.isFinite(x.lat) && Number.isFinite(x.lng)) : [];
+  res.json({ success: true, results });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});"""
+    if "app.post('/api/admin/destinations-search'" not in text:
+        text = inject_before_if_found(text, "// ═══════════════════════════════════════════════════════════════════════════════\n// START SERVER", openstreetmap_destinations_block)
+        if "app.post('/api/admin/destinations-search'" in text:
+            changes.append("server: added OpenStreetMap search proxy for accurate location picker")
+
+    if "app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));" in text:
+        text = text.replace(
+            "app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));",
+            "",
+        )
+        changes.append("server: removed duplicate broad wildcard route")
+
+    if "app.get('*', (req, res) => {" not in text:
         text = inject_before_if_found(
             text,
-            "// ═══════════════════════════════════════════════════════════════════════════════\n// START SERVER",
-            addon_block,
-        )
-
-    text = re.sub(
-        r"// ═══════════════════════════════════════════════════════════════════════════════\n// SERVE FRONTEND\n// ═══════════════════════════════════════════════════════════════════════════════\napp\.get\('/', \(req, res\) => res\.sendFile\(path\.join\(__dirname, 'index\.html'\)\)\);\napp\.get\('\*', \(req, res\) => res\.sendFile\(path\.join\(__dirname, 'index\.html'\)\)\);",
-        "// ═══════════════════════════════════════════════════════════════════════════════\n// SERVE FRONTEND\n// ═══════════════════════════════════════════════════════════════════════════════\napp.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));",
-        text,
-        count=1,
-        flags=re.S,
-    )
-
-    if "app.get('*', (req, res) => {" not in text and "server.listen(PORT, '0.0.0.0', () => {" in text:
-        text = text.replace(
             "server.listen(PORT, '0.0.0.0', () => {",
             """app.get('*', (req, res) => {
  if (req.path.startsWith('/api/')) return res.status(404).json({ success: false, error: 'Endpoint not found' });
  if (req.path.startsWith('/uploads/') || req.path.startsWith('/music/')) return res.status(404).send('Not found');
  return res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-server.listen(PORT, '0.0.0.0', () => {""",
-            1,
+});""",
         )
 
-    if text != original:
-        backup(server_path)
-        write_file(server_path, text)
+    return text, changes
 
 
-def patch_index_html(index_path: Path) -> None:
-    original = read_file(index_path).replace("\r\n", "\n")
-    text = original
+def patch_index_html(index_text: str) -> tuple[str, list[str]]:
+    changes: list[str] = []
+    text = index_text.replace("\r\n", "\n")
 
     text = text.replace(
         "previewLimit: 6,\n viewingAllMemoriesPage: false,\n previewLimit: 6,\n viewingAllMemoriesPage: false,\n previewLimit: 6,\n viewingAllMemoriesPage: false,",
         "previewLimit: 6,\n viewingAllMemoriesPage: false,",
     )
 
-    if "const displayMemories = state.viewingAllMemoriesPage ? state.memories : state.memories.slice(0, state.previewLimit);" not in text:
+    if '<li><a href="#teachers">Teachers</a></li>' in text and '<li><a href="#gratitudeWall">Gratitude</a></li>' not in text:
         text = text.replace(
-            " if (displayMemories.length === 0) {",
-            " const displayMemories = state.viewingAllMemoriesPage ? state.memories : state.memories.slice(0, state.previewLimit);\n if (displayMemories.length === 0) {",
+            '<li><a href="#teachers">Teachers</a></li>\n <li><a href="#timeline">Journey</a></li>\n <li><a href="#compilations">Compilations</a></li>',
+            '<li><a href="#teachers">Teachers</a></li>\n <li><a href="#timeline">Journey</a></li>\n <li><a href="#gratitudeWall">Gratitude</a></li>\n <li><a href="#superlativesSection">Superlatives</a></li>\n <li><a href="#wishJarSection">Wish Jar</a></li>\n <li><a href="#songDedicationsSection">Songs</a></li>\n <li><a href="#moodBoardSection">Mood</a></li>\n <li><a href="#timeCapsuleSection">Time Capsule</a></li>\n <li><a href="#distanceMapSection">Future Map</a></li>\n <li><a href="#compilations">Compilations</a></li>',
             1,
         )
+        changes.append("index: added all feature sections to navbar")
 
-    if 'id="viewAllMemoriesBtn"' not in text:
-        old = '<div class="load-more-wrap" id="loadMoreWrap" style="display:none;">\n <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" type="button">Load More</button>\n </div>'
-        new = '<div class="memories-preview-actions"><button class="btn btn-secondary" id="viewAllMemoriesBtn" type="button">View All Memories</button></div>\n <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">\n <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" type="button">Load More</button>\n </div>'
-        if old in text:
-            text = text.replace(old, new, 1)
+    if 'id="viewAllMemoriesBtn"' not in text and '<div class="load-more-wrap" id="loadMoreWrap"' in text:
+        text = text.replace(
+            '<div class="load-more-wrap" id="loadMoreWrap" style="display:none;">',
+            '<div class="memories-preview-actions"><button class="btn btn-secondary" id="viewAllMemoriesBtn" type="button">View All Memories</button></div>\n <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">',
+            1,
+        )
+        changes.append("index: restored view all memories button")
 
-    if 'id="memoriesPage"' not in text:
-        marker = "</section>\n <!-- Teachers / Timeline / Quote / Footer kept from previous version (rendered from settings) -->"
-        if marker in text:
-            text = text.replace(
-                marker,
-                """</section>
+    if 'id="memoriesPage"' not in text and "<!-- Teachers / Timeline / Quote / Footer kept from previous version (rendered from settings) -->" in text:
+        text = text.replace(
+            "</section>\n <!-- Teachers / Timeline / Quote / Footer kept from previous version (rendered from settings) -->",
+            """</section>
 <section id="memoriesPage" class="memories-page hidden">
  <div class="memories-page-header">
   <h2 class="section-title">All <span class="highlight">Memories</span></h2>
@@ -759,26 +479,19 @@ def patch_index_html(index_path: Path) -> None:
  </div>
 </section>
  <!-- Teachers / Timeline / Quote / Footer kept from previous version (rendered from settings) -->""",
-                1,
-            )
-
-    if "API_BASE: localStorage.getItem('farewell_api_base')" not in text:
-        text = text.replace(
-            'API_BASE: "https://threshold-superb-gasoline-theology.trycloudflare.com",',
-            'API_BASE: localStorage.getItem(\'farewell_api_base\') || "https://threshold-superb-gasoline-theology.trycloudflare.com",',
             1,
         )
+        changes.append("index: restored dedicated memories page shell")
 
-    text = text.replace(".replace(/\\/+ /g, '/')", ".replace(/\\/+/g, '/')")
+    broken_render_teachers = re.search(r"function renderTeachers\(\) \{.*?teacher￾quote.*?\}", text, re.S)
+    if broken_render_teachers:
+        replacement = """function renderTeachers() { const grid = document.getElementById('teachersGrid'); if (!grid) return; const t = Array.isArray(state.settings.teachers) ? state.settings.teachers : []; if (t.length === 0) { grid.innerHTML = `<div class="memory-empty" style="grid-column:1/-1;"><h3>No teachers configured</h3></div>`; return; } grid.innerHTML = t.map(teacher => { const initials = getInitials(teacher.name || 'T'); const img = (teacher.imageUrl || '').trim(); return `<div class="teacher-card"><div class="teacher-image">${img ? `<img src="${escapeAttr(img)}" alt="${escapeAttr(teacher.name || '')}" />` : escapeHtml(initials)}</div><h3 class="teacher-name">${escapeHtml(teacher.name || '')}</h3><p class="teacher-subject">${escapeHtml(teacher.subject || '')}</p><p class="teacher-quote">${escapeHtml(teacher.quote || '')}</p></div>`; }).join(''); }"""
+        text = replace_function(text, "renderTeachers", replacement)
+        changes.append("index: fixed broken teachers renderer")
 
-    text = text.replace(
-        "if (mode === 'maps'){\n window.open('https://www.google.com/maps/search/?api=1&query=' + query, '_blank');\n } else {",
-        "if (mode === 'maps'){\n const frame = document.getElementById('distanceRealMapFrame');\n if (frame) frame.src = 'https://www.google.com/maps?q=' + query + '&z=6&output=embed';\n } else {",
-    )
-
-    if "function openMemoriesPage()" not in text:
-        pattern = r"document\.addEventListener\('DOMContentLoaded', \(\) => \{\n const viewAllBtn = document\.getElementById\('viewAllMemoriesBtn'\);.*?window\.addEventListener\('popstate', \(\) => \{\n const page = document\.getElementById\('memoriesPage'\);.*?\n \}\);"
-        replacement = """function renderMemoriesPage() {
+    if "function renderMemoriesPage()" not in text:
+        memories_page_js = """
+function renderMemoriesPage() {
  const grid = document.getElementById('memoryGridPage');
  const wrap = document.getElementById('loadMoreWrapPage');
  if (!grid) return;
@@ -787,7 +500,38 @@ def patch_index_html(index_path: Path) -> None:
   if (wrap) wrap.style.display = 'none';
   return;
  }
- grid.innerHTML = document.getElementById('memoryGrid') ? document.getElementById('memoryGrid').innerHTML : '';
+ const displayMemories = state.memories;
+ grid.innerHTML = displayMemories.map((memory, index) => `
+ <div class="memory-card" data-index="${index}">
+ <div class="memory-media" onclick="openLightbox(${index})">
+ ${memory.file_type === 'video'
+ ? `<video src="${memory.file_url}" preload="metadata"></video><div class="play-button">▶</div>`
+ : `<img src="${memory.file_url}" alt="${escapeAttr(memory.caption)}" loading="lazy" />`}
+ <span class="memory-type-badge">${escapeHtml(memory.memory_type)}</span>
+ ${memory.featured ? `<span class="memory-featured-badge">Featured</span>` : ''}
+ </div>
+ <div class="memory-content">
+ <div class="memory-author">
+ <div class="memory-avatar">${escapeHtml((memory.student_name || '').charAt(0).toUpperCase())}</div>
+ <div class="memory-author-info">
+ <div class="memory-author-name">${escapeHtml(memory.student_name || '')}</div>
+ <div class="memory-time">${timeAgo(memory.created_at)}</div>
+ </div>
+ </div>
+ <p class="memory-caption">${escapeHtml(memory.caption || '')}</p>
+ <div class="memory-actions">
+ <div class="action-row">
+ <button class="like-btn ${isLiked(memory.id) ? 'liked' : ''}" onclick="likeMemory(${memory.id}, this)">
+ <span class="heart-icon">${isLiked(memory.id) ? '♥' : '♡'}</span>
+ <span class="like-count">${memory.likes || 0}</span>
+ </button>
+ <button class="comments-open-btn" onclick="openLightbox(${index}); setTimeout(() => scrollCommentsTop(), 50);">Comments</button>
+ </div>
+ <div class="react-group">${renderReactionButtons(memory)}</div>
+ </div>
+ </div>
+ </div>
+ `).join('');
  if (wrap) wrap.style.display = state.memHasMore ? 'flex' : 'none';
 }
 function openMemoriesPage() {
@@ -808,7 +552,13 @@ function backToMainPage() {
  if (home) home.scrollIntoView({ behavior: 'smooth', block: 'start' });
  renderMemories();
 }
-document.addEventListener('DOMContentLoaded', () => {
+"""
+        text = text + "\n" + memories_page_js
+        changes.append("index: restored memories page logic")
+
+    text = re.sub(
+        r"document\.addEventListener\('DOMContentLoaded', \(\) => \{\n const viewAllBtn = document\.getElementById\('viewAllMemoriesBtn'\);.*?window\.addEventListener\('popstate', \(\) => \{\n const page = document\.getElementById\('memoriesPage'\);.*?\n \}\);",
+        """document.addEventListener('DOMContentLoaded', () => {
  const viewAllBtn = document.getElementById('viewAllMemoriesBtn');
  if (viewAllBtn) viewAllBtn.addEventListener('click', openMemoriesPage);
  const backBtn = document.getElementById('backToHomeFromMemoriesPage');
@@ -837,146 +587,441 @@ window.addEventListener('popstate', () => {
   page.classList.add('hidden');
   renderMemories();
  }
-});"""
-        text, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
-        if count == 0 and "function renderMemoriesPage()" not in text:
-            text += "\n" + replacement + "\n"
-
-    if "if (state.viewingAllMemoriesPage) renderMemoriesPage();" not in text:
-        target = " if (loadMoreWrap) {\n loadMoreWrap.style.display = (!state.infiniteScroll && state.memHasMore && state.viewingAllMemoriesPage) ? 'flex' : 'none';\n }\n}"
-        if target in text:
-            text = text.replace(
-                target,
-                " if (loadMoreWrap) {\n loadMoreWrap.style.display = (!state.infiniteScroll && state.memHasMore && state.viewingAllMemoriesPage) ? 'flex' : 'none';\n }\n if (state.viewingAllMemoriesPage) renderMemoriesPage();\n}",
-                1,
-            )
-
-    text = re.sub(
-        r"<script id=\"fixer-tour-script\">.*?</script>\s*<script id=\"fixer-stable-tour-script\">.*?</script>\s*<script id=\"fixer-stable-tour-script\">.*?</script>",
-        """<script id="fixer-stable-tour-script">
-(function(){
- if (window.__FIXER_STABLE_TOUR__) return;
- window.__FIXER_STABLE_TOUR__ = true;
- const TOUR_KEY = 'cornerstone_tour_seen_v2';
- function addTourFab(){
-  if (document.getElementById('featureTourFab')) return;
-  const btn = document.createElement('button');
-  btn.id = 'featureTourFab';
-  btn.className = 'feature-tour-fab';
-  btn.type = 'button';
-  btn.textContent = 'Tutorial';
-  btn.addEventListener('click', startSiteTour);
-  document.body.appendChild(btn);
- }
- function ensureTourNodes(){
-  if (!document.getElementById('featureTourOverlay')){
-   const overlay = document.createElement('div');
-   overlay.id = 'featureTourOverlay';
-   overlay.className = 'feature-tour-overlay';
-   overlay.innerHTML = '<div id="featureTourSpotlight" class="feature-tour-spotlight"></div><div id="featureTourCard" class="feature-tour-card"></div>';
-   document.body.appendChild(overlay);
-  }
- }
- function buildSteps(){
-  return [
-   { selector:'#home .hero-buttons', title:'Welcome', text:'Use these buttons to upload a memory or explore the memory wall.' },
-   { selector:'#countdown', title:'Countdown', text:'This section shows the live countdown to the farewell event.' },
-   { selector:'#memories', title:'Memories Preview', text:'The homepage shows six selected memories only for faster loading.' },
-   { selector:'#viewAllMemoriesBtn', title:'View All', text:'Open the full dedicated memories page from here.' },
-   { selector:'#upload', title:'Upload', text:'Approved uploads appear after admin review only.' },
-   { selector:'#distanceMapSection', title:'Future Path Globe', text:'Select your name and future places, then save them to the globe.' },
-   { selector:'#compilations', title:'Compilations', text:'Curated slideshows appear here.' }
-  ];
- }
- function stopSiteTour(){
-  const overlay = document.getElementById('featureTourOverlay');
-  const spot = document.getElementById('featureTourSpotlight');
-  const card = document.getElementById('featureTourCard');
-  if (overlay) overlay.classList.remove('active');
-  if (spot) {
-   spot.style.left = '-9999px';
-   spot.style.top = '-9999px';
-   spot.style.width = '0px';
-   spot.style.height = '0px';
-  }
-  if (card) {
-   card.style.left = '-9999px';
-   card.style.top = '-9999px';
-  }
- }
- function startSiteTour(){
-  ensureTourNodes();
-  const steps = buildSteps();
-  let idx = 0;
-  const overlay = document.getElementById('featureTourOverlay');
-  const spot = document.getElementById('featureTourSpotlight');
-  const card = document.getElementById('featureTourCard');
-  function render(){
-   if (idx >= steps.length) return stopSiteTour();
-   const step = steps[idx];
-   const el = document.querySelector(step.selector);
-   if (!el) { idx += 1; return render(); }
-   el.scrollIntoView({ behavior:'smooth', block:'center' });
-   setTimeout(() => {
-    const r = el.getBoundingClientRect();
-    if (r.width <= 0 || r.height <= 0) { idx += 1; return render(); }
-    overlay.classList.add('active');
-    spot.style.left = Math.max(8, r.left - 8) + 'px';
-    spot.style.top = Math.max(8, r.top - 8) + 'px';
-    spot.style.width = Math.max(40, r.width + 16) + 'px';
-    spot.style.height = Math.max(40, r.height + 16) + 'px';
-    card.style.left = Math.min(window.innerWidth - 380, Math.max(12, r.left)) + 'px';
-    card.style.top = Math.min(window.innerHeight - 170, Math.max(12, r.bottom + 12)) + 'px';
-    card.innerHTML = `<h3>${step.title}</h3><p>${step.text}</p><div class="feature-tour-actions"><button class="btn btn-secondary" type="button" id="tourSkipBtn">Close</button><button class="btn btn-primary" type="button" id="tourNextBtn">${idx === steps.length - 1 ? 'Done' : 'Next'}</button></div>`;
-    document.getElementById('tourSkipBtn')?.addEventListener('click', stopSiteTour);
-    document.getElementById('tourNextBtn')?.addEventListener('click', () => { idx += 1; render(); });
-   }, 450);
-  }
-  render();
- }
- window.startSiteTour = startSiteTour;
- document.addEventListener('DOMContentLoaded', () => {
-  addTourFab();
-  ensureTourNodes();
-  if (!localStorage.getItem(TOUR_KEY)) {
-   setTimeout(() => {
-    startSiteTour();
-    localStorage.setItem(TOUR_KEY, '1');
-   }, 1200);
-  }
- });
-})();
-</script>""",
+});""",
         text,
         count=1,
         flags=re.S,
     )
 
-    if text != original:
-        backup(index_path)
-        write_file(index_path, text)
+    if "if (state.viewingAllMemoriesPage) renderMemoriesPage();" not in text:
+        text = text.replace(
+            " if (loadMoreWrap) {\n loadMoreWrap.style.display = (!state.infiniteScroll && state.memHasMore && state.viewingAllMemoriesPage) ? 'flex' : 'none';\n }\n}",
+            " if (loadMoreWrap) {\n loadMoreWrap.style.display = (!state.infiniteScroll && state.memHasMore && state.viewingAllMemoriesPage) ? 'flex' : 'none';\n }\n if (state.viewingAllMemoriesPage) renderMemoriesPage();\n}",
+            1,
+        )
+
+    text = text.replace(
+        "if(localStorage.getItem('moodVote'))return ffNotify('info','Already voted','You already shared your mood! ');",
+        "if(localStorage.getItem('moodVote'))return ffNotify('info','Already voted','You already shared your mood.');",
+    )
+
+    if "async function sniperCollectClientErrors" not in text:
+        sniper_error_block = """
+async function sniperCollectClientErrors() {
+ const issues = [];
+ try {
+  if (!Array.isArray(state.memories) || state.memories.length === 0) issues.push('Memories list is empty or not loading.');
+  const teachersGrid = document.getElementById('teachersGrid');
+  if (teachersGrid && !teachersGrid.children.length) issues.push('Teachers section is empty.');
+  const timelineList = document.getElementById('timelineList');
+  if (timelineList && !timelineList.children.length) issues.push('Timeline section is empty.');
+  if (typeof state.settings !== 'object') issues.push('Settings object is missing.');
+  if (location.hash === '#memories-page' && typeof renderMemoriesPage !== 'function') issues.push('Dedicated memories page is missing renderer.');
+ } catch (e) {
+  issues.push('Client inspection failed: ' + e.message);
+ }
+ return issues;
+}
+window.sniperCollectClientErrors = sniperCollectClientErrors;"""
+        text += "\n" + sniper_error_block
+        changes.append("index: added sniper client error collector")
+
+    if "async function loadStudentDirectoryForAdmin()" not in text:
+        admin_student_tools = """
+async function loadStudentDirectoryForAdmin() {
+ try {
+  const res = await fetch(apiUrl('/api/student-directory'));
+  const data = await res.json();
+  if (!data.success) return [];
+  return Array.isArray(data.students) ? data.students : [];
+ } catch (_) {
+  return [];
+ }
+}
+"""
+        text += "\n" + admin_student_tools
+        changes.append("index: added admin student directory helper")
+
+    if "function openOsmPickerModal" not in text:
+        osm_picker_css = """
+<style id="sniper-osm-picker-style">
+.osm-picker-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:12050;display:none;align-items:center;justify-content:center;padding:20px}
+.osm-picker-modal.active{display:flex}
+.osm-picker-card{width:min(1100px,96vw);height:min(760px,90vh);background:var(--navy-medium);border:1px solid var(--glass-border);border-radius:24px;padding:18px;display:grid;grid-template-rows:auto auto 1fr auto;gap:12px}
+.osm-picker-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.osm-picker-search{display:grid;grid-template-columns:1fr auto;gap:10px}
+.osm-picker-map{border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12)}
+.osm-picker-map-inner{width:100%;height:100%}
+.osm-picker-results{display:grid;gap:8px;max-height:120px;overflow:auto}
+</style>"""
+        if "</head>" in text and "sniper-osm-picker-style" not in text:
+            text = text.replace("</head>", osm_picker_css + "\n</head>", 1)
+
+        osm_picker_html = """
+<div class="osm-picker-modal" id="osmPickerModal">
+ <div class="osm-picker-card">
+  <div class="osm-picker-top">
+   <div>
+    <h3 style="margin:0;color:var(--primary-gold);font-family:var(--font-display);">Future Place Picker</h3>
+    <p style="margin:4px 0 0;color:var(--text-muted);">Search like Blinkit style, click result, adjust marker, then confirm.</p>
+   </div>
+   <button class="btn btn-secondary" type="button" onclick="closeOsmPickerModal()">Close</button>
+  </div>
+  <div class="osm-picker-search">
+   <input class="form-input" id="osmPickerSearchInput" placeholder="Search city, college, locality, address..." />
+   <button class="btn btn-primary" type="button" id="osmPickerSearchBtn">Search</button>
+  </div>
+  <div class="osm-picker-map"><div class="osm-picker-map-inner" id="osmPickerMap"></div></div>
+  <div>
+   <div class="osm-picker-results" id="osmPickerResults"></div>
+   <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-top:8px;">
+    <div class="mini-pill" id="osmPickerSelectedText">No place selected yet.</div>
+    <button class="btn btn-primary" type="button" id="osmPickerConfirmBtn">Use This Place</button>
+   </div>
+  </div>
+ </div>
+</div>"""
+        if "</body>" in text and 'id="osmPickerModal"' not in text:
+            text = text.replace("</body>", osm_picker_html + "\n</body>", 1)
+
+        osm_picker_js = """
+<script id="sniper-osm-picker-script">
+(function(){
+ if (window.__OSM_PICKER_PATCH__) return;
+ window.__OSM_PICKER_PATCH__ = true;
+ let pickerMap = null;
+ let pickerMarker = null;
+ let pickerSelection = null;
+ let pickerTarget = 'school';
+ function ensurePickerMap() {
+  if (!window.L) return;
+  if (pickerMap) {
+   pickerMap.invalidateSize();
+   return;
+  }
+  pickerMap = L.map('osmPickerMap', { center:[20.5937, 78.9629], zoom:4, worldCopyJump:true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+   maxZoom: 18,
+   attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(pickerMap);
+  pickerMap.on('click', (e) => {
+   setPickerSelection(e.latlng.lat, e.latlng.lng, `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`);
+  });
+ }
+ function setPickerSelection(lat, lng, label) {
+  pickerSelection = { lat:Number(lat), lng:Number(lng), label:String(label || '').trim() };
+  if (!pickerMarker) pickerMarker = L.marker([lat, lng], { draggable:true }).addTo(pickerMap);
+  pickerMarker.setLatLng([lat, lng]);
+  pickerMarker.dragend = null;
+  pickerMarker.on('dragend', () => {
+   const pos = pickerMarker.getLatLng();
+   pickerSelection.lat = Number(pos.lat);
+   pickerSelection.lng = Number(pos.lng);
+   updatePickerText();
+  });
+  pickerMap.setView([lat, lng], Math.max(pickerMap.getZoom(), 6));
+  updatePickerText();
+ }
+ function updatePickerText() {
+  const el = document.getElementById('osmPickerSelectedText');
+  if (!el) return;
+  if (!pickerSelection) {
+   el.textContent = 'No place selected yet.';
+   return;
+  }
+  el.textContent = `${pickerSelection.label || 'Selected place'} • ${pickerSelection.lat.toFixed(6)}, ${pickerSelection.lng.toFixed(6)}`;
+ }
+ window.openOsmPickerModal = function(targetType) {
+  pickerTarget = targetType === 'university' ? 'university' : 'school';
+  const modal = document.getElementById('osmPickerModal');
+  if (modal) modal.classList.add('active');
+  setTimeout(ensurePickerMap, 50);
+ };
+ window.closeOsmPickerModal = function() {
+  const modal = document.getElementById('osmPickerModal');
+  if (modal) modal.classList.remove('active');
+ };
+ async function doSearch() {
+  const q = document.getElementById('osmPickerSearchInput')?.value?.trim();
+  if (!q) return;
+  const box = document.getElementById('osmPickerResults');
+  if (box) box.innerHTML = '<div class="mini-pill">Searching...</div>';
+  try {
+   const res = await fetch(apiUrl('/api/admin/destinations-search'), {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer ' + (window.state?.adminToken || '')},
+    body:JSON.stringify({ query:q })
+   });
+   const data = await res.json();
+   const results = data.success ? (data.results || []) : [];
+   if (!box) return;
+   if (!results.length) {
+    box.innerHTML = '<div class="mini-pill">No results found.</div>';
+    return;
+   }
+   box.innerHTML = results.map((r, i) => `<button type="button" class="btn btn-secondary" data-index="${i}">${escapeHtml(r.place || r.name || 'Result')}</button>`).join('');
+   box.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+     const r = results[Number(btn.dataset.index)];
+     setPickerSelection(r.lat, r.lng, r.place || r.name || q);
+    });
+   });
+  } catch (e) {
+   if (box) box.innerHTML = `<div class="mini-pill">Search failed: ${escapeHtml(e.message)}</div>`;
+  }
+ }
+ document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('osmPickerSearchBtn')?.addEventListener('click', doSearch);
+  document.getElementById('osmPickerConfirmBtn')?.addEventListener('click', () => {
+   if (!pickerSelection) return;
+   if (pickerTarget === 'school') {
+    window.__SNIPER_RUNTIME__ = window.__SNIPER_RUNTIME__ || {};
+    window.__SNIPER_RUNTIME__.selectedSchool = { lat: pickerSelection.lat, lng: pickerSelection.lng, label: pickerSelection.label };
+   } else {
+    window.__SNIPER_RUNTIME__ = window.__SNIPER_RUNTIME__ || {};
+    window.__SNIPER_RUNTIME__.selectedUniversity = { lat: pickerSelection.lat, lng: pickerSelection.lng, label: pickerSelection.label };
+   }
+   if (typeof refreshDistanceReviewV7 === 'function') refreshDistanceReviewV7();
+   if (typeof renderGlobeV7 === 'function') loadClassPathsGlobeV7?.();
+   closeOsmPickerModal();
+  });
+ });
+})();
+</script>"""
+        if "</body>" in text and 'id="sniper-osm-picker-script"' not in text:
+            text = text.replace("</body>", osm_picker_js + "\n</body>", 1)
+        changes.append("index: added accurate OpenStreetMap search picker modal")
+
+    if "upgradeDistanceFlowToMaps" in text:
+        upgraded_distance_flow = """function upgradeDistanceFlowToMaps(){
+ const section = document.getElementById('distanceMapSection');
+ const controls = document.getElementById('distanceControls');
+ if (!section || !controls || document.getElementById('distanceMapsFlowCard')) return;
+ const info = document.createElement('div');
+ info.id = 'distanceMapsFlowCard';
+ info.innerHTML = `
+ <strong>How this works:</strong>
+ pick whether you are saving your 11th / 12th place or your university dream,
+ open the built-in accurate place picker, search the place, fine-tune the marker, and save it.
+ `;
+ controls.insertAdjacentElement('beforebegin', info);
+ const panel = document.createElement('div');
+ panel.id = 'distanceConfirmPanel';
+ panel.innerHTML = `
+ <div class="row">
+  <div class="form-group">
+   <label>Your Name</label>
+   <select class="form-select" id="distanceStudentNameV7"><option value="">Select your name</option></select>
+  </div>
+  <div class="form-group">
+   <label>Your Section</label>
+   <select class="form-select" id="distanceSectionV7">
+    <option value="">Select section</option>
+    <option value="10A">10A</option>
+    <option value="10B">10B</option>
+    <option value="10C">10C</option>
+    <option value="10D">10D</option>
+   </select>
+  </div>
+ </div>
+ <div class="row">
+  <div class="form-group">
+   <label>What are you pinning?</label>
+   <select class="form-select" id="distancePinTypeV7">
+    <option value="school">11th / 12th future place</option>
+    <option value="university">University aim place</option>
+   </select>
+  </div>
+  <div class="form-group">
+   <label>Search place</label>
+   <div style="display:flex;gap:10px;">
+    <input class="form-input" id="distancePlaceLabelV7" maxlength="120" placeholder="Search city, college, locality..." />
+    <button class="btn btn-primary" type="button" id="distanceOpenMapsV7">Open Picker</button>
+   </div>
+  </div>
+ </div>
+ <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+  <button class="btn btn-secondary" type="button" id="distancePickSchoolBtn">Pick 11th / 12th</button>
+  <button class="btn btn-secondary" type="button" id="distancePickUniversityBtn">Pick University</button>
+  <button class="btn btn-primary" type="button" id="distanceSavePinsV7">Confirm Future Path</button>
+ </div>
+ <div class="hint">Every saved location is reflected in the admin dashboard and the public globe.</div>
+ <div id="distanceSelectedReview"></div>
+ </div>`;
+ controls.insertAdjacentElement('afterend', panel);
+ controls.innerHTML = `
+ <button class="btn btn-primary" type="button" id="distanceLaunchBtnV7">Start Future Pinning</button>
+ <button class="btn btn-secondary" type="button" id="distanceRefreshBtnV7">Refresh Globe</button>
+ `;
+ document.getElementById('distanceLaunchBtnV7')?.addEventListener('click', () => {
+  panel.classList.add('active');
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (typeof loadStudentDirectoryV7 === 'function') loadStudentDirectoryV7();
+ });
+ document.getElementById('distanceOpenMapsV7')?.addEventListener('click', () => {
+  const type = document.getElementById('distancePinTypeV7')?.value || 'school';
+  openOsmPickerModal(type);
+ });
+ document.getElementById('distancePickSchoolBtn')?.addEventListener('click', () => openOsmPickerModal('school'));
+ document.getElementById('distancePickUniversityBtn')?.addEventListener('click', () => openOsmPickerModal('university'));
+ document.getElementById('distanceSavePinsV7')?.addEventListener('click', saveFuturePathV7);
+ document.getElementById('distanceRefreshBtnV7')?.addEventListener('click', () => loadClassPathsGlobeV7());
+ loadClassPathsGlobeV7();
+}"""
+        text = replace_function(text, "upgradeDistanceFlowToMaps", upgraded_distance_flow)
+        changes.append("index: replaced inaccurate map flow with built-in OSM picker flow")
+
+    if "async function loadStudentDirectoryV7()" in text and "distanceSectionV7" in text:
+        upgraded_directory_loader = """async function loadStudentDirectoryV7(){
+ try{
+  const res = await fetch(apiUrl('/api/student-directory'));
+  const data = await res.json();
+  const students = data.success ? (data.students || []) : [];
+  const nameSel = document.getElementById('distanceStudentNameV7');
+  const sectionSel = document.getElementById('distanceSectionV7');
+  if (nameSel) {
+   nameSel.innerHTML = '<option value="">Select your name</option>' + students.map(s => `<option value="${escapeAttr(s.name)}" data-section="${escapeAttr(s.section)}">${escapeHtml(s.name)} (${escapeHtml(s.section)})</option>`).join('');
+   nameSel.onchange = () => {
+    const opt = nameSel.options[nameSel.selectedIndex];
+    if (opt && sectionSel && opt.getAttribute('data-section')) sectionSel.value = opt.getAttribute('data-section');
+   };
+  }
+  if (sectionSel) {
+   const sections = Array.from(new Set(students.map(s => String(s.section || '').trim()).filter(Boolean)));
+   sectionSel.innerHTML = '<option value="">Select section</option>' + sections.map(s => `<option value="${escapeAttr(s)}">${escapeHtml(s)}</option>`).join('');
+  }
+ }catch(_){}
+}"""
+        text = replace_function(text, "loadStudentDirectoryV7", upgraded_directory_loader)
+        changes.append("index: improved student directory loading for map flow")
+
+    if "async function saveFuturePathV7()" in text:
+        upgraded_save_future = """async function saveFuturePathV7(){
+ const studentName = document.getElementById('distanceStudentNameV7')?.value?.trim();
+ const section = document.getElementById('distanceSectionV7')?.value?.trim();
+ const schoolPoint = window.__SNIPER_RUNTIME__?.selectedSchool || null;
+ const universityPoint = window.__SNIPER_RUNTIME__?.selectedUniversity || null;
+ const schoolPlaceName = schoolPoint?.label || '';
+ const universityPlaceName = universityPoint?.label || '';
+ if (!studentName) return window.showNotification?.('error', 'Name needed', 'Select your name first.');
+ if (!section) return window.showNotification?.('error', 'Section needed', 'Select your section first.');
+ if (!schoolPoint && !universityPoint) return window.showNotification?.('error', 'No place selected', 'Open the built-in picker and select at least one place.');
+ try{
+  const res = await fetch(apiUrl('/api/destinations/pin-submit'), {
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({ studentName, section, schoolPlaceName, universityPlaceName, schoolPoint, universityPoint })
+  });
+  const data = await res.json();
+  if (!data.success) return window.showNotification?.('error', 'Could not save', data.error || 'Save failed.');
+  window.showNotification?.('success', 'Saved', 'Your future path is now on the class globe.');
+  loadClassPathsGlobeV7();
+ }catch(e){
+  window.showNotification?.('error', 'Could not save', e.message);
+ }
+}"""
+        text = replace_function(text, "saveFuturePathV7", upgraded_save_future)
+        changes.append("index: future path save now includes section and labels")
+
+    if "window.voteMood=async function(key)" in text:
+        mood_vote_fixed = """window.voteMood=async function(key){
+ if(localStorage.getItem('moodVote'))return ffNotify('info','Already voted','You already shared your mood.');
+ moodData[key]=(moodData[key]||0)+1;localStorage.setItem('moodVote',key);renderMoodBoard();
+ try{await ffPost('/api/fun/mood',{mood:key})}catch(_){}
+ ffNotify('success','Vibe noted!','Your mood has been added.');
+};"""
+        text = re.sub(r"window\.voteMood=async function\(key\)\{.*?\n \};", mood_vote_fixed, text, count=1, flags=re.S)
+        changes.append("index: fixed mood board duplicate message")
+
+    diagnostics_block = """
+<script id="sniper-full-diagnostics-script">
+(function(){
+ if (window.__SNIPER_FULL_DIAGNOSTICS__) return;
+ window.__SNIPER_FULL_DIAGNOSTICS__ = true;
+ async function sniperCollectClientErrors() {
+  const issues = [];
+  try {
+   if (!Array.isArray(window.state?.memories)) issues.push('Memories state is missing.');
+   if (Array.isArray(window.state?.memories) && window.state.memories.length === 0) issues.push('Memories are not loading.');
+   const tg = document.getElementById('teachersGrid');
+   if (tg && tg.children.length === 0) issues.push('Teachers are not loading.');
+   const tl = document.getElementById('timelineList');
+   if (tl && tl.children.length === 0) issues.push('Timeline is not loading.');
+   if (document.getElementById('viewAllMemoriesBtn') === null) issues.push('View All Memories button is missing.');
+  } catch (e) {
+   issues.push('Client diagnostics failed: ' + e.message);
+  }
+  return issues;
+ }
+ async function sniperShowAllErrors() {
+  const issues = await sniperCollectClientErrors();
+  if (!issues.length) {
+   if (typeof showNotification === 'function') showNotification('success', 'Diagnostics', 'No obvious client issues found.');
+   return;
+  }
+  if (typeof showNotification === 'function') showNotification('error', 'Diagnostics', issues.join(' | '));
+  console.error('SNIPER diagnostics:', issues);
+ }
+ window.sniperCollectClientErrors = sniperCollectClientErrors;
+ window.sniperShowAllErrors = sniperShowAllErrors;
+ document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+   const fab = document.getElementById('featureTourFab');
+   if (fab && !document.getElementById('sniperErrorFab')) {
+    const btn = document.createElement('button');
+    btn.id = 'sniperErrorFab';
+    btn.className = 'feature-tour-fab';
+    btn.style.bottom = '66px';
+    btn.textContent = 'Errors';
+    btn.addEventListener('click', sniperShowAllErrors);
+    document.body.appendChild(btn);
+   }
+  }, 500);
+ });
+})();
+</script>"""
+    if 'id="sniper-full-diagnostics-script"' not in text and "</body>" in text:
+        text = text.replace("</body>", diagnostics_block + "\n</body>", 1)
+        changes.append("index: sniper now shows all client errors together")
+
+    return text, changes
 
 
 def main() -> None:
     root = Path.cwd()
-    server_js = root / "server.js"
-    index_html = root / "index.html"
+    index_path = root / "index.html"
+    server_path = root / "server.js"
 
-    if not server_js.exists():
-        die("server.js not found in current directory")
-    if not index_html.exists():
-        die("index.html not found in current directory")
+    if not index_path.exists():
+        fail("index.html not found in current directory")
+    if not server_path.exists():
+        fail("server.js not found in current directory")
 
-    patch_server_js(server_js)
-    patch_index_html(index_html)
+    original_index = read_text(index_path)
+    original_server = read_text(server_path)
 
-    result = {
+    new_index, index_changes = patch_index_html(original_index)
+    new_server, server_changes = patch_server_js(original_server)
+
+    backups = []
+    modified = []
+
+    if new_index != original_index:
+        backups.append(backup_file(index_path))
+        write_text(index_path, new_index)
+        modified.append("index.html")
+
+    if new_server != original_server:
+        backups.append(backup_file(server_path))
+        write_text(server_path, new_server)
+        modified.append("server.js")
+
+    print(json.dumps({
         "success": True,
-        "modified": ["server.js", "index.html"],
-        "backups": ["server.js.blindrun.bak", "index.html.blindrun.bak"],
-        "mode": "best-effort-nonfatal"
-    }
-    print(json.dumps(result))
+        "modified": modified,
+        "backups": backups,
+        "changes": server_changes + index_changes
+    }, ensure_ascii=False))
 
 
 if __name__ == "__main__":

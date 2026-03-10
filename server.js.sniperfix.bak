@@ -99,7 +99,7 @@ app.get('/sections/*', (req, res) => res.status(404).send('Component not found')
 app.get('/api/*', (req, res) => res.status(404).json({success: false, error: 'Endpoint not found'}));
 
 // Standard fallback for Single Page Apps
-
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 // ---------------------------
 
 // Serve static files
@@ -139,84 +139,88 @@ const paperNotesPath = path.join(databaseDir, 'paper_notes.json');
 const destinationsPath = path.join(databaseDir, 'destinations.json');
 
 function initDatabase() {
- if (!fs.existsSync(dbPath)) {
-  fs.writeFileSync(dbPath, JSON.stringify({ memories: [], nextId: 1 }, null, 2));
-  console.log(' Created memories database');
- }
- if (!fs.existsSync(sessionsPath)) {
-  fs.writeFileSync(sessionsPath, JSON.stringify({ sessions: [] }, null, 2));
-  console.log(' Created sessions database');
- }
- if (!fs.existsSync(settingsPath)) {
-  fs.writeFileSync(settingsPath, JSON.stringify({ settings: {} }, null, 2));
-  console.log(' Created settings database');
- }
- if (!fs.existsSync(commentsPath)) {
-  fs.writeFileSync(commentsPath, JSON.stringify({ comments: [], nextId: 1 }, null, 2));
-  console.log(' Created comments database');
- }
- if (!fs.existsSync(reactionsPath)) {
-  fs.writeFileSync(reactionsPath, JSON.stringify({ reactions: [] }, null, 2));
-  console.log(' Created reactions database');
- }
- if (!fs.existsSync(auditPath)) {
-  fs.writeFileSync(auditPath, JSON.stringify({ events: [], nextId: 1 }, null, 2));
-  console.log(' Created audit database');
- }
- if (!fs.existsSync(adminPath)) {
-  const now = new Date().toISOString();
-  fs.writeFileSync(adminPath, JSON.stringify({
-   users: [
-    {
-     id: 'super',
-     name: 'Super Admin',
-     role: 'superadmin',
-     password: ADMIN_PASSWORD,
-     createdAt: now,
-     updatedAt: now,
-     disabled: false,
-     permissions: {
-      moderation: true,
-      settings: true,
-      theme: true,
-      export: true,
-      users: true,
-      trash: true,
-      replaceFile: true,
-      editMemory: true,
-      bulk: true,
-      featured: true
-     }
-    }
-   ]
-  }, null, 2));
-  console.log(' Created admin database with super admin');
- }
- if (!fs.existsSync(compilationsPath)) {
-  fs.writeFileSync(compilationsPath, JSON.stringify({ compilations: [], nextId: 1 }, null, 2));
-  console.log(' Created compilations database');
- }
+  if (!fs.existsSync(dbPath)) {
+    fs.writeFileSync(dbPath, JSON.stringify({ memories: [], nextId: 1 }, null, 2));
+    console.log('💾 Created memories database');
+  }
+  if (!fs.existsSync(sessionsPath)) {
+    fs.writeFileSync(sessionsPath, JSON.stringify({ sessions: [] }, null, 2));
+    console.log('💾 Created sessions database');
+  }
+  if (!fs.existsSync(settingsPath)) {
+    fs.writeFileSync(settingsPath, JSON.stringify({ settings: {} }, null, 2));
+    console.log('💾 Created settings database');
+  }
+  if (!fs.existsSync(commentsPath)) {
+    fs.writeFileSync(commentsPath, JSON.stringify({ comments: [], nextId: 1 }, null, 2));
+    console.log('💾 Created comments database');
+  }
+  if (!fs.existsSync(reactionsPath)) {
+    fs.writeFileSync(reactionsPath, JSON.stringify({ reactions: [] }, null, 2));
+    console.log('💾 Created reactions database');
+  }
+  if (!fs.existsSync(auditPath)) {
+    fs.writeFileSync(auditPath, JSON.stringify({ events: [], nextId: 1 }, null, 2));
+    console.log('💾 Created audit database');
+  }
+
+  // Admin users database
+  if (!fs.existsSync(adminPath)) {
+    const now = new Date().toISOString();
+    fs.writeFileSync(adminPath, JSON.stringify({
+      users: [
+        {
+          id: 'super',
+          name: 'Super Admin',
+          role: 'superadmin',
+          password: ADMIN_PASSWORD,
+          createdAt: now,
+          updatedAt: now,
+          disabled: false,
+          permissions: {
+            moderation: true,
+            settings: true,
+            theme: true,
+            export: true,
+            users: true,
+            trash: true,
+            replaceFile: true,
+            editMemory: true,
+            bulk: true,
+            featured: true
+          }
+        }
+      ]
+    }, null, 2));
+    console.log('💾 Created admin database with super admin');
+  }
+  if (!fs.existsSync(compilationsPath)) {
+    fs.writeFileSync(compilationsPath, JSON.stringify({ compilations: [], nextId: 1 }, null, 2));
+    console.log('💾 Created compilations database');
+  }
+  
+}
  if (!fs.existsSync(studentDirectoryPath)) {
-  fs.writeFileSync(studentDirectoryPath, JSON.stringify({ students: [] }, null, 2));
-  console.log(' Created student directory database');
+ fs.writeFileSync(studentDirectoryPath, JSON.stringify({ students: [] }, null, 2));
+ console.log(' Created student directory database');
  }
  if (!fs.existsSync(funPath)) {
-  fs.writeFileSync(funPath, JSON.stringify({ settings: {}, gratitude: [], superlatives: { categories: [] }, wishes: [], dedications: [], mood: { votes: {} }, capsules: [] }, null, 2));
-  console.log(' Created fun features database');
+ fs.writeFileSync(funPath, JSON.stringify({ settings: {}, gratitude: [], superlatives: { categories: [] }, wishes: [], dedications: [], mood: { votes: {} }, capsules: [] }, null, 2));
+ console.log(' Created fun features database');
  }
  if (!fs.existsSync(teacherAudioPath)) {
-  fs.writeFileSync(teacherAudioPath, JSON.stringify({ items: [], nextId: 1 }, null, 2));
-  console.log(' Created teacher audio database');
+ fs.writeFileSync(teacherAudioPath, JSON.stringify({ items: [], nextId: 1 }, null, 2));
+ console.log(' Created teacher audio database');
  }
  if (!fs.existsSync(paperNotesPath)) {
-  fs.writeFileSync(paperNotesPath, JSON.stringify({ notes: [], nextId: 1 }, null, 2));
-  console.log(' Created paper notes database');
+ fs.writeFileSync(paperNotesPath, JSON.stringify({ notes: [], nextId: 1 }, null, 2));
+ console.log(' Created paper notes database');
  }
  if (!fs.existsSync(destinationsPath)) {
-  fs.writeFileSync(destinationsPath, JSON.stringify({ destinations: [], submissions: [], nextId: 1 }, null, 2));
-  console.log(' Created destinations database');
+ fs.writeFileSync(destinationsPath, JSON.stringify({ destinations: [], submissions: [], nextId: 1 }, null, 2));
+ console.log(' Created destinations database');
  }
-}
+
 
 function safeReadJson(filePath, fallback) {
   try {
@@ -648,15 +652,13 @@ wss.on('connection', (ws) => {
 
 // Get Site Settings (public)
 app.get('/api/settings', (req, res) => {
- try {
-  const data = readSettings();
-  const settings = data.settings || {};
-  const studentDirectory = readStudentDirectory().students || [];
-  res.json({ success: true, settings: { ...settings, studentDirectory } });
- } catch (error) {
-  console.error('Get settings error:', error);
-  res.status(500).json({ success: false, error: error.message });
- }
+  try {
+    const data = readSettings();
+    res.json({ success: true, settings: data.settings || {} });
+  } catch (error) {
+    console.error('Get settings error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // Upload Memory
@@ -761,37 +763,49 @@ app.post('/api/upload', upload.array('files', MAX_FILES), checkTotalSize, (req, 
 
 // Get Approved Memories
 app.get('/api/memories', (req, res) => {
- try {
-  const db = readDB();
-  const page = Math.max(1, parseInt(req.query.page || '1', 10));
-  const limit = Math.min(5000, Math.max(1, parseInt(req.query.limit || '20', 10)));
-  const type = req.query.type || 'all';
-  let memories = db.memories.filter(m => m.approved === 1 && !m.deletedAt && !m.purgedAt);
-  if (type !== 'all') memories = memories.filter(m => m.memory_type === type);
-  memories.sort((a, b) => {
-   if ((b.featured || 0) !== (a.featured || 0)) return (b.featured || 0) - (a.featured || 0);
-   return new Date(b.created_at) - new Date(a.created_at);
-  });
-  const total = memories.length;
-  const start = (page - 1) * limit;
-  const items = memories.slice(start, start + limit).map(m => {
-   const shaped = memoryPublicShape(m);
-   shaped.reactions = getReactionCountsForMemory(m.id);
-   return shaped;
-  });
-  res.json({
-   success: true,
-   memories: items,
-   page,
-   limit,
-   total,
-   nextCursor: items.length ? items[items.length - 1].created_at : null,
-   hasMore: start + limit < total
-  });
- } catch (error) {
-  console.error('Get memories error:', error);
-  res.status(500).json({ success: false, error: error.message });
- }
+  try {
+    const db = readDB();
+
+    const page = Math.max(1, parseInt(req.query.page || '1', 10));
+    const limit = Math.min(5000, Math.max(1, parseInt(req.query.limit || '20', 10)));
+    const type = req.query.type || 'all';
+    const cursor = req.query.cursor ? new Date(req.query.cursor) : null;
+
+    let memories = db.memories
+      .filter(m => m.approved === 1 && !m.deletedAt && !m.purgedAt);
+
+    if (type !== 'all') memories = memories.filter(m => m.memory_type === type);
+
+    if (cursor) memories = memories.filter(m => new Date(m.created_at) < cursor);
+
+    memories.sort((a, b) => {
+      if ((b.featured || 0) !== (a.featured || 0)) return (b.featured || 0) - (a.featured || 0);
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+
+    const total = memories.length;
+    const start = (page - 1) * limit;
+    const items = memories.slice(start, start + limit).map(m => {
+      const shaped = memoryPublicShape(m);
+      shaped.reactions = getReactionCountsForMemory(m.id);
+      return shaped;
+    });
+
+    const nextCursor = items.length ? items[items.length - 1].created_at : null;
+
+    res.json({
+      success: true,
+      memories: items,
+      page,
+      limit,
+      total,
+      nextCursor,
+      hasMore: start + limit < total
+    });
+  } catch (error) {
+    console.error('Get memories error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // Like Memory
@@ -1505,37 +1519,33 @@ app.post('/api/admin/student-directory', (req, res) => {
 });
 // Settings save
 app.post('/api/admin/settings', (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const incoming = req.body?.settings;
-  if (!incoming || typeof incoming !== 'object') return res.status(400).json({ success: false, error: 'Missing settings object' });
-  const istFields = ['farewellIST', 'uploadWindowStartIST', 'uploadWindowEndIST', 'autoApproveStartIST', 'autoApproveEndIST'];
-  for (const f of istFields) {
-   if (incoming[f] && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(incoming[f])) {
-    return res.status(400).json({ success: false, error: `Invalid ${f} format. Use YYYY-MM-DDTHH:mm` });
-   }
+  try {
+    const auth = requireAdmin(req, res);
+    if (!auth) return;
+    if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+
+    const incoming = req.body?.settings;
+    if (!incoming || typeof incoming !== 'object') return res.status(400).json({ success: false, error: 'Missing settings object' });
+
+    const istFields = ['farewellIST', 'uploadWindowStartIST', 'uploadWindowEndIST', 'autoApproveStartIST', 'autoApproveEndIST'];
+    for (const f of istFields) {
+      if (incoming[f] && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(incoming[f])) {
+        return res.status(400).json({ success: false, error: `Invalid ${f} format. Use YYYY-MM-DDTHH:mm` });
+      }
+    }
+
+    if (incoming.theme && !hasPerm(auth.user, 'theme')) {
+      return res.status(403).json({ success: false, error: 'No permission to edit theme' });
+    }
+
+    writeSettings({ settings: incoming });
+    audit(auth.user.id, 'save-settings', {});
+    broadcast('settings:update', {});
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
   }
-  if (incoming.theme && !hasPerm(auth.user, 'theme')) {
-   return res.status(403).json({ success: false, error: 'No permission to edit theme' });
-  }
-  if (Array.isArray(incoming.studentDirectory)) {
-   const cleanedStudents = incoming.studentDirectory.map(s => ({
-    name: String(s?.name || '').trim().substring(0, 80),
-    section: String(s?.section || '').trim().substring(0, 20)
-   })).filter(s => s.name && s.section);
-   writeStudentDirectory({ students: cleanedStudents });
-  }
-  const settingsOnly = { ...incoming };
-  delete settingsOnly.studentDirectory;
-  writeSettings({ settings: settingsOnly });
-  audit(auth.user.id, 'save-settings', {});
-  broadcast('settings:update', {});
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
 });
 
 // Change own password
@@ -1924,7 +1934,7 @@ app.post('/api/admin/upload-teacher-image', upload.single('image'), (req, res) =
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ERROR HANDLING
@@ -2249,29 +2259,6 @@ wss.on('connection', (ws) => {
    if (data.type === 'paper:note:broadcast' && data.note) broadcast('paper:note', { note: data.note });
   } catch (_) {}
  });
-});
-
-app.post('/api/admin/destinations-search', async (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const query = String(req.body?.query || '').trim();
-  if (!query) return res.status(400).json({ success: false, error: 'query required' });
-  const response = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&q=' + encodeURIComponent(query), {
-   headers: { 'User-Agent': 'cornerstone-farewell/1.0', 'Accept': 'application/json' }
-  });
-  const rows = await response.json();
-  const results = Array.isArray(rows) ? rows.map(row => ({
-   place: String(row.display_name || '').trim(),
-   name: String(row.display_name || '').trim(),
-   lat: Number(row.lat),
-   lng: Number(row.lon)
-  })).filter(x => x.place && Number.isFinite(x.lat) && Number.isFinite(x.lng)) : [];
-  res.json({ success: true, results });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
 });
 // ═══════════════════════════════════════════════════════════════════════════════
 // START SERVER
