@@ -92,7 +92,6 @@ app.use(express.urlencoded({ extended: true }));
 // --- SNIPER SAFE ROUTING --- 
 app.use(express.static(__dirname));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/music', express.static(path.join(__dirname, 'music')));
 
 // Prevent infinite loops: Block missing frontend components from fetching index.html
 app.get('/sections/*', (req, res) => res.status(404).send('Component not found'));
@@ -133,10 +132,6 @@ const reactionsPath = path.join(databaseDir, 'reactions.json');
 const auditPath = path.join(databaseDir, 'audit.json');
 const compilationsPath = path.join(databaseDir, 'compilations.json');
 const studentDirectoryPath = path.join(databaseDir, 'student_directory.json');
-const funPath = path.join(databaseDir, 'fun_features.json');
-const teacherAudioPath = path.join(databaseDir, 'teacher_audio.json');
-const paperNotesPath = path.join(databaseDir, 'paper_notes.json');
-const destinationsPath = path.join(databaseDir, 'destinations.json');
 
 function initDatabase() {
   if (!fs.existsSync(dbPath)) {
@@ -200,27 +195,6 @@ function initDatabase() {
   }
   
 }
- if (!fs.existsSync(studentDirectoryPath)) {
- fs.writeFileSync(studentDirectoryPath, JSON.stringify({ students: [] }, null, 2));
- console.log(' Created student directory database');
- }
- if (!fs.existsSync(funPath)) {
- fs.writeFileSync(funPath, JSON.stringify({ settings: {}, gratitude: [], superlatives: { categories: [] }, wishes: [], dedications: [], mood: { votes: {} }, capsules: [] }, null, 2));
- console.log(' Created fun features database');
- }
- if (!fs.existsSync(teacherAudioPath)) {
- fs.writeFileSync(teacherAudioPath, JSON.stringify({ items: [], nextId: 1 }, null, 2));
- console.log(' Created teacher audio database');
- }
- if (!fs.existsSync(paperNotesPath)) {
- fs.writeFileSync(paperNotesPath, JSON.stringify({ notes: [], nextId: 1 }, null, 2));
- console.log(' Created paper notes database');
- }
- if (!fs.existsSync(destinationsPath)) {
- fs.writeFileSync(destinationsPath, JSON.stringify({ destinations: [], submissions: [], nextId: 1 }, null, 2));
- console.log(' Created destinations database');
- }
-
 
 function safeReadJson(filePath, fallback) {
   try {
@@ -298,37 +272,6 @@ function readCompilations() {
 function writeCompilations(data) {
   safeWriteJson(compilationsPath, data);
 }
-function readStudentDirectory() {
- return safeReadJson(studentDirectoryPath, { students: [] });
-}
-function writeStudentDirectory(data) {
- safeWriteJson(studentDirectoryPath, data);
-}
-function readFun() {
- return safeReadJson(funPath, { settings: {}, gratitude: [], superlatives: { categories: [] }, wishes: [], dedications: [], mood: { votes: {} }, capsules: [] });
-}
-function writeFun(data) {
- safeWriteJson(funPath, data);
-}
-function readTeacherAudio() {
- return safeReadJson(teacherAudioPath, { items: [], nextId: 1 });
-}
-function writeTeacherAudio(data) {
- safeWriteJson(teacherAudioPath, data);
-}
-function readPaperNotes() {
- return safeReadJson(paperNotesPath, { notes: [], nextId: 1 });
-}
-function writePaperNotes(data) {
- safeWriteJson(paperNotesPath, data);
-}
-function readDestinationsDb() {
- return safeReadJson(destinationsPath, { destinations: [], submissions: [], nextId: 1 });
-}
-function writeDestinationsDb(data) {
- safeWriteJson(destinationsPath, data);
-}
-
 
 initDatabase();
 console.log(`💾 Database initialized: ${dbPath}`);
@@ -1713,38 +1656,25 @@ app.get('/api/admin/export/csv', (req, res) => {
 
 // Get all compilations (public)
 app.get('/api/compilations', (req, res) => {
- try {
- const data = readCompilations();
- const db = readDB();
- const compilations = (data.compilations || []).map(comp => ({
-  ...comp,
-  slides: (comp.slides || []).map(s => {
-   const memory = db.memories.find(m => m.id === Number(s.memoryId) && !m.purgedAt);
-   return { ...s, file_url: memory ? `/uploads/${memory.file_path}` : null };
-  })
- }));
- res.json({ success: true, compilations });
- } catch (e) {
- res.status(500).json({ success: false, error: e.message });
- }
+  try {
+    const data = readCompilations();
+    res.json({ success: true, compilations: data.compilations || [] });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
 });
 
 // Get single compilation (public)
 app.get('/api/compilations/:id', (req, res) => {
- try {
- const id = parseInt(req.params.id, 10);
- const data = readCompilations();
- const db = readDB();
- const comp = data.compilations.find(c => c.id === id);
- if (!comp) return res.status(404).json({ success: false, error: 'Not found' });
- const slides = (comp.slides || []).map(s => {
-  const memory = db.memories.find(m => m.id === Number(s.memoryId) && !m.purgedAt);
-  return { ...s, file_url: memory ? `/uploads/${memory.file_path}` : null };
- });
- res.json({ success: true, compilation: { ...comp, slides } });
- } catch (e) {
- res.status(500).json({ success: false, error: e.message });
- }
+  try {
+    const id = parseInt(req.params.id, 10);
+    const data = readCompilations();
+    const comp = data.compilations.find(c => c.id === id);
+    if (!comp) return res.status(404).json({ success: false, error: 'Not found' });
+    res.json({ success: true, compilation: comp });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
 });
 
 // Create compilation (admin)
@@ -1768,7 +1698,7 @@ app.post('/api/admin/compilations', (req, res) => {
         duration: Math.min(60, Math.max(1, Number(s.duration) || 5))
       })),
       displayMode: displayMode === 'manual' ? 'manual' : 'auto',
-      transitionType: ['fade', 'slide', 'zoom', 'flip', 'blur'].includes(transitionType) ? transitionType : 'fade',
+      transitionType: ['fade', 'slide', 'zoom', 'flip'].includes(transitionType) ? transitionType : 'fade',
       createdAt: nowIso(),
       updatedAt: nowIso()
     };
@@ -1804,7 +1734,7 @@ app.post('/api/admin/compilations/:id', (req, res) => {
       }));
     }
     if (displayMode) comp.displayMode = displayMode === 'manual' ? 'manual' : 'auto';
-    if (transitionType && ['fade', 'slide', 'zoom', 'flip', 'blur'].includes(transitionType)) {
+    if (transitionType && ['fade', 'slide', 'zoom', 'flip'].includes(transitionType)) {
       comp.transitionType = transitionType;
     }
     comp.updatedAt = nowIso();
@@ -1954,312 +1884,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, error: err.message || 'Internal server error' });
 });
 
-
-function getClientIp(req) {
- return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-}
-function isRateLimited(items, ip, maxCount, windowMs) {
- const now = Date.now();
- return items.filter(x => String(x.ip || '') === ip && (now - new Date(x.createdAt).getTime()) <= windowMs).length >= maxCount;
-}
-app.get('/api/teacher-audio', (req, res) => {
- try {
-  const db = readTeacherAudio();
-  res.json({ success: true, items: db.items || [] });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/admin/teacher-audio', adminUpload.single('audio'), (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const teacherName = String(req.body?.teacherName || '').trim().substring(0, 80);
-  const file = req.file;
-  if (!teacherName) return res.status(400).json({ success: false, error: 'teacherName required' });
-  if (!file) return res.status(400).json({ success: false, error: 'audio file required' });
-  const db = readTeacherAudio();
-  let item = db.items.find(x => String(x.teacherName || '').toLowerCase() === teacherName.toLowerCase());
-  if (!item) {
-   item = { id: db.nextId++, teacherName, audioPath: file.filename, createdAt: nowIso(), updatedAt: nowIso() };
-   db.items.push(item);
-  } else {
-   const old = item.audioPath;
-   item.audioPath = file.filename;
-   item.updatedAt = nowIso();
-   if (old) {
-    const fp = path.join(uploadsDir, old);
-    if (fs.existsSync(fp)) {
-     try { fs.unlinkSync(fp); } catch (_) {}
-    }
-   }
-  }
-  writeTeacherAudio(db);
-  const settings = readSettings();
-  settings.settings = settings.settings || {};
-  settings.settings.teachers = Array.isArray(settings.settings.teachers) ? settings.settings.teachers : [];
-  const teacher = settings.settings.teachers.find(t => String(t.name || '').toLowerCase() === teacherName.toLowerCase());
-  if (teacher) teacher.audioPath = file.filename;
-  writeSettings(settings);
-  audit(auth.user.id, 'upload-teacher-audio', { teacherName });
-  broadcast('settings:update', {});
-  res.json({ success: true, item });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/admin/settings/intro-video', adminUpload.single('file'), (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const file = req.file;
-  if (!file) return res.status(400).json({ success: false, error: 'No video file' });
-  const settings = readSettings();
-  settings.settings = settings.settings || {};
-  settings.settings.introVideoPath = file.filename;
-  writeSettings(settings);
-  audit(auth.user.id, 'upload-intro-video-alias', { filename: file.filename });
-  broadcast('settings:update', {});
-  res.json({ success: true, path: file.filename });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.delete('/api/admin/settings/intro-video', (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const settings = readSettings();
-  settings.settings = settings.settings || {};
-  const old = settings.settings.introVideoPath;
-  settings.settings.introVideoPath = null;
-  writeSettings(settings);
-  if (old) {
-   const fp = path.join(uploadsDir, old);
-   if (fs.existsSync(fp)) {
-    try { fs.unlinkSync(fp); } catch (_) {}
-   }
-  }
-  audit(auth.user.id, 'remove-intro-video-alias', {});
-  broadcast('settings:update', {});
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/destinations', (req, res) => {
- try {
-  const db = readDestinationsDb();
-  const items = (db.destinations || []).map(item => ({
-   place: String(item.place || item.name || '').trim(),
-   name: String(item.place || item.name || '').trim(),
-   lat: Number.isFinite(Number(item.lat)) ? Number(item.lat) : undefined,
-   lng: Number.isFinite(Number(item.lng)) ? Number(item.lng) : undefined
-  })).filter(item => item.place);
-  res.json({ success: true, destinations: items });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/admin/destinations', (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const raw = Array.isArray(req.body?.destinations) ? req.body.destinations : [];
-  const cleaned = raw.map(x => ({ place: String(typeof x === 'string' ? x : x?.name || x?.place || '').trim() })).filter(x => x.place).slice(0, 500);
-  const db = readDestinationsDb();
-  db.destinations = cleaned;
-  writeDestinationsDb(db);
-  audit(auth.user.id, 'save-destinations', { count: cleaned.length });
-  res.json({ success: true, count: cleaned.length });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/admin/destinations-v2', (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const places = Array.isArray(req.body?.places) ? req.body.places : [];
-  const cleaned = places.map(item => {
-   if (typeof item === 'string') return { place: item.trim() };
-   return { place: String(item?.place || item?.name || '').trim(), lat: Number(item?.lat), lng: Number(item?.lng) };
-  }).filter(item => item.place).slice(0, 1000);
-  const db = readDestinationsDb();
-  db.destinations = cleaned;
-  writeDestinationsDb(db);
-  audit(auth.user.id, 'save-destinations-v2-advanced', { count: cleaned.length });
-  res.json({ success: true, count: cleaned.length });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/destinations/submit', (req, res) => {
- try {
-  const destination = String(req.body?.destination || '').trim();
-  if (!destination) return res.status(400).json({ success: false, error: 'destination required' });
-  const db = readDestinationsDb();
-  const ok = (db.destinations || []).find(x => String(x.place || x.name || '').trim().toLowerCase() === destination.toLowerCase());
-  if (!ok) return res.status(400).json({ success: false, error: 'Destination is not allowed' });
-  db.submissions = Array.isArray(db.submissions) ? db.submissions : [];
-  db.submissions.push({ id: db.nextId++, destination, ip: getClientIp(req), createdAt: nowIso() });
-  if (db.submissions.length > 5000) db.submissions = db.submissions.slice(-5000);
-  writeDestinationsDb(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/destinations/submit-v2', (req, res) => {
- try {
-  const studentName = String(req.body?.studentName || '').trim().substring(0, 80);
-  const schoolPlace = String(req.body?.schoolPlace || '').trim().substring(0, 120);
-  const universityPlace = String(req.body?.universityPlace || '').trim().substring(0, 120);
-  if (!studentName) return res.status(400).json({ success: false, error: 'studentName required' });
-  if (!schoolPlace && !universityPlace) return res.status(400).json({ success: false, error: 'At least one place is required' });
-  const db = readDestinationsDb();
-  const allowed = new Set((db.destinations || []).map(x => String(x.place || x.name || '').trim().toLowerCase()));
-  if (schoolPlace && !allowed.has(schoolPlace.toLowerCase())) return res.status(400).json({ success: false, error: 'School place is not allowed' });
-  if (universityPlace && !allowed.has(universityPlace.toLowerCase())) return res.status(400).json({ success: false, error: 'University place is not allowed' });
-  const existing = (db.submissions || []).find(x => String(x.studentName || '').trim().toLowerCase() === studentName.toLowerCase());
-  if (existing) {
-   existing.schoolPlace = schoolPlace;
-   existing.universityPlace = universityPlace;
-   existing.updatedAt = nowIso();
-  } else {
-   db.submissions.push({ id: db.nextId++, studentName, schoolPlace, universityPlace, createdAt: nowIso(), updatedAt: nowIso() });
-  }
-  if (db.submissions.length > 5000) db.submissions = db.submissions.slice(-5000);
-  writeDestinationsDb(db);
-  broadcast('destinations:update', { studentName });
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/destinations/submissions', (req, res) => {
- try {
-  const db = readDestinationsDb();
-  res.json({ success: true, submissions: db.submissions || [] });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/destinations/pin-submit', (req, res) => {
- try {
-  const studentName = String(req.body?.studentName || '').trim().substring(0, 80);
-  const section = String(req.body?.section || '').trim().substring(0, 10);
-  const ranking = String(req.body?.ranking || '').trim().substring(0, 120);
-  const schoolPlaceName = String(req.body?.schoolPlaceName || '').trim().substring(0, 160);
-  const universityPlaceName = String(req.body?.universityPlaceName || '').trim().substring(0, 160);
-  const schoolPoint = req.body?.schoolPoint || null;
-  const universityPoint = req.body?.universityPoint || null;
-  if (!studentName) return res.status(400).json({ success: false, error: 'studentName required' });
-  const validPoint = p => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
-  if (!validPoint(schoolPoint) && !validPoint(universityPoint)) return res.status(400).json({ success: false, error: 'At least one valid point is required' });
-  const db = readDestinationsDb();
-  let existing = (db.submissions || []).find(x => String(x.studentName || '').trim().toLowerCase() === studentName.toLowerCase());
-  const payload = {
-   studentName,
-   section,
-   ranking,
-   schoolPlaceName,
-   universityPlaceName,
-   schoolPoint: validPoint(schoolPoint) ? { lat: Number(schoolPoint.lat), lng: Number(schoolPoint.lng) } : null,
-   universityPoint: validPoint(universityPoint) ? { lat: Number(universityPoint.lat), lng: Number(universityPoint.lng) } : null,
-   updatedAt: nowIso()
-  };
-  if (existing) Object.assign(existing, payload);
-  else db.submissions.push({ id: db.nextId++, createdAt: nowIso(), ...payload });
-  if (db.submissions.length > 5000) db.submissions = db.submissions.slice(-5000);
-  writeDestinationsDb(db);
-  broadcast('destinations:pin-update', { studentName, section });
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/destinations/pin-submissions', (req, res) => {
- try {
-  const db = readDestinationsDb();
-  res.json({ success: true, submissions: db.submissions || [] });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/paper-notes', (req, res) => {
- try {
-  const text = String(req.body?.text || '').trim().substring(0, 400);
-  if (!text) return res.status(400).json({ success: false, error: 'text required' });
-  const db = readPaperNotes();
-  db.notes = Array.isArray(db.notes) ? db.notes : [];
-  const note = { id: db.nextId++, text, ip: getClientIp(req), createdAt: nowIso() };
-  db.notes.push(note);
-  if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
-  writePaperNotes(db);
-  broadcast('paper:note', { note });
-  res.json({ success: true, note });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/paper-notes/random', (req, res) => {
- try {
-  const db = readPaperNotes();
-  const items = db.notes || [];
-  if (!items.length) return res.json({ success: true, note: null });
-  const note = items[Math.floor(Math.random() * items.length)];
-  res.json({ success: true, note });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/paper-notes/from-memory', (req, res) => {
- try {
-  const memoryId = Number(req.body?.memoryId);
-  const dbMem = readDB();
-  const memory = dbMem.memories.find(m => m.id === memoryId && m.approved === 1 && !m.deletedAt && !m.purgedAt);
-  if (!memory) return res.status(404).json({ success: false, error: 'Memory not found' });
-  const db = readPaperNotes();
-  db.notes = Array.isArray(db.notes) ? db.notes : [];
-  const ip = getClientIp(req);
-  if (isRateLimited(db.notes, ip, 5, 60 * 1000)) return res.status(429).json({ success: false, error: 'Rate limit exceeded. Maximum 5 notes per minute.' });
-  const note = { id: db.nextId++, memoryId, caption: String(memory.caption || '').substring(0, 400), text: String(memory.caption || '').substring(0, 400), ip, createdAt: nowIso() };
-  db.notes.push(note);
-  if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
-  writePaperNotes(db);
-  broadcast('paper:note', { note });
-  res.json({ success: true, note });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.get('/api/paper-notes/random-memory', (req, res) => {
- try {
-  const db = readPaperNotes();
-  const notes = (db.notes || []).filter(note => note.memoryId || note.caption || note.text);
-  if (!notes.length) return res.json({ success: true, note: null });
-  const note = notes[Math.floor(Math.random() * notes.length)];
-  res.json({ success: true, note });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-wss.on('connection', (ws) => {
- ws.on('message', raw => {
-  try {
-   const data = JSON.parse(String(raw));
-   if (!data || typeof data !== 'object') return;
-   if (data.type === 'ghost:move') broadcast('ghost:move', data);
-   if (data.type === 'paper:note:broadcast' && data.note) broadcast('paper:note', { note: data.note });
-  } catch (_) {}
- });
-});
 // ═══════════════════════════════════════════════════════════════════════════════
 // START SERVER
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -2795,137 +2419,79 @@ res.json({ success: true, destinations: items });
 // === PRODUCTION_GLOBE_AND_MUSIC_PATCH_END ===
 
 // --- FUN FEATURES API INJECTED ---
-app.get('/api/fun/settings', (req, res) => res.json({ success: true, settings: readFun().settings || {} }));
+const funPath = path.join(databaseDir, 'fun_features.json');
+if (!fs.existsSync(funPath)) {
+    fs.writeFileSync(funPath, JSON.stringify({ settings: {}, gratitude: [], superlatives: { categories: [] }, wishes: [], dedications: [], mood: { votes: {} }, capsules: [] }, null, 2));
+}
+const readFun = () => safeReadJson(funPath, { settings: {}, gratitude: [], superlatives: { categories: [] }, wishes: [], dedications: [], mood: { votes: {} }, capsules: [] });
+const writeFun = (data) => safeWriteJson(funPath, data);
+
+app.get('/api/fun/settings', (req, res) => res.json({ success: true, settings: readFun().settings }));
 app.post('/api/fun/settings', (req, res) => {
- try {
-  const auth = requireAdmin(req, res); if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const db = readFun();
-  db.settings = req.body?.settings || {};
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
+    const auth = requireAdmin(req, res); if (!auth) return;
+    const db = readFun(); db.settings = req.body.settings || {}; writeFun(db);
+    res.json({ success: true });
 });
-app.get('/api/fun/gratitude', (req, res) => res.json({ success: true, notes: readFun().gratitude || [] }));
+
+app.get('/api/fun/gratitude', (req, res) => res.json({ success: true, notes: readFun().gratitude }));
 app.post('/api/fun/gratitude', (req, res) => {
- try {
-  const db = readFun();
-  db.gratitude = Array.isArray(db.gratitude) ? db.gratitude : [];
-  db.gratitude.unshift({ ...req.body, created_at: new Date().toISOString() });
-  db.gratitude = db.gratitude.slice(0, 500);
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
+    const db = readFun();
+    db.gratitude.unshift({ ...req.body, created_at: new Date().toISOString() });
+    writeFun(db); res.json({ success: true });
 });
-app.get('/api/fun/superlatives', (req, res) => {
- try {
-  const db = readFun();
-  res.json({ success: true, categories: Array.isArray(db.superlatives?.categories) ? db.superlatives.categories : [] });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
+
+app.get('/api/fun/superlatives', (req, res) => res.json({ success: true, categories: readFun().superlatives.categories }));
 app.post('/api/fun/superlatives/nominee', (req, res) => {
- try {
-  const db = readFun();
-  db.superlatives = db.superlatives || { categories: [] };
-  db.superlatives.categories = Array.isArray(db.superlatives.categories) ? db.superlatives.categories : [];
-  let cat = db.superlatives.categories.find(c => Number(c.id) === Number(req.body?.categoryId));
-  if (!cat) {
-   cat = { id: Number(req.body?.categoryId), emoji: '🏆', title: 'Category ' + String(req.body?.categoryId || ''), nominees: [] };
-   db.superlatives.categories.push(cat);
-  }
-  cat.nominees = Array.isArray(cat.nominees) ? cat.nominees : [];
-  const name = String(req.body?.name || '').trim().substring(0, 60);
-  if (!name) return res.status(400).json({ success: false, error: 'name required' });
-  if (!cat.nominees.find(n => String(n.name || '').toLowerCase() === name.toLowerCase())) {
-   cat.nominees.push({ id: Date.now(), name, votes: 0 });
-  }
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
+    const db = readFun();
+    let cat = db.superlatives.categories.find(c => c.id === req.body.categoryId);
+    if (!cat) {
+        cat = { id: req.body.categoryId, emoji: '🏆', title: 'Category ' + req.body.categoryId, nominees: [] };
+        db.superlatives.categories.push(cat);
+    }
+    if (!cat.nominees.find(n => n.name === req.body.name)) {
+        cat.nominees.push({ id: Date.now(), name: req.body.name, votes: 1 });
+    }
+    writeFun(db); res.json({ success: true });
 });
 app.post('/api/fun/superlatives/vote', (req, res) => {
- try {
-  const db = readFun();
-  const cat = db.superlatives?.categories?.find(c => Number(c.id) === Number(req.body?.categoryId));
-  if (!cat) return res.status(404).json({ success: false, error: 'Category not found' });
-  const nom = (cat.nominees || []).find(n => String(n.id) === String(req.body?.nomineeId) || String(n.name) === String(req.body?.nomineeId));
-  if (!nom) return res.status(404).json({ success: false, error: 'Nominee not found' });
-  nom.votes = (nom.votes || 0) + 1;
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
+    const db = readFun();
+    const cat = db.superlatives.categories.find(c => c.id === req.body.categoryId);
+    if (cat) {
+        const nom = cat.nominees.find(n => n.id == req.body.nomineeId || n.name === req.body.nomineeId);
+        if (nom) nom.votes = (nom.votes || 0) + 1;
+    }
+    writeFun(db); res.json({ success: true });
 });
-app.get('/api/fun/wishes', (req, res) => res.json({ success: true, wishes: readFun().wishes || [] }));
+
+app.get('/api/fun/wishes', (req, res) => res.json({ success: true, wishes: readFun().wishes }));
 app.post('/api/fun/wishes', (req, res) => {
- try {
-  const db = readFun();
-  db.wishes = Array.isArray(db.wishes) ? db.wishes : [];
-  db.wishes.unshift({ ...req.body, created_at: new Date().toISOString() });
-  db.wishes = db.wishes.slice(0, 500);
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
+    const db = readFun();
+    db.wishes.unshift({ ...req.body, created_at: new Date().toISOString() });
+    writeFun(db); res.json({ success: true });
 });
-app.get('/api/fun/dedications', (req, res) => res.json({ success: true, dedications: readFun().dedications || [] }));
+
+app.get('/api/fun/dedications', (req, res) => res.json({ success: true, dedications: readFun().dedications }));
 app.post('/api/fun/dedications', (req, res) => {
- try {
-  const db = readFun();
-  db.dedications = Array.isArray(db.dedications) ? db.dedications : [];
-  db.dedications.unshift({ ...req.body, created_at: new Date().toISOString() });
-  db.dedications = db.dedications.slice(0, 500);
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
+    const db = readFun();
+    db.dedications.unshift({ ...req.body, created_at: new Date().toISOString() });
+    writeFun(db); res.json({ success: true });
 });
-app.get('/api/fun/mood', (req, res) => res.json({ success: true, votes: (readFun().mood || {}).votes || {} }));
+
+app.get('/api/fun/mood', (req, res) => res.json({ success: true, votes: readFun().mood.votes }));
 app.post('/api/fun/mood', (req, res) => {
- try {
-  const db = readFun();
-  db.mood = db.mood || { votes: {} };
-  db.mood.votes = db.mood.votes || {};
-  const mood = String(req.body?.mood || '').trim();
-  if (!mood) return res.status(400).json({ success: false, error: 'mood required' });
-  db.mood.votes[mood] = (db.mood.votes[mood] || 0) + 1;
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
+    const db = readFun();
+    const m = req.body.mood;
+    db.mood.votes[m] = (db.mood.votes[m] || 0) + 1;
+    writeFun(db); res.json({ success: true });
 });
-app.get('/api/fun/capsules', (req, res) => res.json({ success: true, capsules: readFun().capsules || [] }));
+
+app.get('/api/fun/capsules', (req, res) => res.json({ success: true, capsules: readFun().capsules }));
 app.post('/api/fun/capsules', (req, res) => {
- try {
-  const db = readFun();
-  db.capsules = Array.isArray(db.capsules) ? db.capsules : [];
-  db.capsules.unshift({ ...req.body, created_at: new Date().toISOString() });
-  db.capsules = db.capsules.slice(0, 500);
-  writeFun(db);
-  res.json({ success: true });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
+    const db = readFun();
+    db.capsules.unshift({ ...req.body, created_at: new Date().toISOString() });
+    writeFun(db); res.json({ success: true });
 });
 // ----------------------------------
-
-app.get('*', (req, res) => {
- if (req.path.startsWith('/api/')) return res.status(404).json({ success: false, error: 'Endpoint not found' });
- if (req.path.startsWith('/uploads/') || req.path.startsWith('/music/')) return res.status(404).send('Not found');
- return res.sendFile(path.join(__dirname, 'index.html'));
-});
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log('');

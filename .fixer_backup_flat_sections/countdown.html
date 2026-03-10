@@ -1,0 +1,468 @@
+<section id="countdown">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge" id="uiCountdownBadge">Mark Your Calendar</span>
+        <h2 class="section-title" id="uiCountdownTitle">Countdown to <span class="highlight">Farewell</span></h2>
+        <p class="section-description" id="uiCountdownDesc">The moment we've all been waiting for is almost here</p>
+      </div>
+
+      <div class="countdown-container">
+        <div class="countdown-item"><div class="countdown-number" id="days">00</div><div class="countdown-label">Days</div></div>
+        <div class="countdown-item"><div class="countdown-number" id="hours">00</div><div class="countdown-label">Hours</div></div>
+        <div class="countdown-item"><div class="countdown-number" id="minutes">00</div><div class="countdown-label">Minutes</div></div>
+        <div class="countdown-item"><div class="countdown-number" id="seconds">00</div><div class="countdown-label">Seconds</div></div>
+      </div>
+
+      <div class="event-date-display">
+        <p id="uiEventDateLine"><span>March 15, 2026</span> at <span>6:00 PM</span> IST</p>
+      </div>
+    </div>
+  
+<script>
+/* === SNIPER_PATCH_V4_START === */
+(function(){
+  if (window.__SNIPER_PATCH_V4__) return;
+  window.__SNIPER_PATCH_V4__ = true;
+
+  const v4State = {
+    popupsArmed: false,
+    popupsShown: false,
+    countdownLockInstalled: false,
+    countdownTimerHandle: null,
+    destinationDataLoaded: false
+  };
+
+  function v4Boot(){
+    installCountdownEnhancements();
+    moveAndUpgradeDistanceSection();
+    installScrollTriggeredPopups();
+    hardenButtonsAndNotes();
+    patchDestinationFlow();
+    patchAdminDestinationPanel();
+  }
+
+  function installCountdownEnhancements(){
+    const section = document.getElementById('countdown');
+    const container = section?.querySelector('.container');
+    if (!section || !container || document.getElementById('countdownSuspense')) return;
+
+    const block = document.createElement('div');
+    block.id = 'countdownSuspense';
+    block.innerHTML = `
+      <div class="countdown-suspense-card">
+        <div id="countdownSurpriseTease"><strong>Wait for it.</strong> When this clock hits zero, the site does not just end. It transforms.</div>
+      </div>
+      <div class="countdown-suspense-card">
+        A final bell. A surprise goodbye. One last shared moment for everyone still here together.
+      </div>
+      <div id="countdownSurpriseBanner">
+        Stay till the very end. Something unforgettable is waiting at zero.
+      </div>
+    `;
+    container.appendChild(block);
+
+    setTimeout(() => {
+      const banner = document.getElementById('countdownSurpriseBanner');
+      if (banner) banner.classList.add('active');
+    }, 1400);
+
+    patchCountdownLock();
+  }
+
+  function patchCountdownLock(){
+    if (v4State.countdownLockInstalled) return;
+    v4State.countdownLockInstalled = true;
+
+    const originalInitCountdown = window.initCountdown;
+    if (typeof originalInitCountdown === 'function' && !originalInitCountdown.__v4Wrapped){
+      window.initCountdown = function(){
+        if (v4State.countdownTimerHandle) clearInterval(v4State.countdownTimerHandle);
+        if (typeof window.updateCountdown === 'function') window.updateCountdown();
+        v4State.countdownTimerHandle = setInterval(() => {
+          try { window.updateCountdown(); } catch(_){}
+        }, 1000);
+      };
+      window.initCountdown.__v4Wrapped = true;
+    }
+
+    const originalUpdate = window.updateCountdown;
+    if (typeof originalUpdate === 'function' && !originalUpdate.__v4Wrapped){
+      window.updateCountdown = function(){
+        const target = window.parseISTLocalToDate?.(window.state?.settings?.farewellIST);
+        if (!target) return originalUpdate.apply(this, arguments);
+        const now = new Date();
+        let diff = target.getTime() - now.getTime();
+        if (diff < 0) diff = 0;
+
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+        if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+
+        if (diff <= 0){
+          daysEl.textContent = '00';
+          hoursEl.textContent = '00';
+          minutesEl.textContent = '00';
+          secondsEl.textContent = '00';
+          try {
+            if (window.triggerLastBell && !window.__v4LastBellTriggered) {
+              window.__v4LastBellTriggered = true;
+              window.triggerLastBell();
+            }
+          } catch(_){}
+          return;
+        }
+
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        daysEl.textContent = String(d).padStart(2, '0');
+        hoursEl.textContent = String(h).padStart(2, '0');
+        minutesEl.textContent = String(m).padStart(2, '0');
+        secondsEl.textContent = String(s).padStart(2, '0');
+      };
+      window.updateCountdown.__v4Wrapped = true;
+    }
+  }
+
+  function moveAndUpgradeDistanceSection(){
+    const sec = document.getElementById('distanceMapSection');
+    const footer = document.querySelector('footer');
+    if (!sec || !footer || sec.dataset.v4Done === '1') return;
+    sec.dataset.v4Done = '1';
+
+    footer.parentNode.insertBefore(sec, footer);
+
+    const header = sec.querySelector('.section-header');
+    if (header && !document.getElementById('distanceBriefCard')){
+      const brief = document.createElement('div');
+      brief.id = 'distanceBriefCard';
+      brief.innerHTML = `
+        <strong>No matter where everyone goes next, every line begins here.</strong>
+        Choose where your <strong>11th / 12th</strong> path may continue, and where your <strong>university dream</strong> might take you.
+        Then launch the map and watch the class spread across the world while still staying connected to one starting point.
+      `;
+      header.insertAdjacentElement('afterend', brief);
+    }
+
+    const controls = document.getElementById('distanceControls');
+    if (controls && !document.getElementById('distanceStudentName')){
+      controls.innerHTML = `
+        <div class="form-group">
+          <label>Your Name</label>
+          <input class="form-input" id="distanceStudentName" placeholder="Enter your name" maxlength="80" />
+        </div>
+        <div class="form-group">
+          <label>Future place for 11th / 12th</label>
+          <select class="form-select" id="destinationSelectSchool">
+            <option value="">Choose a place</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Your university dream place</label>
+          <select class="form-select" id="destinationSelectUniversity">
+            <option value="">Choose a place</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Map Focus</label>
+          <select class="form-select" id="distanceMapMode">
+            <option value="globe">Class Globe View</option>
+            <option value="maps">Open Google Maps Search</option>
+          </select>
+        </div>
+        <div id="distanceLaunchWrap">
+          <button class="btn btn-primary" type="button" id="destinationLaunchBtn">Launch the Future Map</button>
+          <button class="btn btn-secondary" type="button" id="distanceRefreshBtn">Refresh Class Paths</button>
+        </div>
+      `;
+    }
+
+    const wrap = document.getElementById('distanceMapWrap');
+    if (wrap && !document.getElementById('distanceRealMapFrame')){
+      wrap.innerHTML = `
+        <div id="distanceOverlayStats"></div>
+        <iframe
+          id="distanceRealMapFrame"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          src="https://www.openstreetmap.org/export/embed.html?bbox=-180%2C-60%2C180%2C85&layer=mapnik"
+          allowfullscreen>
+        </iframe>
+      `;
+    }
+  }
+
+  function installScrollTriggeredPopups(){
+    if (v4State.popupsArmed) return;
+    v4State.popupsArmed = true;
+
+    const openMaybe = () => {
+      if (v4State.popupsShown) return;
+      const countdown = document.getElementById('countdown');
+      if (!countdown) return;
+      const rect = countdown.getBoundingClientRect();
+      const crossed = rect.bottom < (window.innerHeight * 0.35);
+      const introVisible = document.getElementById('introVideoOverlay') && getComputedStyle(document.getElementById('introVideoOverlay')).display !== 'none';
+      if (!crossed || introVisible) return;
+
+      v4State.popupsShown = true;
+      setTimeout(() => document.getElementById('ghostCursorPopup')?.classList.add('active'), 450);
+      setTimeout(() => document.getElementById('paperTutorial')?.classList.add('active'), 1800);
+      window.removeEventListener('scroll', openMaybe);
+    };
+
+    window.addEventListener('scroll', openMaybe, { passive: true });
+    setTimeout(openMaybe, 2500);
+  }
+
+  function hardenButtonsAndNotes(){
+    const noteBtn = document.getElementById('sendNoteBtn');
+    if (noteBtn) noteBtn.textContent = 'Memory Note';
+    const ghostBtn = document.getElementById('ghostCursorToggle');
+    if (ghostBtn) ghostBtn.textContent = 'Ghost';
+
+    const oldInitPaper = window.initPaperAirplanes;
+    if (typeof oldInitPaper === 'function' && !oldInitPaper.__v4Wrapped){
+      window.initPaperAirplanes = function(){
+        const out = oldInitPaper.apply(this, arguments);
+        const btn = document.getElementById('sendNoteBtn');
+        if (btn) btn.onclick = null;
+        return out;
+      };
+      window.initPaperAirplanes.__v4Wrapped = true;
+    }
+  }
+
+  async function patchDestinationFlow(){
+    await loadDestinationListsV4();
+
+    const launch = document.getElementById('destinationLaunchBtn');
+    if (launch && !launch.dataset.v4Bound){
+      launch.dataset.v4Bound = '1';
+      launch.addEventListener('click', submitDestinationV4);
+    }
+
+    const refresh = document.getElementById('distanceRefreshBtn');
+    if (refresh && !refresh.dataset.v4Bound){
+      refresh.dataset.v4Bound = '1';
+      refresh.addEventListener('click', loadClassPathsV4);
+    }
+  }
+
+  async function loadDestinationListsV4(){
+    if (v4State.destinationDataLoaded) return;
+    v4State.destinationDataLoaded = true;
+    try{
+      const res = await fetch(apiUrl('/api/destinations'));
+      const data = await res.json();
+      const items = data.success ? (data.destinations || []) : [];
+      const school = document.getElementById('destinationSelectSchool');
+      const uni = document.getElementById('destinationSelectUniversity');
+      const build = (arr) => '<option value="">Choose a place</option>' + arr.map(x => {
+        const place = x.place || x.name || '';
+        return `<option value="${escapeAttr(place)}">${escapeHtml(place)}</option>`;
+      }).join('');
+      if (school) school.innerHTML = build(items);
+      if (uni) uni.innerHTML = build(items);
+    }catch(_){}
+    await loadClassPathsV4();
+  }
+
+  async function submitDestinationV4(){
+    const name = document.getElementById('distanceStudentName')?.value?.trim();
+    const schoolPlace = document.getElementById('destinationSelectSchool')?.value?.trim();
+    const universityPlace = document.getElementById('destinationSelectUniversity')?.value?.trim();
+    const mode = document.getElementById('distanceMapMode')?.value || 'globe';
+
+    if (!name){
+      return window.showNotification?.('error', 'Name needed', 'Enter your name first.');
+    }
+    if (!schoolPlace && !universityPlace){
+      return window.showNotification?.('error', 'Choose a place', 'Pick at least one future place.');
+    }
+
+    try{
+      const res = await fetch(apiUrl('/api/destinations/submit-v2'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentName: name,
+          schoolPlace,
+          universityPlace
+        })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        return window.showNotification?.('error', 'Could not save', data.error || 'Submission failed.');
+      }
+    }catch(e){
+      return window.showNotification?.('error', 'Could not save', e.message);
+    }
+
+    if (mode === 'maps'){
+      const query = encodeURIComponent(universityPlace || schoolPlace);
+      window.open('https://www.google.com/maps/search/?api=1&query=' + query, '_blank');
+    } else {
+      await loadClassPathsV4(true);
+    }
+
+    if (window.showNotification) {
+      showNotification('success', 'Locked in', 'Your future path has been added to the class map.');
+    }
+  }
+
+  async function loadClassPathsV4(excite){
+    try{
+      const res = await fetch(apiUrl('/api/destinations/submissions'));
+      const data = await res.json();
+      if (!data.success) return;
+      renderClassPathStats(data.submissions || []);
+      renderMapFromSubmissions(data.submissions || [], !!excite);
+    }catch(_){}
+  }
+
+  function renderClassPathStats(rows){
+    const box = document.getElementById('distanceOverlayStats');
+    if (!box) return;
+    const total = rows.length;
+    const uni = rows.filter(r => r.universityPlace).length;
+    const school = rows.filter(r => r.schoolPlace).length;
+    box.innerHTML = `
+      <div class="distance-stat-pill">${total} class paths shown</div>
+      <div class="distance-stat-pill">${school} school destinations</div>
+      <div class="distance-stat-pill">${uni} university dreams</div>
+    `;
+  }
+
+  function renderMapFromSubmissions(rows, excite){
+    const frame = document.getElementById('distanceRealMapFrame');
+    if (!frame) return;
+
+    let focus = 'world';
+    if (rows.length){
+      const latest = rows[rows.length - 1];
+      focus = latest.universityPlace || latest.schoolPlace || 'world';
+    }
+
+    const q = encodeURIComponent(focus);
+    frame.src = 'https://www.google.com/maps?q=' + q + '&z=2&output=embed';
+
+    if (excite && window.showNotification){
+      showNotification('info', 'The map is lighting up', 'Watch the class spread out from one beginning to many futures.');
+    }
+  }
+
+  function patchAdminDestinationPanel(){
+    const original = window.renderSettingsPanelHtml;
+    if (typeof original !== 'function' || original.__v4Wrapped) return;
+
+    window.renderSettingsPanelHtml = function(){
+      const html = original.apply(this, arguments);
+      if (html.includes('distanceDestinationsV4Admin')) return html;
+
+      const inject = `
+      <div id="distanceDestinationsV4Admin" style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+        <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Future Places for Map</h4>
+        <p class="mini-pill" style="margin-bottom:10px;">One place per line. Use real place names only, like <strong>Delhi</strong>, <strong>Bangalore</strong>, <strongLondon</strong>, <strong>Toronto</strong>.</p>
+        <textarea class="form-textarea" id="destinationsAdminTextV4" style="min-height:150px;" placeholder="Delhi&#10;Bangalore&#10;Mumbai&#10;London&#10;Toronto"></textarea>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+          <button class="admin-btn admin-btn-primary" type="button" onclick="saveDestinationsFromPanelV4()">Save Places</button>
+          <button class="admin-btn admin-btn-secondary" type="button" onclick="loadDestinationSubmissionsAdminV4()">View Student Choices</button>
+        </div>
+        <div id="destinationSubmissionsAdminV4" style="margin-top:12px;"></div>
+      </div>`;
+      return html.replace('</div></div></div>', inject + '</div></div></div>');
+    };
+    window.renderSettingsPanelHtml.__v4Wrapped = true;
+
+    const oldSync = window.syncSettingsEditor;
+    if (typeof oldSync === 'function' && !oldSync.__v4Wrapped){
+      window.syncSettingsEditor = function(){
+        oldSync.apply(this, arguments);
+        syncDestinationsAdminV4();
+      };
+      window.syncSettingsEditor.__v4Wrapped = true;
+    }
+
+    window.saveDestinationsFromPanelV4 = async function(){
+      const text = document.getElementById('destinationsAdminTextV4')?.value || '';
+      const places = text.split(/
+?
+/).map(x => x.trim()).filter(Boolean).slice(0, 600);
+      try{
+        const res = await fetch(apiUrl('/api/admin/destinations-v2'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + (window.state?.adminToken || '')
+          },
+          body: JSON.stringify({ places })
+        });
+        const data = await res.json();
+        if (!data.success) return showNotification('error', 'Save failed', data.error || 'Could not save places.');
+        showNotification('success', 'Saved', 'Future places updated.');
+        v4State.destinationDataLoaded = false;
+        loadDestinationListsV4();
+      }catch(e){
+        showNotification('error', 'Save failed', e.message);
+      }
+    };
+
+    window.loadDestinationSubmissionsAdminV4 = async function(){
+      const box = document.getElementById('destinationSubmissionsAdminV4');
+      if (!box) return;
+      box.innerHTML = '<div class="mini-pill">Loading student choices...</div>';
+      try{
+        const res = await fetch(apiUrl('/api/destinations/submissions'));
+        const data = await res.json();
+        if (!data.success) {
+          box.innerHTML = '<div class="mini-pill">Could not load student choices.</div>';
+          return;
+        }
+        const rows = data.submissions || [];
+        if (!rows.length) {
+          box.innerHTML = '<div class="mini-pill">No student choices yet.</div>';
+          return;
+        }
+        box.innerHTML = rows.slice().reverse().map(r => `
+          <div class="admin-memory-card" style="padding:12px; margin-bottom:10px;">
+            <div style="font-weight:800;">${escapeHtml(r.studentName || 'Student')}</div>
+            <div style="color:var(--text-muted); font-size:.9rem; margin-top:6px;">
+              11th / 12th: <strong style="color:var(--text-light);">${escapeHtml(r.schoolPlace || '—')}</strong>
+            </div>
+            <div style="color:var(--text-muted); font-size:.9rem; margin-top:4px;">
+              University: <strong style="color:var(--text-light);">${escapeHtml(r.universityPlace || '—')}</strong>
+            </div>
+          </div>
+        `).join('');
+      }catch(e){
+        box.innerHTML = '<div class="mini-pill">Error loading student choices.</div>';
+      }
+    };
+
+    async function syncDestinationsAdminV4(){
+      const ta = document.getElementById('destinationsAdminTextV4');
+      if (!ta) return;
+      try{
+        const res = await fetch(apiUrl('/api/destinations'));
+        const data = await res.json();
+        if (data.success){
+          ta.value = (data.destinations || []).map(x => x.place || x.name || '').join('
+');
+        }
+      }catch(_){}
+    }
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', v4Boot);
+  } else {
+    v4Boot();
+  }
+})();
+</script>
+</section>

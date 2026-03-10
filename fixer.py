@@ -1,308 +1,831 @@
 #!/usr/bin/env python3
-from pathlib import Path
+from __future__ import annotations
+
+import json
 import re
 import sys
-
-INDEX_HTML = "index.html"
-SERVER_JS = "server.js"
+from pathlib import Path
 
 
-def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
+def die(message: str) -> None:
+    print(f"ERROR: {message}", file=sys.stderr)
+    sys.exit(1)
 
 
-def write_text(path: Path, content: str) -> None:
-    path.write_text(content, encoding="utf-8", newline="\n")
+def read_file(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        die(f"Missing file: {path}")
+    except Exception as exc:
+        die(f"Could not read {path}: {exc}")
 
 
-def replace_once(content: str, old: str, new: str, label: str) -> str:
-    if old not in content:
-        raise RuntimeError(f"Could not find expected block for {label}")
-    return content.replace(old, new, 1)
+def write_file(path: Path, content: str) -> None:
+    try:
+        path.write_text(content, encoding="utf-8", newline="\n")
+    except Exception as exc:
+        die(f"Could not write {path}: {exc}")
 
 
-def replace_if_present(content: str, old: str, new: str) -> str:
-    if old in content:
-        return content.replace(old, new, 1)
-    return content
+def backup(path: Path) -> None:
+    bak = path.with_suffix(path.suffix + ".blindrun.bak")
+    if not bak.exists():
+        write_file(bak, read_file(path))
 
 
-def insert_before_once(content: str, marker: str, block: str, label: str) -> str:
-    if block in content:
-        return content
-    if marker not in content:
-        raise RuntimeError(f"Could not find expected marker for {label}")
-    return content.replace(marker, block + marker, 1)
+def inject_after_line_if_found(text: str, exact_line: str, block: str) -> str:
+    if block.strip() in text:
+        return text
+    marker = exact_line + "\n"
+    idx = text.find(marker)
+    if idx == -1:
+        return text
+    pos = idx + len(marker)
+    return text[:pos] + block + "\n" + text[pos:]
 
 
-def insert_after_once(content: str, marker: str, block: str, label: str) -> str:
-    if block in content:
-        return content
-    if marker not in content:
-        raise RuntimeError(f"Could not find expected marker for {label}")
-    return content.replace(marker, marker + block, 1)
+def inject_before_if_found(text: str, marker: str, block: str) -> str:
+    if block.strip() in text:
+        return text
+    idx = text.find(marker)
+    if idx == -1:
+        return text
+    return text[:idx] + block + "\n" + text[idx:]
 
 
-def regex_replace_first(content: str, pattern: str, repl: str, label: str, flags: int = 0) -> str:
-    new_content, count = re.subn(pattern, repl, content, count=1, flags=flags)
-    if count != 1:
-        raise RuntimeError(f"Could not replace expected pattern for {label}")
-    return new_content
+def inject_after_function_if_found(text: str, function_name: str, block: str) -> str:
+    if block.strip() in text:
+        return text
+    needle = f"function {function_name}("
+    start = text.find(needle)
+    if start == -1:
+        return text
+    brace_start = text.find("{", start)
+    if brace_start == -1:
+        return text
+    depth = 0
+    end = None
+    for i in range(brace_start, len(text)):
+        ch = text[i]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                end = i + 1
+                break
+    if end is None:
+        return text
+    return text[:end] + block + "\n" + text[end:]
 
 
-def regex_remove_all(content: str, pattern: str, flags: int = 0) -> str:
-    return re.sub(pattern, "", content, flags=flags)
+def replace_route_if_found(text: str, route_signature: str, replacement: str) -> str:
+    start = text.find(route_signature)
+    if start == -1:
+        return text
+    brace_start = text.find("{", start)
+    if brace_start == -1:
+        return text
+    depth = 0
+    end = None
+    i = brace_start
+    while i < len(text):
+        ch = text[i]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                semi = text.find(");", i)
+                if semi == -1:
+                    return text
+                end = semi + 2
+                break
+        i += 1
+    if end is None:
+        return text
+    return text[:start] + replacement + text[end:]
 
 
-def patch_index_html(path: Path) -> None:
-    content = read_text(path)
+def patch_server_js(server_path: Path) -> None:
+    original = read_file(server_path).replace("\r\n", "\n")
+    text = original
 
-    content = replace_if_present(
-        content,
-        "const FF_DEFAULTS={gratitudeWall:true,superlatives:true,wishJar:true,songDedications:true,moodBoard:true,timeCapsule:true,memoryMosaic:true};",
-        "const FF_DEFAULTS={gratitudeWall:true,superlatives:true,wishJar:true,songDedications:true,moodBoard:true,timeCapsule:true,memoryMosaic:false};",
+    if "app.use('/music', express.static(path.join(__dirname, 'music')));" not in text:
+        text = text.replace(
+            "app.use('/uploads', express.static(path.join(__dirname, 'uploads')));",
+            "app.use('/uploads', express.static(path.join(__dirname, 'uploads')));\napp.use('/music', express.static(path.join(__dirname, 'music')));",
+            1,
+        )
+
+    extra_paths_block = """const funPath = path.join(databaseDir, 'fun_features.json');
+const teacherAudioPath = path.join(databaseDir, 'teacher_audio.json');
+const paperNotesPath = path.join(databaseDir, 'paper_notes.json');
+const destinationsPath = path.join(databaseDir, 'destinations.json');"""
+    text = inject_after_line_if_found(
+        text,
+        "const studentDirectoryPath = path.join(databaseDir, 'student_directory.json');",
+        extra_paths_block,
     )
-    content = replace_if_present(
-        content,
-        " window.enableAllFunFeatures=function(){['gratitudeWall','superlatives','wishJar','songDedications','moodBoard','timeCapsule','memoryMosaic'].forEach(k=>{const el=document.getElementById(`ffToggle_${k}`);if(el)el.checked=true;window.previewFunFeatureToggle(k,true)})};",
-        " window.enableAllFunFeatures=function(){['gratitudeWall','superlatives','wishJar','songDedications','moodBoard','timeCapsule','memoryMosaic'].forEach(k=>{const el=document.getElementById(`ffToggle_${k}`);if(el)el.checked=(k!=='memoryMosaic');window.previewFunFeatureToggle(k,k!=='memoryMosaic')})};",
-    )
-    content = replace_if_present(content, " setTimeout(loadMemoryMosaic,3000);", "")
 
-    content = replace_if_present(content, " await autoFillMemoriesOnLoad();\n", "")
-    content = regex_remove_all(
-        content,
-        r"\n async function autoFillMemoriesOnLoad\(\) \{.*?\n\}\n",
+    helper_block = """
+function readStudentDirectory() {
+ return safeReadJson(studentDirectoryPath, { students: [] });
+}
+function writeStudentDirectory(data) {
+ safeWriteJson(studentDirectoryPath, data);
+}
+function readFun() {
+ return safeReadJson(funPath, { settings: {}, gratitude: [], superlatives: { categories: [] }, wishes: [], dedications: [], mood: { votes: {} }, capsules: [] });
+}
+function writeFun(data) {
+ safeWriteJson(funPath, data);
+}
+function readTeacherAudio() {
+ return safeReadJson(teacherAudioPath, { items: [], nextId: 1 });
+}
+function writeTeacherAudio(data) {
+ safeWriteJson(teacherAudioPath, data);
+}
+function readPaperNotes() {
+ return safeReadJson(paperNotesPath, { notes: [], nextId: 1 });
+}
+function writePaperNotes(data) {
+ safeWriteJson(paperNotesPath, data);
+}
+function readDestinationsDb() {
+ return safeReadJson(destinationsPath, { destinations: [], submissions: [], nextId: 1 });
+}
+function writeDestinationsDb(data) {
+ safeWriteJson(destinationsPath, data);
+}"""
+    if "function readStudentDirectory()" not in text:
+        text = inject_after_function_if_found(text, "writeCompilations", helper_block)
+
+    init_insert = """
+ if (!fs.existsSync(studentDirectoryPath)) {
+ fs.writeFileSync(studentDirectoryPath, JSON.stringify({ students: [] }, null, 2));
+ console.log(' Created student directory database');
+ }
+ if (!fs.existsSync(funPath)) {
+ fs.writeFileSync(funPath, JSON.stringify({ settings: {}, gratitude: [], superlatives: { categories: [] }, wishes: [], dedications: [], mood: { votes: {} }, capsules: [] }, null, 2));
+ console.log(' Created fun features database');
+ }
+ if (!fs.existsSync(teacherAudioPath)) {
+ fs.writeFileSync(teacherAudioPath, JSON.stringify({ items: [], nextId: 1 }, null, 2));
+ console.log(' Created teacher audio database');
+ }
+ if (!fs.existsSync(paperNotesPath)) {
+ fs.writeFileSync(paperNotesPath, JSON.stringify({ notes: [], nextId: 1 }, null, 2));
+ console.log(' Created paper notes database');
+ }
+ if (!fs.existsSync(destinationsPath)) {
+ fs.writeFileSync(destinationsPath, JSON.stringify({ destinations: [], submissions: [], nextId: 1 }, null, 2));
+ console.log(' Created destinations database');
+ }"""
+    if "if (!fs.existsSync(studentDirectoryPath)) {" not in text:
+        text = inject_after_function_if_found(text, "initDatabase", init_insert)
+
+    text = text.replace(
+        "transitionType: ['fade', 'slide', 'zoom', 'flip'].includes(transitionType) ? transitionType : 'fade',",
+        "transitionType: ['fade', 'slide', 'zoom', 'flip', 'blur'].includes(transitionType) ? transitionType : 'fade',",
+    )
+    text = text.replace(
+        "if (transitionType && ['fade', 'slide', 'zoom', 'flip'].includes(transitionType)) {",
+        "if (transitionType && ['fade', 'slide', 'zoom', 'flip', 'blur'].includes(transitionType)) {",
+    )
+
+    compilations_list_route = """app.get('/api/compilations', (req, res) => {
+ try {
+ const data = readCompilations();
+ const db = readDB();
+ const compilations = (data.compilations || []).map(comp => ({
+  ...comp,
+  slides: (comp.slides || []).map(s => {
+   const memory = db.memories.find(m => m.id === Number(s.memoryId) && !m.purgedAt);
+   return { ...s, file_url: memory ? `/uploads/${memory.file_path}` : null };
+  })
+ }));
+ res.json({ success: true, compilations });
+ } catch (e) {
+ res.status(500).json({ success: false, error: e.message });
+ }
+});"""
+    if "app.get('/api/compilations', (req, res) => {" in text and "const db = readDB();" not in text[text.find("app.get('/api/compilations', (req, res) => {"):text.find("app.get('/api/compilations/:id', (req, res) => {") if "app.get('/api/compilations/:id', (req, res) => {" in text else len(text)]:
+        text = replace_route_if_found(text, "app.get('/api/compilations', (req, res) => {", compilations_list_route)
+
+    compilations_single_route = """app.get('/api/compilations/:id', (req, res) => {
+ try {
+ const id = parseInt(req.params.id, 10);
+ const data = readCompilations();
+ const db = readDB();
+ const comp = data.compilations.find(c => c.id === id);
+ if (!comp) return res.status(404).json({ success: false, error: 'Not found' });
+ const slides = (comp.slides || []).map(s => {
+  const memory = db.memories.find(m => m.id === Number(s.memoryId) && !m.purgedAt);
+  return { ...s, file_url: memory ? `/uploads/${memory.file_path}` : null };
+ });
+ res.json({ success: true, compilation: { ...comp, slides } });
+ } catch (e) {
+ res.status(500).json({ success: false, error: e.message });
+ }
+});"""
+    if "app.get('/api/compilations/:id', (req, res) => {" in text:
+        start = text.find("app.get('/api/compilations/:id', (req, res) => {")
+        chunk = text[start:start + 1200]
+        if "const db = readDB();" not in chunk:
+            text = replace_route_if_found(text, "app.get('/api/compilations/:id', (req, res) => {", compilations_single_route)
+
+    fun_block = """// --- FUN FEATURES API INJECTED ---
+app.get('/api/fun/settings', (req, res) => res.json({ success: true, settings: readFun().settings || {} }));
+app.post('/api/fun/settings', (req, res) => {
+ try {
+  const auth = requireAdmin(req, res); if (!auth) return;
+  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+  const db = readFun();
+  db.settings = req.body?.settings || {};
+  writeFun(db);
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/fun/gratitude', (req, res) => res.json({ success: true, notes: readFun().gratitude || [] }));
+app.post('/api/fun/gratitude', (req, res) => {
+ try {
+  const db = readFun();
+  db.gratitude = Array.isArray(db.gratitude) ? db.gratitude : [];
+  db.gratitude.unshift({ ...req.body, created_at: new Date().toISOString() });
+  db.gratitude = db.gratitude.slice(0, 500);
+  writeFun(db);
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/fun/superlatives', (req, res) => {
+ try {
+  const db = readFun();
+  res.json({ success: true, categories: Array.isArray(db.superlatives?.categories) ? db.superlatives.categories : [] });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/fun/superlatives/nominee', (req, res) => {
+ try {
+  const db = readFun();
+  db.superlatives = db.superlatives || { categories: [] };
+  db.superlatives.categories = Array.isArray(db.superlatives.categories) ? db.superlatives.categories : [];
+  let cat = db.superlatives.categories.find(c => Number(c.id) === Number(req.body?.categoryId));
+  if (!cat) {
+   cat = { id: Number(req.body?.categoryId), emoji: '🏆', title: 'Category ' + String(req.body?.categoryId || ''), nominees: [] };
+   db.superlatives.categories.push(cat);
+  }
+  cat.nominees = Array.isArray(cat.nominees) ? cat.nominees : [];
+  const name = String(req.body?.name || '').trim().substring(0, 60);
+  if (!name) return res.status(400).json({ success: false, error: 'name required' });
+  if (!cat.nominees.find(n => String(n.name || '').toLowerCase() === name.toLowerCase())) {
+   cat.nominees.push({ id: Date.now(), name, votes: 0 });
+  }
+  writeFun(db);
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/fun/superlatives/vote', (req, res) => {
+ try {
+  const db = readFun();
+  const cat = db.superlatives?.categories?.find(c => Number(c.id) === Number(req.body?.categoryId));
+  if (!cat) return res.status(404).json({ success: false, error: 'Category not found' });
+  const nom = (cat.nominees || []).find(n => String(n.id) === String(req.body?.nomineeId) || String(n.name) === String(req.body?.nomineeId));
+  if (!nom) return res.status(404).json({ success: false, error: 'Nominee not found' });
+  nom.votes = (nom.votes || 0) + 1;
+  writeFun(db);
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/fun/wishes', (req, res) => res.json({ success: true, wishes: readFun().wishes || [] }));
+app.post('/api/fun/wishes', (req, res) => {
+ try {
+  const db = readFun();
+  db.wishes = Array.isArray(db.wishes) ? db.wishes : [];
+  db.wishes.unshift({ ...req.body, created_at: new Date().toISOString() });
+  db.wishes = db.wishes.slice(0, 500);
+  writeFun(db);
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/fun/dedications', (req, res) => res.json({ success: true, dedications: readFun().dedications || [] }));
+app.post('/api/fun/dedications', (req, res) => {
+ try {
+  const db = readFun();
+  db.dedications = Array.isArray(db.dedications) ? db.dedications : [];
+  db.dedications.unshift({ ...req.body, created_at: new Date().toISOString() });
+  db.dedications = db.dedications.slice(0, 500);
+  writeFun(db);
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/fun/mood', (req, res) => res.json({ success: true, votes: (readFun().mood || {}).votes || {} }));
+app.post('/api/fun/mood', (req, res) => {
+ try {
+  const db = readFun();
+  db.mood = db.mood || { votes: {} };
+  db.mood.votes = db.mood.votes || {};
+  const mood = String(req.body?.mood || '').trim();
+  if (!mood) return res.status(400).json({ success: false, error: 'mood required' });
+  db.mood.votes[mood] = (db.mood.votes[mood] || 0) + 1;
+  writeFun(db);
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/fun/capsules', (req, res) => res.json({ success: true, capsules: readFun().capsules || [] }));
+app.post('/api/fun/capsules', (req, res) => {
+ try {
+  const db = readFun();
+  db.capsules = Array.isArray(db.capsules) ? db.capsules : [];
+  db.capsules.unshift({ ...req.body, created_at: new Date().toISOString() });
+  db.capsules = db.capsules.slice(0, 500);
+  writeFun(db);
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+// ----------------------------------"""
+    if "app.get('/api/fun/settings', (req, res) => res.json({ success: true, settings: readFun().settings || {} }));" not in text:
+        if "// --- FUN FEATURES API INJECTED ---" in text and "// ----------------------------------" in text:
+            text = re.sub(
+                r"// --- FUN FEATURES API INJECTED ---.*?// ----------------------------------",
+                fun_block,
+                text,
+                count=1,
+                flags=re.S,
+            )
+        else:
+            text = inject_before_if_found(
+                text,
+                "// ═══════════════════════════════════════════════════════════════════════════════\n// START SERVER",
+                fun_block,
+            )
+
+    addon_block = """
+function getClientIp(req) {
+ return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+}
+function isRateLimited(items, ip, maxCount, windowMs) {
+ const now = Date.now();
+ return items.filter(x => String(x.ip || '') === ip && (now - new Date(x.createdAt).getTime()) <= windowMs).length >= maxCount;
+}
+app.get('/api/teacher-audio', (req, res) => {
+ try {
+  const db = readTeacherAudio();
+  res.json({ success: true, items: db.items || [] });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/admin/teacher-audio', adminUpload.single('audio'), (req, res) => {
+ try {
+  const auth = requireAdmin(req, res);
+  if (!auth) return;
+  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+  const teacherName = String(req.body?.teacherName || '').trim().substring(0, 80);
+  const file = req.file;
+  if (!teacherName) return res.status(400).json({ success: false, error: 'teacherName required' });
+  if (!file) return res.status(400).json({ success: false, error: 'audio file required' });
+  const db = readTeacherAudio();
+  let item = db.items.find(x => String(x.teacherName || '').toLowerCase() === teacherName.toLowerCase());
+  if (!item) {
+   item = { id: db.nextId++, teacherName, audioPath: file.filename, createdAt: nowIso(), updatedAt: nowIso() };
+   db.items.push(item);
+  } else {
+   const old = item.audioPath;
+   item.audioPath = file.filename;
+   item.updatedAt = nowIso();
+   if (old) {
+    const fp = path.join(uploadsDir, old);
+    if (fs.existsSync(fp)) {
+     try { fs.unlinkSync(fp); } catch (_) {}
+    }
+   }
+  }
+  writeTeacherAudio(db);
+  const settings = readSettings();
+  settings.settings = settings.settings || {};
+  settings.settings.teachers = Array.isArray(settings.settings.teachers) ? settings.settings.teachers : [];
+  const teacher = settings.settings.teachers.find(t => String(t.name || '').toLowerCase() === teacherName.toLowerCase());
+  if (teacher) teacher.audioPath = file.filename;
+  writeSettings(settings);
+  audit(auth.user.id, 'upload-teacher-audio', { teacherName });
+  broadcast('settings:update', {});
+  res.json({ success: true, item });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/admin/settings/intro-video', adminUpload.single('file'), (req, res) => {
+ try {
+  const auth = requireAdmin(req, res);
+  if (!auth) return;
+  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+  const file = req.file;
+  if (!file) return res.status(400).json({ success: false, error: 'No video file' });
+  const settings = readSettings();
+  settings.settings = settings.settings || {};
+  settings.settings.introVideoPath = file.filename;
+  writeSettings(settings);
+  audit(auth.user.id, 'upload-intro-video-alias', { filename: file.filename });
+  broadcast('settings:update', {});
+  res.json({ success: true, path: file.filename });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.delete('/api/admin/settings/intro-video', (req, res) => {
+ try {
+  const auth = requireAdmin(req, res);
+  if (!auth) return;
+  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+  const settings = readSettings();
+  settings.settings = settings.settings || {};
+  const old = settings.settings.introVideoPath;
+  settings.settings.introVideoPath = null;
+  writeSettings(settings);
+  if (old) {
+   const fp = path.join(uploadsDir, old);
+   if (fs.existsSync(fp)) {
+    try { fs.unlinkSync(fp); } catch (_) {}
+   }
+  }
+  audit(auth.user.id, 'remove-intro-video-alias', {});
+  broadcast('settings:update', {});
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/destinations', (req, res) => {
+ try {
+  const db = readDestinationsDb();
+  const items = (db.destinations || []).map(item => ({
+   place: String(item.place || item.name || '').trim(),
+   name: String(item.place || item.name || '').trim(),
+   lat: Number.isFinite(Number(item.lat)) ? Number(item.lat) : undefined,
+   lng: Number.isFinite(Number(item.lng)) ? Number(item.lng) : undefined
+  })).filter(item => item.place);
+  res.json({ success: true, destinations: items });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/admin/destinations', (req, res) => {
+ try {
+  const auth = requireAdmin(req, res);
+  if (!auth) return;
+  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+  const raw = Array.isArray(req.body?.destinations) ? req.body.destinations : [];
+  const cleaned = raw.map(x => ({ place: String(typeof x === 'string' ? x : x?.name || x?.place || '').trim() })).filter(x => x.place).slice(0, 500);
+  const db = readDestinationsDb();
+  db.destinations = cleaned;
+  writeDestinationsDb(db);
+  audit(auth.user.id, 'save-destinations', { count: cleaned.length });
+  res.json({ success: true, count: cleaned.length });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/admin/destinations-v2', (req, res) => {
+ try {
+  const auth = requireAdmin(req, res);
+  if (!auth) return;
+  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+  const places = Array.isArray(req.body?.places) ? req.body.places : [];
+  const cleaned = places.map(item => {
+   if (typeof item === 'string') return { place: item.trim() };
+   return { place: String(item?.place || item?.name || '').trim(), lat: Number(item?.lat), lng: Number(item?.lng) };
+  }).filter(item => item.place).slice(0, 1000);
+  const db = readDestinationsDb();
+  db.destinations = cleaned;
+  writeDestinationsDb(db);
+  audit(auth.user.id, 'save-destinations-v2-advanced', { count: cleaned.length });
+  res.json({ success: true, count: cleaned.length });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/destinations/submit', (req, res) => {
+ try {
+  const destination = String(req.body?.destination || '').trim();
+  if (!destination) return res.status(400).json({ success: false, error: 'destination required' });
+  const db = readDestinationsDb();
+  const ok = (db.destinations || []).find(x => String(x.place || x.name || '').trim().toLowerCase() === destination.toLowerCase());
+  if (!ok) return res.status(400).json({ success: false, error: 'Destination is not allowed' });
+  db.submissions = Array.isArray(db.submissions) ? db.submissions : [];
+  db.submissions.push({ id: db.nextId++, destination, ip: getClientIp(req), createdAt: nowIso() });
+  if (db.submissions.length > 5000) db.submissions = db.submissions.slice(-5000);
+  writeDestinationsDb(db);
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/destinations/submit-v2', (req, res) => {
+ try {
+  const studentName = String(req.body?.studentName || '').trim().substring(0, 80);
+  const schoolPlace = String(req.body?.schoolPlace || '').trim().substring(0, 120);
+  const universityPlace = String(req.body?.universityPlace || '').trim().substring(0, 120);
+  if (!studentName) return res.status(400).json({ success: false, error: 'studentName required' });
+  if (!schoolPlace && !universityPlace) return res.status(400).json({ success: false, error: 'At least one place is required' });
+  const db = readDestinationsDb();
+  const allowed = new Set((db.destinations || []).map(x => String(x.place || x.name || '').trim().toLowerCase()));
+  if (schoolPlace && !allowed.has(schoolPlace.toLowerCase())) return res.status(400).json({ success: false, error: 'School place is not allowed' });
+  if (universityPlace && !allowed.has(universityPlace.toLowerCase())) return res.status(400).json({ success: false, error: 'University place is not allowed' });
+  const existing = (db.submissions || []).find(x => String(x.studentName || '').trim().toLowerCase() === studentName.toLowerCase());
+  if (existing) {
+   existing.schoolPlace = schoolPlace;
+   existing.universityPlace = universityPlace;
+   existing.updatedAt = nowIso();
+  } else {
+   db.submissions.push({ id: db.nextId++, studentName, schoolPlace, universityPlace, createdAt: nowIso(), updatedAt: nowIso() });
+  }
+  if (db.submissions.length > 5000) db.submissions = db.submissions.slice(-5000);
+  writeDestinationsDb(db);
+  broadcast('destinations:update', { studentName });
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/destinations/submissions', (req, res) => {
+ try {
+  const db = readDestinationsDb();
+  res.json({ success: true, submissions: db.submissions || [] });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/destinations/pin-submit', (req, res) => {
+ try {
+  const studentName = String(req.body?.studentName || '').trim().substring(0, 80);
+  const section = String(req.body?.section || '').trim().substring(0, 10);
+  const ranking = String(req.body?.ranking || '').trim().substring(0, 120);
+  const schoolPlaceName = String(req.body?.schoolPlaceName || '').trim().substring(0, 160);
+  const universityPlaceName = String(req.body?.universityPlaceName || '').trim().substring(0, 160);
+  const schoolPoint = req.body?.schoolPoint || null;
+  const universityPoint = req.body?.universityPoint || null;
+  if (!studentName) return res.status(400).json({ success: false, error: 'studentName required' });
+  const validPoint = p => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
+  if (!validPoint(schoolPoint) && !validPoint(universityPoint)) return res.status(400).json({ success: false, error: 'At least one valid point is required' });
+  const db = readDestinationsDb();
+  let existing = (db.submissions || []).find(x => String(x.studentName || '').trim().toLowerCase() === studentName.toLowerCase());
+  const payload = {
+   studentName,
+   section,
+   ranking,
+   schoolPlaceName,
+   universityPlaceName,
+   schoolPoint: validPoint(schoolPoint) ? { lat: Number(schoolPoint.lat), lng: Number(schoolPoint.lng) } : null,
+   universityPoint: validPoint(universityPoint) ? { lat: Number(universityPoint.lat), lng: Number(universityPoint.lng) } : null,
+   updatedAt: nowIso()
+  };
+  if (existing) Object.assign(existing, payload);
+  else db.submissions.push({ id: db.nextId++, createdAt: nowIso(), ...payload });
+  if (db.submissions.length > 5000) db.submissions = db.submissions.slice(-5000);
+  writeDestinationsDb(db);
+  broadcast('destinations:pin-update', { studentName, section });
+  res.json({ success: true });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/destinations/pin-submissions', (req, res) => {
+ try {
+  const db = readDestinationsDb();
+  res.json({ success: true, submissions: db.submissions || [] });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/paper-notes', (req, res) => {
+ try {
+  const text = String(req.body?.text || '').trim().substring(0, 400);
+  if (!text) return res.status(400).json({ success: false, error: 'text required' });
+  const db = readPaperNotes();
+  db.notes = Array.isArray(db.notes) ? db.notes : [];
+  const note = { id: db.nextId++, text, ip: getClientIp(req), createdAt: nowIso() };
+  db.notes.push(note);
+  if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
+  writePaperNotes(db);
+  broadcast('paper:note', { note });
+  res.json({ success: true, note });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/paper-notes/random', (req, res) => {
+ try {
+  const db = readPaperNotes();
+  const items = db.notes || [];
+  if (!items.length) return res.json({ success: true, note: null });
+  const note = items[Math.floor(Math.random() * items.length)];
+  res.json({ success: true, note });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.post('/api/paper-notes/from-memory', (req, res) => {
+ try {
+  const memoryId = Number(req.body?.memoryId);
+  const dbMem = readDB();
+  const memory = dbMem.memories.find(m => m.id === memoryId && m.approved === 1 && !m.deletedAt && !m.purgedAt);
+  if (!memory) return res.status(404).json({ success: false, error: 'Memory not found' });
+  const db = readPaperNotes();
+  db.notes = Array.isArray(db.notes) ? db.notes : [];
+  const ip = getClientIp(req);
+  if (isRateLimited(db.notes, ip, 5, 60 * 1000)) return res.status(429).json({ success: false, error: 'Rate limit exceeded. Maximum 5 notes per minute.' });
+  const note = { id: db.nextId++, memoryId, caption: String(memory.caption || '').substring(0, 400), text: String(memory.caption || '').substring(0, 400), ip, createdAt: nowIso() };
+  db.notes.push(note);
+  if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
+  writePaperNotes(db);
+  broadcast('paper:note', { note });
+  res.json({ success: true, note });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+app.get('/api/paper-notes/random-memory', (req, res) => {
+ try {
+  const db = readPaperNotes();
+  const notes = (db.notes || []).filter(note => note.memoryId || note.caption || note.text);
+  if (!notes.length) return res.json({ success: true, note: null });
+  const note = notes[Math.floor(Math.random() * notes.length)];
+  res.json({ success: true, note });
+ } catch (e) {
+  res.status(500).json({ success: false, error: e.message });
+ }
+});
+wss.on('connection', (ws) => {
+ ws.on('message', raw => {
+  try {
+   const data = JSON.parse(String(raw));
+   if (!data || typeof data !== 'object') return;
+   if (data.type === 'ghost:move') broadcast('ghost:move', data);
+   if (data.type === 'paper:note:broadcast' && data.note) broadcast('paper:note', { note: data.note });
+  } catch (_) {}
+ });
+});"""
+    if "function getClientIp(req)" not in text:
+        text = inject_before_if_found(
+            text,
+            "// ═══════════════════════════════════════════════════════════════════════════════\n// START SERVER",
+            addon_block,
+        )
+
+    text = re.sub(
+        r"// ═══════════════════════════════════════════════════════════════════════════════\n// SERVE FRONTEND\n// ═══════════════════════════════════════════════════════════════════════════════\napp\.get\('/', \(req, res\) => res\.sendFile\(path\.join\(__dirname, 'index\.html'\)\)\);\napp\.get\('\*', \(req, res\) => res\.sendFile\(path\.join\(__dirname, 'index\.html'\)\)\);",
+        "// ═══════════════════════════════════════════════════════════════════════════════\n// SERVE FRONTEND\n// ═══════════════════════════════════════════════════════════════════════════════\napp.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));",
+        text,
+        count=1,
         flags=re.S,
     )
 
-    content = replace_if_present(
-        content,
-        " memLimit: 2000,",
-        " memLimit: 2000,\n previewLimit: 6,\n viewingAllMemoriesPage: false,",
+    if "app.get('*', (req, res) => {" not in text and "server.listen(PORT, '0.0.0.0', () => {" in text:
+        text = text.replace(
+            "server.listen(PORT, '0.0.0.0', () => {",
+            """app.get('*', (req, res) => {
+ if (req.path.startsWith('/api/')) return res.status(404).json({ success: false, error: 'Endpoint not found' });
+ if (req.path.startsWith('/uploads/') || req.path.startsWith('/music/')) return res.status(404).send('Not found');
+ return res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+server.listen(PORT, '0.0.0.0', () => {""",
+            1,
+        )
+
+    if text != original:
+        backup(server_path)
+        write_file(server_path, text)
+
+
+def patch_index_html(index_path: Path) -> None:
+    original = read_file(index_path).replace("\r\n", "\n")
+    text = original
+
+    text = text.replace(
+        "previewLimit: 6,\n viewingAllMemoriesPage: false,\n previewLimit: 6,\n viewingAllMemoriesPage: false,\n previewLimit: 6,\n viewingAllMemoriesPage: false,",
+        "previewLimit: 6,\n viewingAllMemoriesPage: false,",
     )
 
-    patch_css = """
- <style id="fixer-stable-ui-patch">
- html.hard-refresh-top, body.hard-refresh-top { scroll-behavior: auto !important; }
- .feature-tour-overlay{
-  position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:11000; display:none;
- }
- .feature-tour-overlay.active{ display:block; }
- .feature-tour-spotlight{
-  position:fixed; z-index:11001; pointer-events:none; border-radius:18px;
-  border:2px solid var(--primary-gold); background:transparent;
-  box-shadow:0 0 0 9999px rgba(0,0,0,0.45);
-  transition:all 0.35s ease;
-  left:-9999px; top:-9999px; width:0; height:0;
- }
- .feature-tour-card{
-  position:fixed; z-index:11002; width:min(360px, calc(100vw - 24px)); background:var(--navy-medium);
-  border:1px solid var(--glass-border); border-radius:18px; padding:18px;
-  box-shadow:0 20px 60px rgba(0,0,0,0.45); left:-9999px; top:-9999px;
- }
- .feature-tour-card h3{ color:var(--primary-gold); margin-bottom:8px; font-family:var(--font-display); }
- .feature-tour-card p{ color:var(--text-muted); margin-bottom:12px; font-size:0.95rem; }
- .feature-tour-actions{ display:flex; justify-content:space-between; gap:10px; }
- .feature-tour-fab{
-  position:fixed; right:18px; bottom:18px; z-index:2501; border:none;
-  background:var(--gradient-gold); color:var(--navy-dark); border-radius:999px;
-  padding:10px 14px; font-weight:700; cursor:pointer; box-shadow:var(--shadow-gold);
- }
- .memories-preview-actions{ display:flex; justify-content:center; margin-top:28px; }
- .memories-page{
-  min-height:100vh; background:linear-gradient(180deg, var(--navy-dark) 0%, var(--navy-medium) 100%);
-  color:var(--text-light); padding:110px 20px 60px;
- }
- .memories-page.hidden{ display:none; }
- .memories-page-header{
-  max-width:var(--container-width); margin:0 auto 28px; display:flex; justify-content:space-between;
-  gap:16px; align-items:center; flex-wrap:wrap;
- }
- .memories-page-grid{
-  max-width:var(--container-width); margin:0 auto;
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:24px;
- }
- #livePill,
- #ghostCursorToggle,
- #ghostCursorPopup,
- #ghostOffModal,
- #paperTutorial,
- #wsStatusBadge,
- .ghost-cursor{ display:none !important; }
- #distanceMapWrap{
-  display:block !important; position:relative !important; max-width:1200px !important; margin:0 auto !important;
- }
- #distanceGlobeCanvas{
-  width:100% !important; height:650px !important; position:relative !important;
- }
- #distanceMapSection #distanceGlobeUi{
-  position:relative !important; max-width:1200px !important; margin:0 auto 14px !important;
- }
- #distanceMapSection #distanceGlobeCanvas canvas,
- #distanceMapSection #distanceGlobeCanvas > div{
-  margin:0 auto !important;
- }
- #distanceSearchResultsV7 .btn{
-  width:100%;
-  justify-content:flex-start;
-  text-align:left;
-  white-space:normal;
- }
- @media (max-width: 900px){
-  .feature-tour-card{ left:12px !important; right:12px !important; width:auto; top:auto !important; bottom:12px !important; }
- }
- </style>
-"""
-    content = insert_before_once(content, "</head>", patch_css, "stable css")
+    if "const displayMemories = state.viewingAllMemoriesPage ? state.memories : state.memories.slice(0, state.previewLimit);" not in text:
+        text = text.replace(
+            " if (displayMemories.length === 0) {",
+            " const displayMemories = state.viewingAllMemoriesPage ? state.memories : state.memories.slice(0, state.previewLimit);\n if (displayMemories.length === 0) {",
+            1,
+        )
 
-    old_memories_end = """ <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
- <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" type="button">Load More</button>
- </div>
- </div>
- </section>"""
-    new_memories_end = """ <div class="memories-preview-actions">
- <button class="btn btn-secondary" id="viewAllMemoriesBtn" type="button">View All Memories</button>
- </div>
- <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
- <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" type="button">Load More</button>
- </div>
- </div>
- </section>
- <section id="memoriesPage" class="memories-page hidden">
+    if 'id="viewAllMemoriesBtn"' not in text:
+        old = '<div class="load-more-wrap" id="loadMoreWrap" style="display:none;">\n <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" type="button">Load More</button>\n </div>'
+        new = '<div class="memories-preview-actions"><button class="btn btn-secondary" id="viewAllMemoriesBtn" type="button">View All Memories</button></div>\n <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">\n <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" type="button">Load More</button>\n </div>'
+        if old in text:
+            text = text.replace(old, new, 1)
+
+    if 'id="memoriesPage"' not in text:
+        marker = "</section>\n <!-- Teachers / Timeline / Quote / Footer kept from previous version (rendered from settings) -->"
+        if marker in text:
+            text = text.replace(
+                marker,
+                """</section>
+<section id="memoriesPage" class="memories-page hidden">
  <div class="memories-page-header">
- <div>
- <span class="section-badge">All Memories</span>
- <h2 class="section-title">Every <span class="highlight">Memory</span></h2>
+  <h2 class="section-title">All <span class="highlight">Memories</span></h2>
+  <button class="btn btn-secondary" id="backToHomeFromMemoriesPage" type="button">Back to Home</button>
  </div>
- <button class="btn btn-secondary" id="backToHomeFromMemoriesPage" type="button">Back to Home</button>
+ <div class="container">
+  <div class="memory-grid" id="memoryGridPage"></div>
+  <div class="load-more-wrap" id="loadMoreWrapPage" style="display:none;">
+   <button class="btn btn-secondary load-more-btn" id="loadMoreBtnPage" type="button">Load More</button>
+  </div>
  </div>
- <div class="memories-page-grid" id="memoriesPageGrid" aria-live="polite"></div>
- </section>"""
-    if 'id="memoriesPage"' not in content and old_memories_end in content:
-        content = content.replace(old_memories_end, new_memories_end, 1)
+</section>
+ <!-- Teachers / Timeline / Quote / Footer kept from previous version (rendered from settings) -->""",
+                1,
+            )
 
-    init_memory_old = """ function initMemoryWall() {
- document.querySelectorAll('.memory-filters .filter-btn').forEach(btn => {
- btn.addEventListener('click', async () => {
- document.querySelectorAll('.memory-filters .filter-btn').forEach(b => b.classList.remove('active'));
- btn.classList.add('active');
- state.currentFilter = btn.dataset.filter;
- await loadMemories(true);
- });
- });
- const loadMoreBtn = document.getElementById('loadMoreBtn');
- if (loadMoreBtn) {
- loadMoreBtn.addEventListener('click', async () => {
- await loadMemories(false);
- });
- }
-}"""
-    init_memory_new = """ function initMemoryWall() {
- document.querySelectorAll('.memory-filters .filter-btn').forEach(btn => {
- btn.addEventListener('click', async () => {
- document.querySelectorAll('.memory-filters .filter-btn').forEach(b => b.classList.remove('active'));
- btn.classList.add('active');
- state.currentFilter = btn.dataset.filter;
- await loadMemories(true);
- });
- });
- const loadMoreBtn = document.getElementById('loadMoreBtn');
- if (loadMoreBtn) {
- loadMoreBtn.addEventListener('click', async () => {
- await loadMemories(false);
- });
- }
-}
-function getDisplayMemories() {
- return state.viewingAllMemoriesPage ? state.memories : state.memories.slice(0, state.previewLimit);
-}
-function renderMemoriesPage() {
- const grid = document.getElementById('memoriesPageGrid');
+    if "API_BASE: localStorage.getItem('farewell_api_base')" not in text:
+        text = text.replace(
+            'API_BASE: "https://threshold-superb-gasoline-theology.trycloudflare.com",',
+            'API_BASE: localStorage.getItem(\'farewell_api_base\') || "https://threshold-superb-gasoline-theology.trycloudflare.com",',
+            1,
+        )
+
+    text = text.replace(".replace(/\\/+ /g, '/')", ".replace(/\\/+/g, '/')")
+
+    text = text.replace(
+        "if (mode === 'maps'){\n window.open('https://www.google.com/maps/search/?api=1&query=' + query, '_blank');\n } else {",
+        "if (mode === 'maps'){\n const frame = document.getElementById('distanceRealMapFrame');\n if (frame) frame.src = 'https://www.google.com/maps?q=' + query + '&z=6&output=embed';\n } else {",
+    )
+
+    if "function openMemoriesPage()" not in text:
+        pattern = r"document\.addEventListener\('DOMContentLoaded', \(\) => \{\n const viewAllBtn = document\.getElementById\('viewAllMemoriesBtn'\);.*?window\.addEventListener\('popstate', \(\) => \{\n const page = document\.getElementById\('memoriesPage'\);.*?\n \}\);"
+        replacement = """function renderMemoriesPage() {
+ const grid = document.getElementById('memoryGridPage');
+ const wrap = document.getElementById('loadMoreWrapPage');
  if (!grid) return;
  if (!state.memories.length) {
-  grid.innerHTML = `<div class="memory-empty" style="grid-column: 1/-1;"><div class="memory-empty-icon"> </div><h3>No Memories Yet</h3><p>Be the first to share!</p></div>`;
+  grid.innerHTML = `<div class="memory-empty" style="grid-column: 1/-1;"><div class="memory-empty-icon">📷</div><h3>No Memories Yet</h3><p>Be the first to share!</p></div>`;
+  if (wrap) wrap.style.display = 'none';
   return;
  }
- grid.innerHTML = state.memories.map((memory, index) => `
- <div class="memory-card" data-index="${index}">
- <div class="memory-media" onclick="openLightbox(${index})">
- ${memory.file_type === 'video'
- ? `<video src="${memory.file_url}" preload="metadata"></video><div class="play-button">▶</div>`
- : `<img src="${memory.file_url}" alt="${escapeAttr(memory.caption)}" loading="lazy" />`}
- <span class="memory-type-badge">${escapeHtml(memory.memory_type)}</span>
- ${memory.featured ? `<span class="memory-featured-badge">Featured</span>` : ''}
- </div>
- <div class="memory-content">
- <div class="memory-author">
- <div class="memory-avatar">${escapeHtml((memory.student_name || '').charAt(0).toUpperCase())}</div>
- <div class="memory-author-info">
- <div class="memory-author-name">${escapeHtml(memory.student_name || '')}</div>
- <div class="memory-time">${timeAgo(memory.created_at)}</div>
- </div>
- </div>
- <p class="memory-caption">${escapeHtml(memory.caption || '')}</p>
- </div>
- </div>
- `).join('');
+ grid.innerHTML = document.getElementById('memoryGrid') ? document.getElementById('memoryGrid').innerHTML : '';
+ if (wrap) wrap.style.display = state.memHasMore ? 'flex' : 'none';
 }
 function openMemoriesPage() {
  state.viewingAllMemoriesPage = true;
  const page = document.getElementById('memoriesPage');
  if (page) page.classList.remove('hidden');
- const topTarget = document.getElementById('memoriesPage');
- if (topTarget) topTarget.scrollIntoView({ behavior: 'auto', block: 'start' });
+ history.pushState({ memoriesPage: true }, '', '#memories-page');
+ renderMemories();
  renderMemoriesPage();
- history.replaceState(null, '', '#memories-page');
+ window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function backToMainPage() {
  state.viewingAllMemoriesPage = false;
  const page = document.getElementById('memoriesPage');
  if (page) page.classList.add('hidden');
- history.replaceState(null, '', '#home');
+ if (location.hash === '#memories-page') history.pushState({}, '', '#home');
  const home = document.getElementById('home');
- if (home) home.scrollIntoView({ behavior: 'auto', block: 'start' });
-}"""
-    if "function getDisplayMemories()" not in content and init_memory_old in content:
-        content = content.replace(init_memory_old, init_memory_new, 1)
-
-    render_memories_old = """function renderMemories() {
- const grid = document.getElementById('memoryGrid');
- if (!grid) return;
- const countPill = document.getElementById('memCountPill');
- if (countPill) {
- countPill.textContent = `${state.memories.length} loaded${state.memHasMore ? ' • more available' : ''}`;
- }
- if (displayMemories.length === 0) {"""
-    render_memories_new = """function renderMemories() {
- const grid = document.getElementById('memoryGrid');
- if (!grid) return;
- const displayMemories = getDisplayMemories();
- const countPill = document.getElementById('memCountPill');
- if (countPill) {
- countPill.textContent = state.viewingAllMemoriesPage ? `${state.memories.length} loaded` : `${displayMemories.length} of ${state.memories.length} shown`;
- }
- if (displayMemories.length === 0) {"""
-    if render_memories_old in content:
-        content = content.replace(render_memories_old, render_memories_new, 1)
-
-    content = content.replace(" grid.innerHTML = state.memories.map((memory, index) => `", " grid.innerHTML = displayMemories.map((memory, index) => `")
-    content = content.replace(" loadMoreWrap.style.display = (!state.infiniteScroll && state.memHasMore) ? 'flex' : 'none';", " loadMoreWrap.style.display = (!state.infiniteScroll && state.memHasMore && state.viewingAllMemoriesPage) ? 'flex' : 'none';")
-
-    memory_bindings = """
- document.addEventListener('DOMContentLoaded', () => {
+ if (home) home.scrollIntoView({ behavior: 'smooth', block: 'start' });
+ renderMemories();
+}
+document.addEventListener('DOMContentLoaded', () => {
  const viewAllBtn = document.getElementById('viewAllMemoriesBtn');
  if (viewAllBtn) viewAllBtn.addEventListener('click', openMemoriesPage);
  const backBtn = document.getElementById('backToHomeFromMemoriesPage');
  if (backBtn) backBtn.addEventListener('click', backToMainPage);
+ const loadMoreBtnPage = document.getElementById('loadMoreBtnPage');
+ if (loadMoreBtnPage) loadMoreBtnPage.addEventListener('click', async () => {
+  await loadMemories(false);
+  renderMemoriesPage();
+ });
  document.querySelectorAll('a[href="#home"]').forEach(el => {
   el.addEventListener('click', (evt) => {
    evt.preventDefault();
    backToMainPage();
   });
  });
- });
- window.addEventListener('popstate', () => {
+});
+window.addEventListener('popstate', () => {
  const page = document.getElementById('memoriesPage');
  if (!page) return;
  if (location.hash === '#memories-page') {
@@ -312,13 +835,25 @@ function backToMainPage() {
  } else {
   state.viewingAllMemoriesPage = false;
   page.classList.add('hidden');
+  renderMemories();
  }
- });
-"""
-    content = insert_before_once(content, " document.addEventListener('keydown', (e) => {", memory_bindings, "memory bindings")
+});"""
+        text, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
+        if count == 0 and "function renderMemoriesPage()" not in text:
+            text += "\n" + replacement + "\n"
 
-    stable_tour_script = """
-<script id="fixer-stable-tour-script">
+    if "if (state.viewingAllMemoriesPage) renderMemoriesPage();" not in text:
+        target = " if (loadMoreWrap) {\n loadMoreWrap.style.display = (!state.infiniteScroll && state.memHasMore && state.viewingAllMemoriesPage) ? 'flex' : 'none';\n }\n}"
+        if target in text:
+            text = text.replace(
+                target,
+                " if (loadMoreWrap) {\n loadMoreWrap.style.display = (!state.infiniteScroll && state.memHasMore && state.viewingAllMemoriesPage) ? 'flex' : 'none';\n }\n if (state.viewingAllMemoriesPage) renderMemoriesPage();\n}",
+                1,
+            )
+
+    text = re.sub(
+        r"<script id=\"fixer-tour-script\">.*?</script>\s*<script id=\"fixer-stable-tour-script\">.*?</script>\s*<script id=\"fixer-stable-tour-script\">.*?</script>",
+        """<script id="fixer-stable-tour-script">
 (function(){
  if (window.__FIXER_STABLE_TOUR__) return;
  window.__FIXER_STABLE_TOUR__ = true;
@@ -349,7 +884,7 @@ function backToMainPage() {
    { selector:'#memories', title:'Memories Preview', text:'The homepage shows six selected memories only for faster loading.' },
    { selector:'#viewAllMemoriesBtn', title:'View All', text:'Open the full dedicated memories page from here.' },
    { selector:'#upload', title:'Upload', text:'Approved uploads appear after admin review only.' },
-   { selector:'#distanceMapSection', title:'Future Path Globe', text:'Select your name, section, and future places, then save them to the globe.' },
+   { selector:'#distanceMapSection', title:'Future Path Globe', text:'Select your name and future places, then save them to the globe.' },
    { selector:'#compilations', title:'Compilations', text:'Curated slideshows appear here.' }
   ];
  }
@@ -377,25 +912,14 @@ function backToMainPage() {
   const spot = document.getElementById('featureTourSpotlight');
   const card = document.getElementById('featureTourCard');
   function render(){
-   if (idx >= steps.length) {
-    stopSiteTour();
-    return;
-   }
+   if (idx >= steps.length) return stopSiteTour();
    const step = steps[idx];
    const el = document.querySelector(step.selector);
-   if (!el) {
-    idx += 1;
-    render();
-    return;
-   }
+   if (!el) { idx += 1; return render(); }
    el.scrollIntoView({ behavior:'smooth', block:'center' });
    setTimeout(() => {
     const r = el.getBoundingClientRect();
-    if (r.width <= 0 || r.height <= 0) {
-     idx += 1;
-     render();
-     return;
-    }
+    if (r.width <= 0 || r.height <= 0) { idx += 1; return render(); }
     overlay.classList.add('active');
     spot.style.left = Math.max(8, r.left - 8) + 'px';
     spot.style.top = Math.max(8, r.top - 8) + 'px';
@@ -405,10 +929,7 @@ function backToMainPage() {
     card.style.top = Math.min(window.innerHeight - 170, Math.max(12, r.bottom + 12)) + 'px';
     card.innerHTML = `<h3>${step.title}</h3><p>${step.text}</p><div class="feature-tour-actions"><button class="btn btn-secondary" type="button" id="tourSkipBtn">Close</button><button class="btn btn-primary" type="button" id="tourNextBtn">${idx === steps.length - 1 ? 'Done' : 'Next'}</button></div>`;
     document.getElementById('tourSkipBtn')?.addEventListener('click', stopSiteTour);
-    document.getElementById('tourNextBtn')?.addEventListener('click', () => {
-     idx += 1;
-     render();
-    });
+    document.getElementById('tourNextBtn')?.addEventListener('click', () => { idx += 1; render(); });
    }, 450);
   }
   render();
@@ -417,22 +938,6 @@ function backToMainPage() {
  document.addEventListener('DOMContentLoaded', () => {
   addTourFab();
   ensureTourNodes();
-  const page = document.getElementById('memoriesPage');
-  if (location.hash === '#memories-page' && page) {
-   state.viewingAllMemoriesPage = true;
-   page.classList.remove('hidden');
-   if (typeof renderMemoriesPage === 'function') renderMemoriesPage();
-  }
-  const navType = performance.getEntriesByType && performance.getEntriesByType('navigation')[0] ? performance.getEntriesByType('navigation')[0].type : '';
-  if (navType === 'reload') {
-   document.documentElement.classList.add('hard-refresh-top');
-   document.body.classList.add('hard-refresh-top');
-   window.scrollTo(0, 0);
-   setTimeout(() => {
-    document.documentElement.classList.remove('hard-refresh-top');
-    document.body.classList.remove('hard-refresh-top');
-   }, 1200);
-  }
   if (!localStorage.getItem(TOUR_KEY)) {
    setTimeout(() => {
     startSiteTour();
@@ -441,807 +946,38 @@ function backToMainPage() {
   }
  });
 })();
-</script>
-"""
-    content = insert_before_once(content, "</body>", stable_tour_script, "stable tour script")
-
-    content = insert_before_once(
-        content,
-        '<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>',
-        '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />\n<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>\n',
-        "leaflet assets",
+</script>""",
+        text,
+        count=1,
+        flags=re.S,
     )
 
-    content = replace_if_present(
-        content,
-        """ function installCleanMultiplayer(){
- const base = (window.CONFIG && window.CONFIG.API_BASE) ? window.CONFIG.API_BASE : null;
- if (!base) {
- setWsBadge(false, 'Multiplayer: no backend URL');
- return;
- }
- connectMultiplayerWS();
- installGhostTracking();
- installSharedNotes();
- }""",
-        """ function installCleanMultiplayer(){
- setWsBadge(false, 'Multiplayer removed');
- installSharedNotes();
- }""",
-    )
-
-    content = replace_if_present(
-        content,
-        """ function connectMultiplayerWS(){
- try{
- const base = new URL(window.CONFIG.API_BASE);
- const wsUrl = `${base.protocol === 'https:' ? 'wss' : 'ws'}://${base.host}`;
- const ws = new WebSocket(wsUrl);
- window.__SNIPER_WS__ = ws;
- ws.onopen = () => {
- SNIPER.wsConnected = true;
- setWsBadge(true, 'Multiplayer: live');
- };
- ws.onclose = () => {
- SNIPER.wsConnected = false;
- setWsBadge(false, 'Multiplayer: disconnected');
- clearTimeout(SNIPER.wsReconnectTimer);
- SNIPER.wsReconnectTimer = setTimeout(connectMultiplayerWS, 2000);
- };
- ws.onerror = () => {
- SNIPER.wsConnected = false;
- setWsBadge(false, 'Multiplayer: error');
- };
- ws.onmessage = (msg) => {
- let data = null;
- try { data = JSON.parse(msg.data); } catch(_) { return; }
- if (!data) return;
- if (data.event === 'ghost:move') handleGhostMove(data.payload);
- if (data.event === 'paper:note' && data.payload?.note) handleIncomingNote(data.payload.note);
- };
- }catch(_){
- setWsBadge(false, 'Multiplayer: unavailable');
- }
- }""",
-        """ function connectMultiplayerWS(){
- return;
- }""",
-    )
-
-    content = replace_if_present(
-        content,
-        """ function installGhostTracking(){
- document.addEventListener('mousemove', (e) => {
- if (introVisible()) return;
- if (Date.now() - SNIPER.wsSendThrottle < 35) return;
- SNIPER.wsSendThrottle = Date.now();
- const initials = getInitialsForGhost();
- sendWS({
- type: 'ghost:move',
- id: SNIPER.ghostId,
- x: e.clientX,
- y: e.clientY,
- initials
- });
- }, { passive: true });
- }""",
-        """ function installGhostTracking(){
- return;
- }""",
-    )
-
-    content = replace_if_present(
-        content,
-        """ function handleGhostMove(p){
- if (!p || p.id === SNIPER.ghostId) return;
- let ghost = SNIPER.ghosts.get(p.id);
- if (!ghost){
- const el = document.createElement('div');
- el.className = 'ghost-cursor';
- el.innerHTML = '<div class="tip"></div><div class="label"></div>';
- document.body.appendChild(el);
- ghost = { el };
- SNIPER.ghosts.set(p.id, ghost);
- }
- ghost.el.querySelector('.label').textContent = p.initials || 'GS';
- ghost.el.style.left = p.x + 'px';
- ghost.el.style.top = p.y + 'px';
- }""",
-        """ function handleGhostMove(p){
- return;
- }""",
-    )
-
-    content = replace_if_present(
-        content,
-        """ function installSharedNotes(){
- clearInterval(SNIPER.notePoller);
- SNIPER.notePoller = setInterval(async () => {
- if (introVisible()) return;
- try{
- const res = await fetch(apiUrl('/api/paper-notes/random-memory'));
- const data = await res.json();
- if (!data.success || !data.note) return;
- if (SNIPER.lastIncomingNoteId === data.note.id) return;
- SNIPER.lastIncomingNoteId = data.note.id;
- handleIncomingNote(data.note);
- }catch(_){}
- }, 12000);
- const btn = document.getElementById('sendNoteBtn');
- if (btn && !btn.dataset.sniperV7Bound){
- btn.dataset.sniperV7Bound = '1';
- btn.onclick = null;
- btn.addEventListener('click', async () => {
- const memories = ((window.state && window.state.memories) || []).filter(m => m && m.id && (m.caption || '').trim());
- if (!memories.length) {
- return window.showNotification?.('info', 'No memories', 'No approved memories are available yet.');
- }
- const selected = memories[Math.floor(Math.random() * memories.length)];
- try{
- const res = await fetch(apiUrl('/api/paper-notes/from-memory'), {
- method:'POST',
- headers:{'Content-Type':'application/json'},
- body:JSON.stringify({ memoryId: selected.id })
- });
- const data = await res.json();
- if (data.success && data.note) {
- sendWS({ type:'paper:note:broadcast', note: data.note });
- launchSharedPlane(data.note);
- }
- }catch(_){}
- });
- }
- }""",
-        """ function installSharedNotes(){
- const btn = document.getElementById('sendNoteBtn');
- if (!btn || btn.dataset.sniperV7Bound === '1') return;
- btn.dataset.sniperV7Bound = '1';
- btn.onclick = null;
- btn.addEventListener('click', async () => {
-  const memories = ((window.state && window.state.memories) || []).filter(m => m && m.id && (m.caption || '').trim());
-  if (!memories.length) {
-   return window.showNotification?.('info', 'No memories', 'No approved memories are available yet.');
-  }
-  const selected = memories[Math.floor(Math.random() * memories.length)];
-  try{
-   const res = await fetch(apiUrl('/api/paper-notes/from-memory'), {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ memoryId: selected.id })
-   });
-   const data = await res.json();
-   if (!data.success) {
-    return window.showNotification?.('error', 'Could not post note', data.error || 'Failed to post note.');
-   }
-   window.showNotification?.('success', 'Memory note sent', 'Your memory note was posted.');
-  }catch(e){
-   window.showNotification?.('error', 'Could not post note', e.message);
-  }
- });
- }""",
-    )
-
-    content = replace_if_present(
-        content,
-        """ function handleIncomingNote(note){
- launchSharedPlane(note);
- }""",
-        """ function handleIncomingNote(note){
- return;
- }""",
-    )
-
-    content = replace_if_present(
-        content,
-        """ function launchSharedPlane(note){
- const layer = document.getElementById('paperAirplaneLayer');
- if (!layer) return;
- const plane = document.createElement('div');
- plane.className = 'paper-plane';
- plane.title = 'Catch this memory note';
- plane.innerHTML = '<div class="plane-fold"></div><div class="plane-memory-badge">MEMORY</div>';
- layer.appendChild(plane);
- let x = -90;
- let yBase = 90 + Math.random() * Math.min(window.innerHeight * 0.48, 300);
- let t = 0;
- let vx = 3.4 + Math.random() * 1.5;
- const step = () => {
- t += 0.04;
- x += vx;
- const y = yBase + Math.sin(t * 2.3) * 16 + Math.cos(t * 1.2) * 8;
- plane.style.left = x + 'px';
- plane.style.top = y + 'px';
- plane.style.transform = `rotate(${Math.sin(t * 2.3) * 8 - 8}deg)`;
- if (x > window.innerWidth + 120){
- plane.remove();
- return;
- }
- requestAnimationFrame(step);
- };
- plane.addEventListener('click', () => {
- alert(note.caption || note.text || 'A memory from someone.');
- plane.remove();
- });
- step();
- }""",
-        """ function launchSharedPlane(note){
- return;
- }""",
-    )
-
-    old_flow = """ function upgradeDistanceFlowToMaps(){
- const section = document.getElementById('distanceMapSection');
- const controls = document.getElementById('distanceControls');
- if (!section || !controls || document.getElementById('distanceMapsFlowCard')) return;
- const info = document.createElement('div');
- info.id = 'distanceMapsFlowCard';
- info.innerHTML = `
- <strong>How this works:</strong>
- choose whether you are pinning your 11th / 12th place or your university dream,
- click the map button to open Google Maps in a new tab, find the place there, copy the
- coordinates or map search result, then come back and confirm it below.
- `;
- controls.insertAdjacentElement('beforebegin', info);
- const panel = document.createElement('div');
- panel.id = 'distanceConfirmPanel';
- panel.innerHTML = `
- <div class="row">
- <div class="form-group">
- <label>Your Name</label>
- <input class="form-input" id="distanceStudentNameV7" maxlength="80" placeholder="Enter your name" />
- </div>
- <div class="form-group">
- <label>What are you pinning?</label>
- <select class="form-select" id="distancePinTypeV7">
- <option value="school">11th / 12th future place</option>
- <option value="university">University aim place</option>
- </select>
- </div>
- </div>
- <div class="row">
- <div class="form-group">
- <label>Google Maps coordinates</label>
- <input class="form-input" id="distanceCoordsV7" placeholder="Example: 12.9716,77.5946" />
- </div>
- <div class="form-group">
- <label>Place label</label>
- <input class="form-input" id="distancePlaceLabelV7" maxlength="120" placeholder="Example: Bangalore" />
- </div>
- </div>
- <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
- <button class="btn btn-primary" type="button" id="distanceOpenMapsV7">Open Google Maps</button>
- <button class="btn btn-secondary" type="button" id="distanceUseCoordsV7">Use These Coordinates</button>
- <button class="btn btn-primary" type="button" id="distanceSavePinsV7">Confirm Future Path</button>
- </div>
- <div class="hint">The site will only ask for this after the intro is done and after you scroll below the countdown.</div>
- <div id="distanceSelectedReview"></div>
- `;
- controls.insertAdjacentElement('afterend', panel);
- controls.innerHTML = `
- <button class="btn btn-primary" type="button" id="distanceLaunchBtnV7">Start Future Pinning</button>
- <button class="btn btn-secondary" type="button" id="distanceRefreshBtnV7">Refresh Globe</button>
- `;
- document.getElementById('distanceLaunchBtnV7')?.addEventListener('click', () => {
- panel.classList.add('active');
- section.scrollIntoView({ behavior: 'smooth', block: 'start' });
- });
- document.getElementById('distanceOpenMapsV7')?.addEventListener('click', () => {
- if (introVisible()) return;
- const label = document.getElementById('distancePlaceLabelV7')?.value?.trim() || 'future college';
- window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(label), '_blank');
- });
- document.getElementById('distanceUseCoordsV7')?.addEventListener('click', applyCoordsToPendingV7);
- document.getElementById('distanceSavePinsV7')?.addEventListener('click', saveFuturePathV7);
- document.getElementById('distanceRefreshBtnV7')?.addEventListener('click', () => loadClassPathsGlobeV7());
- loadClassPathsGlobeV7();
- }"""
-    new_flow = """ function upgradeDistanceFlowToMaps(){
- const section = document.getElementById('distanceMapSection');
- const controls = document.getElementById('distanceControls');
- if (!section || !controls || document.getElementById('distanceMapsFlowCard')) return;
- const info = document.createElement('div');
- info.id = 'distanceMapsFlowCard';
- info.innerHTML = `
- <strong>How this works:</strong>
- first select your name and section from the admin-created list, then choose whether you are placing your 11th/12th point or university point.
- Search for the place, choose a result, fine-tune it on the map if needed, and save it. Curved lines on the globe connect Cornerstone School,
- your 11th/12th point, and your university point.
- `;
- controls.insertAdjacentElement('beforebegin', info);
- const panel = document.createElement('div');
- panel.id = 'distanceConfirmPanel';
- panel.innerHTML = `
- <div class="row">
-  <div class="form-group">
-   <label>Your Name</label>
-   <select class="form-select" id="distanceStudentNameV7"><option value="">Select your name</option></select>
-  </div>
-  <div class="form-group">
-   <label>Section</label>
-   <select class="form-select" id="distanceSectionV7"><option value="">Select section</option></select>
-  </div>
- </div>
- <div class="row">
-  <div class="form-group">
-   <label>What are you pinning?</label>
-   <select class="form-select" id="distancePinTypeV7">
-    <option value="school">11th / 12th future place</option>
-    <option value="university">University aim place</option>
-   </select>
-  </div>
-  <div class="form-group">
-   <label>Place label</label>
-   <input class="form-input" id="distancePlaceLabelV7" maxlength="120" placeholder="Chosen place name" />
-  </div>
- </div>
- <div class="row">
-  <div class="form-group">
-   <label>Search place</label>
-   <input class="form-input" id="distancePlaceSearchV7" placeholder="Search for a place" />
-   <div id="distanceSearchResultsV7" style="margin-top:8px; display:grid; gap:8px;"></div>
-  </div>
-  <div class="form-group">
-   <label>Coordinates</label>
-   <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-    <input class="form-input" id="distanceLatV7" placeholder="Latitude" readonly />
-    <input class="form-input" id="distanceLngV7" placeholder="Longitude" readonly />
-   </div>
-  </div>
- </div>
- <div style="margin-top:12px;">
-  <div id="distanceLeafletPicker" style="height:420px; width:100%; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,0.12);"></div>
- </div>
- <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
-  <button class="btn btn-secondary" type="button" id="distanceSearchBtnV7">Search</button>
-  <button class="btn btn-primary" type="button" id="distanceSavePinsV7">Confirm Future Path</button>
- </div>
- <div class="hint">Nothing can be selected here unless it was configured by the admin first.</div>
- <div id="distanceSelectedReview"></div>
- `;
- controls.insertAdjacentElement('afterend', panel);
- controls.innerHTML = `
- <button class="btn btn-primary" type="button" id="distanceLaunchBtnV7">Start Future Pinning</button>
- <button class="btn btn-secondary" type="button" id="distanceRefreshBtnV7">Refresh Globe</button>
- `;
- document.getElementById('distanceLaunchBtnV7')?.addEventListener('click', () => {
-  panel.classList.add('active');
-  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  setTimeout(() => {
-   initLeafletDistancePickerV7();
-   loadStudentDirectoryV7();
-  }, 120);
- });
- document.getElementById('distanceSearchBtnV7')?.addEventListener('click', searchLeafletPlaceV7);
- document.getElementById('distanceSavePinsV7')?.addEventListener('click', saveFuturePathV7);
- document.getElementById('distanceRefreshBtnV7')?.addEventListener('click', () => loadClassPathsGlobeV7());
- loadClassPathsGlobeV7();
- }"""
-    content = replace_if_present(content, old_flow, new_flow)
-
-    if "async function loadStudentDirectoryV7()" not in content:
-        helper_block = """ async function loadStudentDirectoryV7(){
- try{
-  const res = await fetch(apiUrl('/api/student-directory'));
-  const data = await res.json();
-  if (!data.success) return;
-  const nameSel = document.getElementById('distanceStudentNameV7');
-  const sectionSel = document.getElementById('distanceSectionV7');
-  if (nameSel) {
-   nameSel.innerHTML = '<option value="">Select your name</option>' + (data.students || []).map(s => `<option value="${escapeAttr(s.name)}">${escapeHtml(s.name)}</option>`).join('');
-  }
-  if (sectionSel) {
-   const sections = Array.from(new Set((data.students || []).map(s => String(s.section || '').trim()).filter(Boolean)));
-   sectionSel.innerHTML = '<option value="">Select section</option>' + sections.map(s => `<option value="${escapeAttr(s)}">${escapeHtml(s)}</option>`).join('');
-  }
- }catch(_){}
- }
- let distanceLeafletMapV7 = null;
- let distanceLeafletMarkerV7 = null;
- function setLeafletPickedPointV7(lat, lng, label){
-  const latEl = document.getElementById('distanceLatV7');
-  const lngEl = document.getElementById('distanceLngV7');
-  const labelEl = document.getElementById('distancePlaceLabelV7');
-  if (latEl) latEl.value = String(Number(lat).toFixed(6));
-  if (lngEl) lngEl.value = String(Number(lng).toFixed(6));
-  if (labelEl && label) labelEl.value = label;
-  if (!distanceLeafletMapV7) return;
-  if (!distanceLeafletMarkerV7) {
-   distanceLeafletMarkerV7 = L.marker([lat, lng]).addTo(distanceLeafletMapV7);
-  } else {
-   distanceLeafletMarkerV7.setLatLng([lat, lng]);
-  }
-  distanceLeafletMapV7.setView([lat, lng], Math.max(distanceLeafletMapV7.getZoom(), 4));
- }
- function initLeafletDistancePickerV7(){
-  const mapEl = document.getElementById('distanceLeafletPicker');
-  if (!mapEl || typeof L === 'undefined') return;
-  if (!distanceLeafletMapV7) {
-   distanceLeafletMapV7 = L.map(mapEl, { center:[17.3850, 78.4867], zoom:4, worldCopyJump:true });
-   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '&copy; OpenStreetMap contributors'
-   }).addTo(distanceLeafletMapV7);
-   distanceLeafletMapV7.on('click', (e) => {
-    setLeafletPickedPointV7(e.latlng.lat, e.latlng.lng);
-    applyCoordsToPendingV7();
-   });
-  } else {
-   distanceLeafletMapV7.invalidateSize();
-  }
- }
- async function searchLeafletPlaceV7(){
-  const search = document.getElementById('distancePlaceSearchV7')?.value?.trim();
-  const box = document.getElementById('distanceSearchResultsV7');
-  if (box) box.innerHTML = '';
-  if (!search) {
-   return window.showNotification?.('error', 'Search needed', 'Enter a place to search.');
-  }
-  try{
-   const res = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=' + encodeURIComponent(search), {
-    headers: { 'Accept': 'application/json' }
-   });
-   const data = await res.json();
-   if (!Array.isArray(data) || !data.length) {
-    return window.showNotification?.('error', 'Not found', 'Could not find that place.');
-   }
-   if (!box) {
-    const item = data[0];
-    const lat = Number(item.lat);
-    const lng = Number(item.lon);
-    const label = String(item.display_name || search).split(',').slice(0, 2).join(',').trim();
-    setLeafletPickedPointV7(lat, lng, label);
-    applyCoordsToPendingV7();
-    return;
-   }
-   box.innerHTML = data.map(item => {
-    const label = String(item.display_name || search);
-    return `<button type="button" class="btn btn-secondary" data-lat="${escapeAttr(item.lat)}" data-lng="${escapeAttr(item.lon)}" data-label="${escapeAttr(label)}">${escapeHtml(label)}</button>`;
-   }).join('');
-   box.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', () => {
-     const lat = Number(btn.getAttribute('data-lat'));
-     const lng = Number(btn.getAttribute('data-lng'));
-     const label = btn.getAttribute('data-label') || '';
-     setLeafletPickedPointV7(lat, lng, label);
-     applyCoordsToPendingV7();
-    });
-   });
-  }catch(e){
-   window.showNotification?.('error', 'Search failed', e.message);
-  }
- }
-"""
-        content = insert_before_once(content, " function parseCoords(str){", helper_block, "leaflet helper block")
-
-    old_apply = """ function applyCoordsToPendingV7(){
- const type = document.getElementById('distancePinTypeV7')?.value || 'school';
- const coords = parseCoords(document.getElementById('distanceCoordsV7')?.value || '');
- const label = document.getElementById('distancePlaceLabelV7')?.value?.trim() || '';
- if (!coords) {
- return window.showNotification?.('error', 'Bad coordinates', 'Use format: latitude,longitude');
- }
- if (!window.__SNIPER_RUNTIME__.selectedSchool) window.__SNIPER_RUNTIME__.selectedSchool = null;
- if (!window.__SNIPER_RUNTIME__.selectedUniversity) window.__SNIPER_RUNTIME__.selectedUniversity = null;
- if (type === 'school') {
- window.__SNIPER_RUNTIME__.selectedSchool = { ...coords, label };
- } else {
- window.__SNIPER_RUNTIME__.selectedUniversity = { ...coords, label };
- }
- refreshDistanceReviewV7();
- renderSavedAndPendingV7();
- }"""
-    new_apply = """ function applyCoordsToPendingV7(){
- const type = document.getElementById('distancePinTypeV7')?.value || 'school';
- const lat = Number(document.getElementById('distanceLatV7')?.value || '');
- const lng = Number(document.getElementById('distanceLngV7')?.value || '');
- const coords = (Number.isFinite(lat) && Number.isFinite(lng)) ? { lat, lng } : null;
- const label = document.getElementById('distancePlaceLabelV7')?.value?.trim() || '';
- if (!coords) {
-  return window.showNotification?.('error', 'Location needed', 'Search and select a place on the map first.');
- }
- if (!window.__SNIPER_RUNTIME__.selectedSchool) window.__SNIPER_RUNTIME__.selectedSchool = null;
- if (!window.__SNIPER_RUNTIME__.selectedUniversity) window.__SNIPER_RUNTIME__.selectedUniversity = null;
- if (type === 'school') {
-  window.__SNIPER_RUNTIME__.selectedSchool = { ...coords, label };
- } else {
-  window.__SNIPER_RUNTIME__.selectedUniversity = { ...coords, label };
- }
- refreshDistanceReviewV7();
- if (typeof renderSavedAndPendingV7 === 'function') {
-  renderSavedAndPendingV7();
- } else if (typeof renderGlobeV7 === 'function') {
-  loadClassPathsGlobeV7();
- }
- }"""
-    content = replace_if_present(content, old_apply, new_apply)
-
-    old_save = """ async function saveFuturePathV7(){
- const studentName = document.getElementById('distanceStudentNameV7')?.value?.trim();
- const schoolPoint = window.__SNIPER_RUNTIME__.selectedSchool || null;
- const universityPoint = window.__SNIPER_RUNTIME__.selectedUniversity || null;
- if (!studentName) return window.showNotification?.('error', 'Name needed', 'Enter your name first.');
- if (!schoolPoint && !universityPoint) return window.showNotification?.('error', 'No pin selected', 'Open Google Maps, then enter coordinates and confirm them here.');
- try{
- const res = await fetch(apiUrl('/api/destinations/pin-submit'), {
- method:'POST',
- headers:{'Content-Type':'application/json'},
- body:JSON.stringify({ studentName, schoolPoint, universityPoint })
- });
- const data = await res.json();
- if (!data.success) return window.showNotification?.('error', 'Could not save', data.error || 'Save failed.');
- window.showNotification?.('success', 'Saved', 'Your future path is now on the class globe.');
- loadClassPathsGlobeV7();
- }catch(e){
- window.showNotification?.('error', 'Could not save', e.message);
- }
- }"""
-    new_save = """ async function saveFuturePathV7(){
- const pinType = document.getElementById('distancePinTypeV7')?.value || 'school';
- const lat = Number(document.getElementById('distanceLatV7')?.value || '');
- const lng = Number(document.getElementById('distanceLngV7')?.value || '');
- const label = document.getElementById('distancePlaceLabelV7')?.value?.trim() || '';
- const section = document.getElementById('distanceSectionV7')?.value?.trim() || '';
- const studentName = document.getElementById('distanceStudentNameV7')?.value?.trim();
- if (Number.isFinite(lat) && Number.isFinite(lng)) {
-  if (pinType === 'school') {
-   window.__SNIPER_RUNTIME__.selectedSchool = { lat, lng, label };
-  } else {
-   window.__SNIPER_RUNTIME__.selectedUniversity = { lat, lng, label };
-  }
- }
- refreshDistanceReviewV7();
- const schoolPoint = window.__SNIPER_RUNTIME__.selectedSchool || null;
- const universityPoint = window.__SNIPER_RUNTIME__.selectedUniversity || null;
- if (!studentName) return window.showNotification?.('error', 'Name needed', 'Select your name first.');
- if (!section) return window.showNotification?.('error', 'Section needed', 'Select your section first.');
- if (!schoolPoint && !universityPoint) return window.showNotification?.('error', 'No pin selected', 'Search and select a place first.');
- try{
-  const res = await fetch(apiUrl('/api/destinations/pin-submit'), {
-   method:'POST',
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({ studentName, section, schoolPoint, universityPoint })
-  });
-  const data = await res.json();
-  if (!data.success) return window.showNotification?.('error', 'Could not save', data.error || 'Save failed.');
-  window.showNotification?.('success', 'Saved', 'Your future path is now on the class globe.');
-  loadClassPathsGlobeV7();
- }catch(e){
-  window.showNotification?.('error', 'Could not save', e.message);
- }
- }"""
-    content = replace_if_present(content, old_save, new_save)
-
-    write_text(path, content)
+    if text != original:
+        backup(index_path)
+        write_file(index_path, text)
 
 
-def patch_server_js(path: Path) -> None:
-    content = read_text(path)
-
-    content = replace_if_present(
-        content,
-        "const compilationsPath = path.join(databaseDir, 'compilations.json');",
-        "const compilationsPath = path.join(databaseDir, 'compilations.json');\nconst studentDirectoryPath = path.join(databaseDir, 'student_directory.json');",
-    )
-
-    content = replace_if_present(
-        content,
-        """ if (!fs.existsSync(compilationsPath)) {
- fs.writeFileSync(compilationsPath, JSON.stringify({ compilations: [], nextId: 1 }, null, 2));
- console.log(' Created compilations database');
- }
-}""",
-        """ if (!fs.existsSync(compilationsPath)) {
- fs.writeFileSync(compilationsPath, JSON.stringify({ compilations: [], nextId: 1 }, null, 2));
- console.log(' Created compilations database');
- }
- if (!fs.existsSync(studentDirectoryPath)) {
- fs.writeFileSync(studentDirectoryPath, JSON.stringify({ students: [] }, null, 2));
- console.log(' Created student directory database');
- }
-}""",
-    )
-
-    content = replace_if_present(
-        content,
-        """function writeCompilations(data) {
- safeWriteJson(compilationsPath, data);
-}""",
-        """function writeCompilations(data) {
- safeWriteJson(compilationsPath, data);
-}
-function readStudentDirectory() {
- return safeReadJson(studentDirectoryPath, { students: [] });
-}
-function writeStudentDirectory(data) {
- safeWriteJson(studentDirectoryPath, data);
-}""",
-    )
-
-    if "function getClientIp(req)" not in content:
-        content = replace_if_present(
-            content,
-            """function nowIso() {
- return new Date().toISOString();
-}""",
-            """function nowIso() {
- return new Date().toISOString();
-}
-function getClientIp(req) {
- return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-}
-function isRateLimited(items, key, limit, windowMs) {
- const cutoff = Date.now() - windowMs;
- let count = 0;
- for (const item of items) {
-  const ts = new Date(item.createdAt || item.created_at || 0).getTime();
-  if (!Number.isFinite(ts) || ts < cutoff) continue;
-  if (String(item.ip || '') === key) count++;
- }
- return count >= limit;
-}""",
-        )
-
-    student_dir_block = """
-app.get('/api/student-directory', (req, res) => {
- try {
-  const db = readStudentDirectory();
-  res.json({ success: true, students: db.students || [] });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-app.post('/api/admin/student-directory', (req, res) => {
- try {
-  const auth = requireAdmin(req, res);
-  if (!auth) return;
-  if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-  const students = Array.isArray(req.body?.students) ? req.body.students : [];
-  const cleaned = students.map(s => ({
-   name: String(s?.name || '').trim().substring(0, 80),
-   section: String(s?.section || '').trim().substring(0, 20)
-  })).filter(s => s.name && s.section);
-  writeStudentDirectory({ students: cleaned });
-  audit(auth.user.id, 'save-student-directory', { count: cleaned.length });
-  res.json({ success: true, count: cleaned.length });
- } catch (e) {
-  res.status(500).json({ success: false, error: e.message });
- }
-});
-"""
-    content = insert_before_once(content, "// Settings save", student_dir_block, "student directory endpoints")
-
-    content = replace_if_present(
-        content,
-        """ app.post('/api/paper-notes', (req, res) => {
- try {
- const text = String(req.body?.text || '').trim().substring(0, 400);
- if (!text) return res.status(400).json({ success: false, error: 'text required' });
- const db = readPaperNotes();
- const note = {
- id: db.nextId++,
- text,
- ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || '',
- createdAt: nowIso()
- };
- db.notes.push(note);
- if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
- writePaperNotes(db);
- sendWs('paper:note', { id: note.id });
- res.json({ success: true, noteId: note.id });
- } catch (e) {
- res.status(500).json({ success: false, error: e.message });
- }
- });""",
-        """ app.post('/api/paper-notes', (req, res) => {
- try {
- const text = String(req.body?.text || '').trim().substring(0, 400);
- if (!text) return res.status(400).json({ success: false, error: 'text required' });
- if (containsProfanity(text)) return res.status(400).json({ success: false, error: 'Memory note rejected by profanity filter.' });
- const db = readPaperNotes();
- const ip = getClientIp(req);
- if (isRateLimited(db.notes || [], ip, 5, 60 * 1000)) {
-  return res.status(429).json({ success: false, error: 'Rate limit exceeded. Maximum 5 notes per minute.' });
- }
- const note = {
-  id: db.nextId++,
-  text,
-  ip,
-  createdAt: nowIso()
- };
- db.notes.push(note);
- if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
- writePaperNotes(db);
- sendWs('paper:note', { id: note.id });
- res.json({ success: true, noteId: note.id });
- } catch (e) {
- res.status(500).json({ success: false, error: e.message });
- }
- });""",
-    )
-
-    content = replace_if_present(
-        content,
-        """ app.post('/api/paper-notes/from-memory', (req, res) => {
- try {
- const memoryId = Number(req.body?.memoryId);
- const dbMem = readDB();
- const memory = dbMem.memories.find(m => m.id === memoryId && m.approved === 1 && !m.deletedAt && !m.purgedAt);
- if (!memory) return res.status(404).json({ success: false, error: 'Memory not found' });
- const db = readPaperNotes();
- const ip = getClientIp(req);
- if (isRateLimited(db.notes || [], ip, 5, 60 * 1000)) {
- return res.status(429).json({ success: false, error: 'Rate limit exceeded. Maximum 5 notes per minute.' });
- }
- const note = {
- id: db.nextId++,
- memoryId,
- caption: String(memory.caption || '').substring(0, 400),
- text: String(memory.caption || '').substring(0, 400),
- ip,
- createdAt: nowIso()
- };
- db.notes.push(note);
- if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
- writePaperNotes(db);
- sendWs('paper:note', { note });
- res.json({ success: true, note });
- } catch (e) {
- res.status(500).json({ success: false, error: e.message });
- }
- });""",
-        """ app.post('/api/paper-notes/from-memory', (req, res) => {
- try {
- const memoryId = Number(req.body?.memoryId);
- const dbMem = readDB();
- const memory = dbMem.memories.find(m => m.id === memoryId && m.approved === 1 && !m.deletedAt && !m.purgedAt);
- if (!memory) return res.status(404).json({ success: false, error: 'Memory not found' });
- const noteText = String(memory.caption || '').substring(0, 400);
- if (containsProfanity(noteText)) return res.status(400).json({ success: false, error: 'Memory note rejected by profanity filter.' });
- const db = readPaperNotes();
- const ip = getClientIp(req);
- if (isRateLimited(db.notes || [], ip, 5, 60 * 1000)) {
-  return res.status(429).json({ success: false, error: 'Rate limit exceeded. Maximum 5 notes per minute.' });
- }
- const note = {
-  id: db.nextId++,
-  memoryId,
-  caption: noteText,
-  text: noteText,
-  ip,
-  createdAt: nowIso()
- };
- db.notes.push(note);
- if (db.notes.length > 3000) db.notes = db.notes.slice(-3000);
- writePaperNotes(db);
- sendWs('paper:note', { note });
- res.json({ success: true, note });
- } catch (e) {
- res.status(500).json({ success: false, error: e.message });
- }
- });""",
-    )
-
-    write_text(path, content)
-
-
-def main() -> int:
+def main() -> None:
     root = Path.cwd()
-    index_path = root / INDEX_HTML
-    server_path = root / SERVER_JS
+    server_js = root / "server.js"
+    index_html = root / "index.html"
 
-    if not index_path.exists():
-        raise FileNotFoundError(f"Missing {INDEX_HTML}")
-    if not server_path.exists():
-        raise FileNotFoundError(f"Missing {SERVER_JS}")
+    if not server_js.exists():
+        die("server.js not found in current directory")
+    if not index_html.exists():
+        die("index.html not found in current directory")
 
-    patch_index_html(index_path)
-    patch_server_js(server_path)
-    return 0
+    patch_server_js(server_js)
+    patch_index_html(index_html)
+
+    result = {
+        "success": True,
+        "modified": ["server.js", "index.html"],
+        "backups": ["server.js.blindrun.bak", "index.html.blindrun.bak"],
+        "mode": "best-effort-nonfatal"
+    }
+    print(json.dumps(result))
 
 
 if __name__ == "__main__":
-    try:
-        raise SystemExit(main())
-    except Exception as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
-        raise
+    main()

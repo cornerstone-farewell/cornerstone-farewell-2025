@@ -1,0 +1,31 @@
+<section id="timeCapsuleSection" class="ff-section-hidden">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-badge">Future You</span>
+      <h2 class="section-title">Time <span class="highlight">Capsule</span></h2>
+      <p class="section-description">Write a letter to yourself. It will be revealed on the date you choose.</p>
+    </div>
+    <div style="position:relative;display:inline-block;left:50%;transform:translateX(-50%);margin-bottom:28px;">
+      <span class="capsule-icon">📮</span>
+      <svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" width="200" height="200" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(212,175,55,.15)" stroke-width="1"/>
+        <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(212,175,55,.08)" stroke-width="1"/>
+        <line x1="100" y1="100" x2="170" y2="100" stroke="rgba(212,175,55,.5)" stroke-width="1.5" style="transform-origin:100px 100px;animation:radarSpin 3s linear infinite;"/>
+        <circle cx="100" cy="100" r="4" fill="rgba(212,175,55,.6)"/>
+      </svg>
+    </div>
+    <div class="ff-form-box">
+      <div class="ff-grid-2">
+        <div><label class="ff-label">Your Name</label><input class="ff-input" id="capsuleName" placeholder="Your name" maxlength="60"/></div>
+        <div><label class="ff-label">Reveal On</label><input type="date" class="ff-input" id="capsuleRevealDate"/></div>
+      </div>
+      <label class="ff-label">Letter to Future You</label>
+      <textarea class="ff-input" id="capsuleLetter" placeholder="Dear future me..." maxlength="1200" style="min-height:160px;"></textarea>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <button class="ff-submit-btn" type="button" onclick="submitTimeCapsule()">Seal & Send 📮</button>
+        <span style="font-size:.82rem;color:rgba(255,255,255,.45);">Stays sealed until reveal date</span>
+      </div>
+    </div>
+    <div class="capsule-sealed-list" id="capsuleSealedList"></div>
+  </div>
+</section>

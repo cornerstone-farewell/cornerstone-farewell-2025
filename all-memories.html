@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Gallery | Farewell 2025</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4AF37; --bg-dark: #0a0f1c; --bg-card: #16213e; --text: #fff; --muted: #a0aabf;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg-dark); color: var(--text); min-height: 100vh; }
+
+        .gallery-header {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(10, 15, 28, 0.85); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 20px 5%; display: flex; justify-content: space-between; align-items: center;
+        }
+        .gallery-header h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 2rem; }
+        .back-btn {
+            background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 24px; border-radius: 30px; text-decoration: none; transition: 0.3s;
+        }
+        .back-btn:hover { background: var(--gold); color: var(--bg-dark); border-color: var(--gold); }
+
+        .gallery-filters { display: flex; justify-content: center; gap: 12px; padding: 30px 20px; flex-wrap: wrap; }
+        .filter-pill {
+            background: rgba(255,255,255,0.05); color: var(--muted); border: none;
+            padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s;
+        }
+        .filter-pill:hover, .filter-pill.active { background: var(--gold); color: var(--bg-dark); font-weight: 500; }
+
+        .masonry-wrapper { padding: 0 5% 60px; }
+        .masonry { column-count: 4; column-gap: 20px; }
+        .masonry-item {
+            break-inside: avoid; margin-bottom: 20px; background: var(--bg-card);
+            border-radius: 16px; overflow: hidden; position: relative;
+            border: 1px solid rgba(255,255,255,0.05); transition: transform 0.3s ease;
+        }
+        .masonry-item:hover { transform: translateY(-5px); border-color: rgba(212, 175, 55, 0.4); }
+        .masonry-item img, .masonry-item video { width: 100%; display: block; }
+
+        .item-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 30px 15px 15px; display: flex; flex-direction: column; gap: 5px;
+        }
+        .item-author { font-weight: 600; color: var(--gold); font-size: 0.95rem; }
+        .item-caption { font-size: 0.85rem; color: #ddd; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .item-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 10px; font-size: 0.7rem; color: var(--gold); backdrop-filter: blur(5px); }
+
+        .loading { text-align: center; padding: 100px; color: var(--gold); font-size: 1.2rem; }
+
+        @media (max-width: 1200px) { .masonry { column-count: 3; } }
+        @media (max-width: 800px) { .masonry { column-count: 2; } .gallery-header h1 { font-size: 1.5rem; } }
+        @media (max-width: 500px) { .masonry { column-count: 1; } }
+    </style>
+</head>
+<body>
+
+    <header class="gallery-header">
+        <h1>Memory Gallery</h1>
+        <a href="index.html" class="back-btn">← Return Home</a>
+    </header>
+
+    <div class="gallery-filters" id="filters">
+        <button class="filter-pill active" data-filter="all">All Memories</button>
+        <button class="filter-pill" data-filter="Friends">Friends</button>
+        <button class="filter-pill" data-filter="Teachers">Teachers</button>
+        <button class="filter-pill" data-filter="Events">Events</button>
+        <button class="filter-pill" data-filter="Fun Moments">Fun Moments</button>
+        <button class="filter-pill" data-filter="Sports">Sports</button>
+        <button class="filter-pill" data-filter="Other">Other</button>
+    </div>
+
+    <div class="masonry-wrapper">
+        <div class="masonry" id="masonryGrid">
+            <div class="loading">Loading our beautiful memories...</div>
+        </div>
+    </div>
+
+    <script>
+        // Hardcoded cloudflare to ensure it works independent of loader logic
+        const API_BASE = "https://threshold-superb-gasoline-theology.trycloudflare.com";
+        let allMemories = [];
+
+        async function loadGallery() {
+            try {
+                const res = await fetch(API_BASE + '/api/memories?limit=5000'); 
+                const data = await res.json();
+                if (data.success) {
+                    allMemories = data.memories;
+                    renderMasonry('all');
+                }
+            } catch (e) {
+                document.getElementById('masonryGrid').innerHTML = '<div class="loading" style="color:red;">Ensure your backend server is running.</div>';
+            }
+        }
+
+        function renderMasonry(filter) {
+            const grid = document.getElementById('masonryGrid');
+            const filtered = filter === 'all' ? allMemories : allMemories.filter(m => m.memory_type === filter);
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="loading" style="color:var(--muted);">No memories found for this filter.</div>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(m => {
+                // Safe media URL resolution
+                let url = m.file_url;
+                if(url && !url.startsWith('http')) url = API_BASE + (url.startsWith('/') ? '' : '/') + url;
+
+                return `
+                <div class="masonry-item">
+                    <span class="item-badge">${m.memory_type}</span>
+                    ${m.file_type === 'video' 
+                        ? `<video src="${url}" controls style="max-height:600px;"></video>` 
+                        : `<img src="${url}" loading="lazy"/>`}
+                    <div class="item-overlay">
+                        <div class="item-author">${m.student_name}</div>
+                        <div class="item-caption">${m.caption}</div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        document.querySelectorAll('.filter-pill').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                renderMasonry(e.target.getAttribute('data-filter'));
+            });
+        });
+
+        loadGallery();
+    </script>
+</body>
+</html>

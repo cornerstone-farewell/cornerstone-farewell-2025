@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2204,7 +2203,7 @@ overflow: hidden;
     // Change this ONE line to point to your server
     // =========================
     const CONFIG = {
-      API_BASE: localStorage.getItem('farewell_api_base') || "https://threshold-superb-gasoline-theology.trycloudflare.com",
+      API_BASE: "https://anniversary-appeared-directors-devel.trycloudflare.com",
       REFRESH_INTERVAL: 60000,
       MAX_FILE_SIZE: 100 * 1024 * 1024,
       MAX_TOTAL_SIZE: 200 * 1024 * 1024,
@@ -2289,6 +2288,10 @@ overflow: hidden;
       memories: [],
       memPage: 1,
       memLimit: 2000,
+ previewLimit: 6,
+ viewingAllMemoriesPage: false,
+ previewLimit: 6,
+ viewingAllMemoriesPage: false,
  previewLimit: 6,
  viewingAllMemoriesPage: false,
       memHasMore: true,
@@ -2503,8 +2506,7 @@ function renderMemories() {
     countPill.textContent = `${state.memories.length} loaded${state.memHasMore ? ' • more available' : ''}`;
   }
 
-  const displayMemories = state.viewingAllMemoriesPage ? state.memories : state.memories.slice(0, state.previewLimit);
- if (displayMemories.length === 0) {
+  if (displayMemories.length === 0) {
     grid.innerHTML = `<div class="memory-empty" style="grid-column: 1/-1;"><div class="memory-empty-icon">🖼️</div><h3>No Memories Yet</h3><p>Be the first to share!</p></div>`;
     const loadMoreWrap = document.getElementById('loadMoreWrap');
     if (loadMoreWrap) loadMoreWrap.style.display = 'none';
@@ -2567,54 +2569,19 @@ function renderMemories() {
     function startReply(commentId) { state.replyingTo = commentId; resetReplyUI(); const textArea = document.getElementById('commentText'); if (textArea) textArea.focus(); }
     function openComments(memoryId) { const index = state.memories.findIndex(m => m.id === memoryId); if (index >= 0) openLightbox(index); }
     async function postComment() { const memoryId = activeMemoryId || state.memories[state.lightboxIndex]?.id; if (!memoryId) return; const name = document.getElementById('commentName')?.value?.trim(); const text = document.getElementById('commentText')?.value?.trim(); if (!name) return showNotification('error', 'Name required', 'Please enter your name.'); if (!text) return showNotification('error', 'Comment required', 'Please write a comment.'); try { const res = await fetch(apiUrl(`/api/comments/${memoryId}`), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, text, parentId: state.replyingTo }) }); const data = await res.json(); if (!data.success) return showNotification('error', 'Failed', data.error || 'Could not post.'); const textArea = document.getElementById('commentText'); if (textArea) textArea.value = ''; state.replyingTo = null; resetReplyUI(); await loadComments(memoryId); } catch (e) { showNotification('error', 'Failed', e.message); } }
-    function renderMemoriesPage() {
- const grid = document.getElementById('memoryGridPage');
- const wrap = document.getElementById('loadMoreWrapPage');
- if (!grid) return;
- if (!state.memories.length) {
-  grid.innerHTML = `<div class="memory-empty" style="grid-column: 1/-1;"><div class="memory-empty-icon">📷</div><h3>No Memories Yet</h3><p>Be the first to share!</p></div>`;
-  if (wrap) wrap.style.display = 'none';
-  return;
- }
- grid.innerHTML = document.getElementById('memoryGrid') ? document.getElementById('memoryGrid').innerHTML : '';
- if (wrap) wrap.style.display = state.memHasMore ? 'flex' : 'none';
-}
-function openMemoriesPage() {
- state.viewingAllMemoriesPage = true;
- const page = document.getElementById('memoriesPage');
- if (page) page.classList.remove('hidden');
- history.pushState({ memoriesPage: true }, '', '#memories-page');
- renderMemories();
- renderMemoriesPage();
- window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-function backToMainPage() {
- state.viewingAllMemoriesPage = false;
- const page = document.getElementById('memoriesPage');
- if (page) page.classList.add('hidden');
- if (location.hash === '#memories-page') history.pushState({}, '', '#home');
- const home = document.getElementById('home');
- if (home) home.scrollIntoView({ behavior: 'smooth', block: 'start' });
- renderMemories();
-}
-document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
  const viewAllBtn = document.getElementById('viewAllMemoriesBtn');
  if (viewAllBtn) viewAllBtn.addEventListener('click', openMemoriesPage);
  const backBtn = document.getElementById('backToHomeFromMemoriesPage');
  if (backBtn) backBtn.addEventListener('click', backToMainPage);
- const loadMoreBtnPage = document.getElementById('loadMoreBtnPage');
- if (loadMoreBtnPage) loadMoreBtnPage.addEventListener('click', async () => {
-  await loadMemories(false);
-  renderMemoriesPage();
- });
  document.querySelectorAll('a[href="#home"]').forEach(el => {
   el.addEventListener('click', (evt) => {
    evt.preventDefault();
    backToMainPage();
   });
  });
-});
-window.addEventListener('popstate', () => {
+ });
+ window.addEventListener('popstate', () => {
  const page = document.getElementById('memoriesPage');
  if (!page) return;
  if (location.hash === '#memories-page') {
@@ -2624,9 +2591,8 @@ window.addEventListener('popstate', () => {
  } else {
   state.viewingAllMemoriesPage = false;
   page.classList.add('hidden');
-  renderMemories();
  }
-});
+ });
 
  document.addEventListener('DOMContentLoaded', () => {
  const viewAllBtn = document.getElementById('viewAllMemoriesBtn');
@@ -6785,8 +6751,8 @@ body.sniper-ui-hidden > *:not(#leanBackOverlay):not(#sniperSfxHost):not(#sniperG
     loadClassPathsGlobeV7();
   }
 
-//   let distanceLeafletMapV7 = null;
-//  let distanceLeafletMarkerV7 = null;
+  let distanceLeafletMapV7 = null;
+ let distanceLeafletMarkerV7 = null;
  function setLeafletPickedPointV7(lat, lng, label){
   const latEl = document.getElementById('distanceLatV7');
   const lngEl = document.getElementById('distanceLngV7');
@@ -7166,6 +7132,232 @@ body.sniper-ui-hidden > *:not(#leanBackOverlay):not(#sniperSfxHost):not(#sniperG
 </script>
 
 
+<script id="fixer-tour-script">
+(function(){
+ if (window.__FIXER_TOUR_LOADED__) return;
+ window.__FIXER_TOUR_LOADED__ = true;
+ const TOUR_KEY = 'cornerstone_tour_seen_v1';
+ function addTourFab(){
+  if (document.getElementById('featureTourFab')) return;
+  const btn = document.createElement('button');
+  btn.id = 'featureTourFab';
+  btn.className = 'feature-tour-fab';
+  btn.type = 'button';
+  btn.textContent = 'Tutorial';
+  btn.addEventListener('click', startSiteTour);
+  document.body.appendChild(btn);
+ }
+ function ensureTourNodes(){
+  if (!document.getElementById('featureTourOverlay')){
+   const overlay = document.createElement('div');
+   overlay.id = 'featureTourOverlay';
+   overlay.className = 'feature-tour-overlay';
+   overlay.innerHTML = '<div id="featureTourSpotlight" class="feature-tour-spotlight"></div><div id="featureTourCard" class="feature-tour-card"></div>';
+   document.body.appendChild(overlay);
+  }
+ }
+ function buildSteps(){
+  return [
+   { selector:'#home .hero-buttons', title:'Welcome', text:'Start here to share a memory or explore the wall.' },
+   { selector:'#countdown', title:'Countdown', text:'This shows how long is left until the big farewell moment.' },
+   { selector:'#memories', title:'Memories Preview', text:'Only six selected memories load here for a cleaner homepage.' },
+   { selector:'#viewAllMemoriesBtn', title:'View All', text:'Use this button to open the full memories page.' },
+   { selector:'#upload', title:'Upload', text:'Share your photo or video memory from here.' },
+   { selector:'#distanceMapSection', title:'Future Map', text:'Pick your future place on the map and save it.' },
+   { selector:'#compilations', title:'Compilations', text:'Watch curated memory compilations here.' }
+  ];
+ }
+ function stopSiteTour(){
+  const overlay = document.getElementById('featureTourOverlay');
+  if (overlay) overlay.classList.remove('active');
+ }
+ function startSiteTour(){
+  ensureTourNodes();
+  const steps = buildSteps();
+  let idx = 0;
+  const overlay = document.getElementById('featureTourOverlay');
+  const card = document.getElementById('featureTourCard');
+  const spot = document.getElementById('featureTourSpotlight');
+  function render(){
+   const step = steps[idx];
+   const el = document.querySelector(step.selector);
+   if (!el){ idx += 1; if (idx >= steps.length) return stopSiteTour(); return render(); }
+   el.scrollIntoView({ behavior:'smooth', block:'center' });
+   setTimeout(() => {
+    const r = el.getBoundingClientRect();
+    spot.style.left = Math.max(8, r.left - 8) + 'px';
+    spot.style.top = Math.max(8, r.top - 8) + 'px';
+    spot.style.width = Math.max(40, r.width + 16) + 'px';
+    spot.style.height = Math.max(40, r.height + 16) + 'px';
+    card.style.left = Math.min(window.innerWidth - 380, Math.max(12, r.left)) + 'px';
+    card.style.top = Math.min(window.innerHeight - 170, r.bottom + 12) + 'px';
+    card.innerHTML = `<h3>${step.title}</h3><p>${step.text}</p><div class="feature-tour-actions"><button class="btn btn-secondary" type="button" id="tourSkipBtn">Close</button><button class="btn btn-primary" type="button" id="tourNextBtn">${idx === steps.length - 1 ? 'Done' : 'Next'}</button></div>`;
+    document.getElementById('tourSkipBtn')?.addEventListener('click', stopSiteTour);
+    document.getElementById('tourNextBtn')?.addEventListener('click', () => {
+     idx += 1;
+     if (idx >= steps.length) { stopSiteTour(); return; }
+     render();
+    });
+   }, 420);
+  }
+  overlay.classList.add('active');
+  render();
+ }
+ window.startSiteTour = startSiteTour;
+ document.addEventListener('DOMContentLoaded', () => {
+  addTourFab();
+  ensureTourNodes();
+  const page = document.getElementById('memoriesPage');
+  if (location.hash === '#memories-page' && page) {
+   state.viewingAllMemoriesPage = true;
+   page.classList.remove('hidden');
+   if (typeof renderMemoriesPage === 'function') renderMemoriesPage();
+  }
+  const navType = performance.getEntriesByType && performance.getEntriesByType('navigation')[0] ? performance.getEntriesByType('navigation')[0].type : '';
+  if (navType === 'reload') {
+   document.documentElement.classList.add('hard-refresh-top');
+   document.body.classList.add('hard-refresh-top');
+   window.scrollTo(0, 0);
+   setTimeout(() => {
+    document.documentElement.classList.remove('hard-refresh-top');
+    document.body.classList.remove('hard-refresh-top');
+   }, 1200);
+  }
+  if (!localStorage.getItem(TOUR_KEY)) {
+   setTimeout(() => {
+    startSiteTour();
+    localStorage.setItem(TOUR_KEY, '1');
+   }, 1200);
+  }
+ });
+})();
+</script>
+
+<script id="fixer-stable-tour-script">
+(function(){
+ if (window.__FIXER_STABLE_TOUR__) return;
+ window.__FIXER_STABLE_TOUR__ = true;
+ const TOUR_KEY = 'cornerstone_tour_seen_v2';
+ function addTourFab(){
+  if (document.getElementById('featureTourFab')) return;
+  const btn = document.createElement('button');
+  btn.id = 'featureTourFab';
+  btn.className = 'feature-tour-fab';
+  btn.type = 'button';
+  btn.textContent = 'Tutorial';
+  btn.addEventListener('click', startSiteTour);
+  document.body.appendChild(btn);
+ }
+ function ensureTourNodes(){
+  if (!document.getElementById('featureTourOverlay')){
+   const overlay = document.createElement('div');
+   overlay.id = 'featureTourOverlay';
+   overlay.className = 'feature-tour-overlay';
+   overlay.innerHTML = '<div id="featureTourSpotlight" class="feature-tour-spotlight"></div><div id="featureTourCard" class="feature-tour-card"></div>';
+   document.body.appendChild(overlay);
+  }
+ }
+ function buildSteps(){
+  return [
+   { selector:'#home .hero-buttons', title:'Welcome', text:'Use these buttons to upload a memory or explore the memory wall.' },
+   { selector:'#countdown', title:'Countdown', text:'This section shows the live countdown to the farewell event.' },
+   { selector:'#memories', title:'Memories Preview', text:'The homepage shows six selected memories only for faster loading.' },
+   { selector:'#viewAllMemoriesBtn', title:'View All', text:'Open the full dedicated memories page from here.' },
+   { selector:'#upload', title:'Upload', text:'Approved uploads only appear after admin review.' },
+   { selector:'#distanceMapSection', title:'Future Path Globe', text:'Select your name, section, and future places, then save them to the globe.' },
+   { selector:'#compilations', title:'Compilations', text:'Curated slideshows appear here.' }
+  ];
+ }
+ function stopSiteTour(){
+  const overlay = document.getElementById('featureTourOverlay');
+  const spot = document.getElementById('featureTourSpotlight');
+  const card = document.getElementById('featureTourCard');
+  if (overlay) overlay.classList.remove('active');
+  if (spot) {
+   spot.style.left = '-9999px';
+   spot.style.top = '-9999px';
+   spot.style.width = '0px';
+   spot.style.height = '0px';
+  }
+  if (card) {
+   card.style.left = '-9999px';
+   card.style.top = '-9999px';
+  }
+ }
+ function startSiteTour(){
+  ensureTourNodes();
+  const steps = buildSteps();
+  let idx = 0;
+  const overlay = document.getElementById('featureTourOverlay');
+  const spot = document.getElementById('featureTourSpotlight');
+  const card = document.getElementById('featureTourCard');
+  function render(){
+   if (idx >= steps.length) {
+    stopSiteTour();
+    return;
+   }
+   const step = steps[idx];
+   const el = document.querySelector(step.selector);
+   if (!el) {
+    idx += 1;
+    render();
+    return;
+   }
+   el.scrollIntoView({ behavior:'smooth', block:'center' });
+   setTimeout(() => {
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) {
+     idx += 1;
+     render();
+     return;
+    }
+    overlay.classList.add('active');
+    spot.style.left = Math.max(8, r.left - 8) + 'px';
+    spot.style.top = Math.max(8, r.top - 8) + 'px';
+    spot.style.width = Math.max(40, r.width + 16) + 'px';
+    spot.style.height = Math.max(40, r.height + 16) + 'px';
+    card.style.left = Math.min(window.innerWidth - 380, Math.max(12, r.left)) + 'px';
+    card.style.top = Math.min(window.innerHeight - 170, Math.max(12, r.bottom + 12)) + 'px';
+    card.innerHTML = `<h3>${step.title}</h3><p>${step.text}</p><div class="feature-tour-actions"><button class="btn btn-secondary" type="button" id="tourSkipBtn">Close</button><button class="btn btn-primary" type="button" id="tourNextBtn">${idx === steps.length - 1 ? 'Done' : 'Next'}</button></div>`;
+    document.getElementById('tourSkipBtn')?.addEventListener('click', stopSiteTour);
+    document.getElementById('tourNextBtn')?.addEventListener('click', () => {
+     idx += 1;
+     render();
+    });
+   }, 450);
+  }
+  render();
+ }
+ window.startSiteTour = startSiteTour;
+ document.addEventListener('DOMContentLoaded', () => {
+  addTourFab();
+  ensureTourNodes();
+  const page = document.getElementById('memoriesPage');
+  if (location.hash === '#memories-page' && page) {
+   state.viewingAllMemoriesPage = true;
+   page.classList.remove('hidden');
+   if (typeof renderMemoriesPage === 'function') renderMemoriesPage();
+  }
+  const navType = performance.getEntriesByType && performance.getEntriesByType('navigation')[0] ? performance.getEntriesByType('navigation')[0].type : '';
+  if (navType === 'reload') {
+   document.documentElement.classList.add('hard-refresh-top');
+   document.body.classList.add('hard-refresh-top');
+   window.scrollTo(0, 0);
+   setTimeout(() => {
+    document.documentElement.classList.remove('hard-refresh-top');
+    document.body.classList.remove('hard-refresh-top');
+   }, 1200);
+  }
+  if (!localStorage.getItem(TOUR_KEY)) {
+   setTimeout(() => {
+    startSiteTour();
+    localStorage.setItem(TOUR_KEY, '1');
+   }, 1200);
+  }
+ });
+})();
+</script>
+
 <script id="fixer-stable-tour-script">
 (function(){
  if (window.__FIXER_STABLE_TOUR__) return;
@@ -7197,7 +7389,7 @@ body.sniper-ui-hidden > *:not(#leanBackOverlay):not(#sniperSfxHost):not(#sniperG
    { selector:'#memories', title:'Memories Preview', text:'The homepage shows six selected memories only for faster loading.' },
    { selector:'#viewAllMemoriesBtn', title:'View All', text:'Open the full dedicated memories page from here.' },
    { selector:'#upload', title:'Upload', text:'Approved uploads appear after admin review only.' },
-   { selector:'#distanceMapSection', title:'Future Path Globe', text:'Select your name and future places, then save them to the globe.' },
+   { selector:'#distanceMapSection', title:'Future Path Globe', text:'Select your name, section, and future places, then save them to the globe.' },
    { selector:'#compilations', title:'Compilations', text:'Curated slideshows appear here.' }
   ];
  }
@@ -7225,14 +7417,25 @@ body.sniper-ui-hidden > *:not(#leanBackOverlay):not(#sniperSfxHost):not(#sniperG
   const spot = document.getElementById('featureTourSpotlight');
   const card = document.getElementById('featureTourCard');
   function render(){
-   if (idx >= steps.length) return stopSiteTour();
+   if (idx >= steps.length) {
+    stopSiteTour();
+    return;
+   }
    const step = steps[idx];
    const el = document.querySelector(step.selector);
-   if (!el) { idx += 1; return render(); }
+   if (!el) {
+    idx += 1;
+    render();
+    return;
+   }
    el.scrollIntoView({ behavior:'smooth', block:'center' });
    setTimeout(() => {
     const r = el.getBoundingClientRect();
-    if (r.width <= 0 || r.height <= 0) { idx += 1; return render(); }
+    if (r.width <= 0 || r.height <= 0) {
+     idx += 1;
+     render();
+     return;
+    }
     overlay.classList.add('active');
     spot.style.left = Math.max(8, r.left - 8) + 'px';
     spot.style.top = Math.max(8, r.top - 8) + 'px';
@@ -7242,7 +7445,10 @@ body.sniper-ui-hidden > *:not(#leanBackOverlay):not(#sniperSfxHost):not(#sniperG
     card.style.top = Math.min(window.innerHeight - 170, Math.max(12, r.bottom + 12)) + 'px';
     card.innerHTML = `<h3>${step.title}</h3><p>${step.text}</p><div class="feature-tour-actions"><button class="btn btn-secondary" type="button" id="tourSkipBtn">Close</button><button class="btn btn-primary" type="button" id="tourNextBtn">${idx === steps.length - 1 ? 'Done' : 'Next'}</button></div>`;
     document.getElementById('tourSkipBtn')?.addEventListener('click', stopSiteTour);
-    document.getElementById('tourNextBtn')?.addEventListener('click', () => { idx += 1; render(); });
+    document.getElementById('tourNextBtn')?.addEventListener('click', () => {
+     idx += 1;
+     render();
+    });
    }, 450);
   }
   render();
@@ -7251,6 +7457,22 @@ body.sniper-ui-hidden > *:not(#leanBackOverlay):not(#sniperSfxHost):not(#sniperG
  document.addEventListener('DOMContentLoaded', () => {
   addTourFab();
   ensureTourNodes();
+  const page = document.getElementById('memoriesPage');
+  if (location.hash === '#memories-page' && page) {
+   state.viewingAllMemoriesPage = true;
+   page.classList.remove('hidden');
+   if (typeof renderMemoriesPage === 'function') renderMemoriesPage();
+  }
+  const navType = performance.getEntriesByType && performance.getEntriesByType('navigation')[0] ? performance.getEntriesByType('navigation')[0].type : '';
+  if (navType === 'reload') {
+   document.documentElement.classList.add('hard-refresh-top');
+   document.body.classList.add('hard-refresh-top');
+   window.scrollTo(0, 0);
+   setTimeout(() => {
+    document.documentElement.classList.remove('hard-refresh-top');
+    document.body.classList.remove('hard-refresh-top');
+   }, 1200);
+  }
   if (!localStorage.getItem(TOUR_KEY)) {
    setTimeout(() => {
     startSiteTour();

@@ -27,27 +27,111 @@
     "autoApproveEndIST": "",
     "teachers": [
       {
-        "name": "Ms. Principal",
-        "subject": "School Principal",
-        "quote": "\"Education is not preparation for life; education is life itself.\"",
+        "name": "Mr.Solomon",
+        "subject": "Chairman.",
+        "quote": ".",
         "imageUrl": ""
       },
       {
-        "name": "Mrs. Teacher",
-        "subject": "Class Teacher",
-        "quote": "\"Every student can learn, just not on the same day or in the same way.\"",
-        "imageUrl": ""
+        "name": "Mrs.Sharmila Solomon",
+        "subject": "Founder & Director.",
+        "quote": ".",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Staff-Pictures-157.jpg"
       },
       {
-        "name": "Mr. Science",
-        "subject": "Science Department",
-        "quote": "\"The good thing about science is that it's true whether or not you believe in it.\"",
-        "imageUrl": ""
+        "name": "Mrs.Shilpa Sethi",
+        "subject": "Principal.",
+        "quote": "Step forward with confidence, chase your dreams with determination, and remember that our blessings and good wishes will always accompany you on every path you choose.",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-20.png"
       },
       {
-        "name": "Mrs. Mathematics",
+        "name": "Mrs.Deepta",
+        "subject": "Vice Principal.",
+        "quote": ".",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-16.png"
+      },
+      {
+        "name": "Mrs.Kavitha",
+        "subject": "Financial Management.",
+        "quote": "\"You can do it.\"",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-19.png"
+      },
+      {
+        "name": "Mr.Venkat",
+        "subject": "Mathematics HOD.",
+        "quote": ".",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-28.png"
+      },
+      {
+        "name": "Mrs.Esther",
+        "subject": "Science HOD.",
+        "quote": "\"Are you with me??\"",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-21.png"
+      },
+      {
+        "name": "Mrs.Rajini",
+        "subject": "English HOD.",
+        "quote": ".",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/11/englishhod.png"
+      },
+      {
+        "name": "Mrs.Ancy Thomas.",
+        "subject": "Social Science HOD.",
+        "quote": ".",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2023/12/ancy.png"
+      },
+      {
+        "name": "Mrs.Pragya",
+        "subject": "Hindi HOD.",
+        "quote": ".",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-30.png"
+      },
+      {
+        "name": "Mr.Venu",
+        "subject": "Telugu HOD.",
+        "quote": "",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-23.png"
+      },
+      {
+        "name": "Mr.Riyaaz",
         "subject": "Mathematics",
-        "quote": "\"Mathematics is not about numbers, it's about understanding.\"",
+        "quote": "\"Stop writing, observe the board.\"",
+        "imageUrl": ""
+      },
+      {
+        "name": "Mr.Chandramohan",
+        "subject": "Chemistry.",
+        "quote": "\"Focus on the subject.\"",
+        "imageUrl": ""
+      },
+      {
+        "name": "Mrs.Binu",
+        "subject": "Biology",
+        "quote": "\"Open your textbook and notebook.\"",
+        "imageUrl": ""
+      },
+      {
+        "name": "Mrs.Uma",
+        "subject": "Physics",
+        "quote": "\"Hello people, listen to me.\"",
+        "imageUrl": ""
+      },
+      {
+        "name": "Mrs.Praveena",
+        "subject": "Chemistry",
+        "quote": "\"Children! please listen.\"",
+        "imageUrl": ""
+      },
+      {
+        "name": "Mrs.Smitha",
+        "subject": "English.",
+        "quote": ".",
+        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-26.png"
+      },
+      {
+        "name": "Mrs.Neeta",
+        "subject": "Social Science.",
+        "quote": "\"I'm just giving an example.\"",
         "imageUrl": ""
       }
     ],
@@ -100,6 +184,15 @@
       "errorRed": "#f44336"
     },
     "introHideSkip": false,
-    "introVideoPath": null
+    "introVideoPath": null,
+    "music": {
+      "ambientSiteMusic": "",
+      "leanBackMusic": "",
+      "lastBellMusic": "",
+      "globeMusic": "",
+      "boomboxGraduationVibes": "",
+      "boomboxSadBoiHours": "",
+      "boomboxHype": ""
+    }
   }
 }

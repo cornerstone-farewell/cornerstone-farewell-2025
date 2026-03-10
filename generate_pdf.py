@@ -1,59 +1,65 @@
 from weasyprint import HTML
+from pathlib import Path
 import html
 
 INPUT_HTML = "index.html"
 INPUT_JS = "server.js"
 OUTPUT_FILE = "html_code.pdf"
 
-# read html file
-with open(INPUT_HTML, "r", encoding="utf-8") as f:
-    html_code = f.read()
 
-# read js file
-with open(INPUT_JS, "r", encoding="utf-8") as f:
-    js_code = f.read()
+def read_file(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
 
-# escape code so it prints as text
-escaped_html = html.escape(html_code)
-escaped_js = html.escape(js_code)
 
-document = f"""
+def add_file_block(parts: list[str], title: str, content: str) -> None:
+    escaped = html.escape(content)
+    parts.append(f"<h3>{html.escape(title)}</h3>")
+    parts.append(f"<pre>{escaped}</pre>")
+    parts.append('<div class="separator"><hr></div>')
+
+
+html_path = Path(INPUT_HTML)
+js_path = Path(INPUT_JS)
+
+document_parts = [
+    """
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <style>
-body {{
+body {
     font-size: 1pt;
     font-family: monospace;
-}}
+}
 
-pre {{
+pre {
     white-space: pre-wrap;
     word-break: break-word;
-}}
+}
 
-.separator {{
+.separator {
     margin-top: 20px;
     margin-bottom: 20px;
-}}
+}
 </style>
 </head>
 <body>
-
-<h3>index.html</h3>
-<pre>{escaped_html}</pre>
-
-<div class="separator">
-<hr>
-</div>
-
-<h3>server.js</h3>
-<pre>{escaped_js}</pre>
-
-</body>
-</html>
 """
+]
+
+if html_path.exists():
+    add_file_block(document_parts, html_path.name, read_file(html_path))
+else:
+    add_file_block(document_parts, html_path.name, "FILE NOT FOUND")
+
+if js_path.exists():
+    add_file_block(document_parts, js_path.name, read_file(js_path))
+else:
+    add_file_block(document_parts, js_path.name, "FILE NOT FOUND")
+
+document_parts.append("</body></html>")
+document = "\n".join(document_parts)
 
 HTML(string=document).write_pdf(OUTPUT_FILE)
 

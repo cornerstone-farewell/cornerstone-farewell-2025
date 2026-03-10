@@ -1,0 +1,116 @@
+{
+  "sections": [
+    {
+      "id": "home",
+      "folder": "sections/home",
+      "html": "sections/home/section.html",
+      "css": "sections/home/section.css",
+      "js": "sections/home/section.js"
+    },
+    {
+      "id": "countdown",
+      "folder": "sections/countdown",
+      "html": "sections/countdown/section.html",
+      "css": "sections/countdown/section.css",
+      "js": "sections/countdown/section.js"
+    },
+    {
+      "id": "upload",
+      "folder": "sections/upload",
+      "html": "sections/upload/section.html",
+      "css": "sections/upload/section.css",
+      "js": "sections/upload/section.js"
+    },
+    {
+      "id": "memories",
+      "folder": "sections/memories",
+      "html": "sections/memories/section.html",
+      "css": "sections/memories/section.css",
+      "js": "sections/memories/section.js"
+    },
+    {
+      "id": "compilations",
+      "folder": "sections/compilations",
+      "html": "sections/compilations/section.html",
+      "css": "sections/compilations/section.css",
+      "js": "sections/compilations/section.js"
+    },
+    {
+      "id": "teachers",
+      "folder": "sections/teachers",
+      "html": "sections/teachers/section.html",
+      "css": "sections/teachers/section.css",
+      "js": "sections/teachers/section.js"
+    },
+    {
+      "id": "timeline",
+      "folder": "sections/timeline",
+      "html": "sections/timeline/section.html",
+      "css": "sections/timeline/section.css",
+      "js": "sections/timeline/section.js"
+    },
+    {
+      "id": "quote",
+      "folder": "sections/quote",
+      "html": "sections/quote/section.html",
+      "css": "sections/quote/section.css",
+      "js": "sections/quote/section.js"
+    },
+    {
+      "id": "gratitudeWall",
+      "folder": "sections/gratitudewall",
+      "html": "sections/gratitudewall/section.html",
+      "css": "sections/gratitudewall/section.css",
+      "js": "sections/gratitudewall/section.js"
+    },
+    {
+      "id": "superlativesSection",
+      "folder": "sections/superlativessection",
+      "html": "sections/superlativessection/section.html",
+      "css": "sections/superlativessection/section.css",
+      "js": "sections/superlativessection/section.js"
+    },
+    {
+      "id": "wishJarSection",
+      "folder": "sections/wishjarsection",
+      "html": "sections/wishjarsection/section.html",
+      "css": "sections/wishjarsection/section.css",
+      "js": "sections/wishjarsection/section.js"
+    },
+    {
+      "id": "songDedicationsSection",
+      "folder": "sections/songdedicationssection",
+      "html": "sections/songdedicationssection/section.html",
+      "css": "sections/songdedicationssection/section.css",
+      "js": "sections/songdedicationssection/section.js"
+    },
+    {
+      "id": "moodBoardSection",
+      "folder": "sections/moodboardsection",
+      "html": "sections/moodboardsection/section.html",
+      "css": "sections/moodboardsection/section.css",
+      "js": "sections/moodboardsection/section.js"
+    },
+    {
+      "id": "timeCapsuleSection",
+      "folder": "sections/timecapsulesection",
+      "html": "sections/timecapsulesection/section.html",
+      "css": "sections/timecapsulesection/section.css",
+      "js": "sections/timecapsulesection/section.js"
+    },
+    {
+      "id": "memoryMosaicSection",
+      "folder": "sections/memorymosaicsection",
+      "html": "sections/memorymosaicsection/section.html",
+      "css": "sections/memorymosaicsection/section.css",
+      "js": "sections/memorymosaicsection/section.js"
+    },
+    {
+      "id": "distanceMapSection",
+      "folder": "sections/distancemapsection",
+      "html": "sections/distancemapsection/section.html",
+      "css": "sections/distancemapsection/section.css",
+      "js": "sections/distancemapsection/section.js"
+    }
+  ]
+}

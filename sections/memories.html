@@ -1,0 +1,361 @@
+<style>
+/* Memories */
+    #memories { background: linear-gradient(180deg, var(--navy-medium) 0%, var(--navy-dark) 100%); }
+    .memory-filters { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 25px; }
+    .filter-btn {
+      padding: 10px 25px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 25px;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+    }
+    .filter-btn:hover, .filter-btn.active { background: var(--primary-gold); color: var(--navy-dark); border-color: var(--primary-gold); }
+
+    .memories-toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:15px;
+      flex-wrap:wrap;
+      margin: 0 0 25px;
+    }
+    .memories-toolbar .left, .memories-toolbar .right{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .mini-pill{
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--glass-border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .memory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+    .memory-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: var(--transition-smooth);
+      animation: fadeInUp 0.6s ease;
+      position: relative;
+    }
+    .memory-card:hover { transform: translateY(-10px); border-color: var(--primary-gold); box-shadow: var(--shadow-gold); }
+    .memory-media { position: relative; aspect-ratio: 4/3; overflow: hidden; cursor: pointer; }
+    .memory-media img, .memory-media video { width: 100%; height: 100%; object-fit: cover; transition: var(--transition-smooth); }
+    .memory-card:hover .memory-media img, .memory-card:hover .memory-media video { transform: scale(1.05); }
+
+    .memory-media .play-button {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px; height: 60px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: white;
+      transition: var(--transition-smooth);
+    }
+    .memory-media:hover .play-button { background: var(--primary-gold); transform: translate(-50%, -50%) scale(1.1); }
+
+    .memory-type-badge {
+      position: absolute; top: 15px; left: 15px;
+      background: rgba(0,0,0,0.7);
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      color: var(--primary-gold);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      z-index: 2;
+    }
+    .memory-featured-badge{
+      position:absolute;
+      top: 15px; right: 15px;
+      background: rgba(212,175,55,0.15);
+      border: 1px solid rgba(212,175,55,0.5);
+      color: var(--primary-gold);
+      padding: 5px 10px;
+      border-radius: 14px;
+      font-size: 0.75rem;
+      z-index: 2;
+      backdrop-filter: blur(8px);
+    }
+
+    .memory-content { padding: 20px; }
+    .memory-author { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .memory-avatar {
+      width: 40px; height: 40px;
+      background: var(--gradient-gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      color: var(--navy-dark);
+    }
+    .memory-author-info { flex: 1; }
+    .memory-author-name { font-weight: 600; font-size: 1rem; }
+    .memory-time { font-size: 0.8rem; color: var(--text-muted); }
+
+    .memory-caption { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px; }
+
+    .memory-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .action-row { display:flex; align-items:center; gap: 10px; flex-wrap: wrap; }
+
+    .like-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: none; border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.95rem;
+      padding: 8px 15px;
+      border-radius: 20px;
+      transition: var(--transition-smooth);
+      font-family: var(--font-body);
+      border: 1px solid transparent;
+    }
+    .like-btn:hover { background: rgba(233, 69, 96, 0.1); color: var(--accent-rose); border-color: rgba(233,69,96,0.2); }
+    .like-btn.liked { color: var(--accent-rose); }
+    .like-btn.liked .heart-icon { animation: heartBeat 0.8s ease; }
+
+    .react-group{
+      display:flex; align-items:center; gap: 8px; flex-wrap:wrap;
+    }
+    .react-btn{
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--glass-border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text-light);
+      cursor:pointer;
+      transition: var(--transition-smooth);
+      font-size: 0.9rem;
+    }
+    .react-btn:hover{ border-color: var(--primary-gold); transform: translateY(-1px); }
+    .react-count{
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-left: 6px;
+    }
+
+    .comments-open-btn{
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--glass-border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text-light);
+      cursor:pointer;
+      transition: var(--transition-smooth);
+      font-size: 0.9rem;
+    }
+    .comments-open-btn:hover{ border-color: var(--primary-gold); transform: translateY(-1px); }
+
+    .memory-empty { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+    .memory-empty-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
+    .memory-loading { text-align: center; padding: 60px; color: var(--text-muted); }
+    .loading-spinner { width: 50px; height: 50px; border: 4px solid var(--glass-border); border-top-color: var(--primary-gold); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+
+    .load-more-wrap{ display:flex; justify-content:center; margin-top: 35px; }
+    .load-more-btn{ min-width: 220px; justify-content:center; }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.95);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .lightbox.active { display: flex; animation: fadeIn 0.3s ease; }
+
+    .lightbox-grid{
+      width: min(1200px, 96vw);
+      display:grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .lightbox-main{
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      padding: 14px;
+      overflow:hidden;
+    }
+    .lightbox-content { width: 100%; position: relative; }
+    .lightbox-content img, .lightbox-content video { width: 100%; max-height: 75vh; object-fit: contain; border-radius: 12px; background: rgba(0,0,0,0.2); }
+
+    .lightbox-side{
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      padding: 16px;
+      max-height: 82vh;
+      overflow:auto;
+    }
+
+    .lightbox-close { position: fixed; top: 18px; right: 18px; background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); color: white; font-size: 1.4rem; cursor: pointer; transition: var(--transition-smooth); width: 44px; height: 44px; border-radius: 50%; }
+    .lightbox-close:hover { color: var(--primary-gold); border-color: var(--primary-gold); transform: scale(1.05); }
+
+    .lightbox-nav {
+      position: fixed; top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      font-size: 2rem;
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .lightbox-nav:hover { background: var(--primary-gold); color: var(--navy-dark); }
+    .lightbox-prev { left: 18px; }
+    .lightbox-next { right: 18px; }
+
+    .lightbox-info { color: white; }
+    .lightbox-author { font-weight: 700; font-size: 1.1rem; }
+    .lightbox-caption { color: var(--text-muted); margin-top: 8px; white-space: pre-wrap; }
+    .lightbox-meta{ margin-top: 10px; font-size: 0.9rem; color: var(--text-muted); display:flex; gap: 10px; flex-wrap: wrap; }
+    .lightbox-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 10px 16px;
+      background: var(--gradient-gold);
+      color: var(--navy-dark);
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: var(--transition-smooth);
+    }
+    .lightbox-download:hover { transform: scale(1.03); }
+
+    /* Comments */
+    .comments-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .comments-title{
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--primary-gold);
+    }
+    .comments-disabled{
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+    .comment-form{
+      display:grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .comment-form-row{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .comment-form-actions{
+      display:flex; gap: 10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .comment-list{ display:grid; gap: 12px; }
+    .comment-item{
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.15);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .comment-top{
+      display:flex; justify-content:space-between; align-items:center; gap: 10px;
+      margin-bottom: 6px;
+    }
+    .comment-name{ font-weight: 700; }
+    .comment-time{ font-size: 0.8rem; color: var(--text-muted); }
+    .comment-text{ color: rgba(255,255,255,0.9); white-space: pre-wrap; }
+    .comment-reply-btn{
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--primary-gold);
+      background:none;
+      border:none;
+      cursor:pointer;
+      padding: 0;
+    }
+    .comment-replies{
+      margin-top: 10px;
+      padding-left: 14px;
+      border-left: 2px solid rgba(212,175,55,0.25);
+      display:grid;
+      gap: 10px;
+    }
+
+    @media (max-width: 980px){
+      .lightbox-grid{ grid-template-columns: 1fr; }
+      .lightbox-side{ max-height: unset; }
+    }
+    @media (max-width: 768px){
+      .memory-grid { grid-template-columns: 1fr; }
+      .lightbox-nav{ display:none; }
+    }
+</style>
+
+<section id="memories">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge" id="uiMemoriesBadge">Memory Wall</span>
+        <h2 class="section-title" id="uiMemoriesTitle">Our <span class="highlight">Memories</span></h2>
+        <p class="section-description" id="uiMemoriesDesc">A collection of moments from our incredible journey together</p>
+      </div>
+
+      <div class="memories-toolbar">
+        <div class="left">
+          <div class="mini-pill" id="memCountPill">Loading...</div>
+          <div class="mini-pill" id="livePill" style="display:none;">Live updates enabled</div>
+        </div>
+        <div class="right">
+          <!-- Infinite Scroll Toggle Removed -->
+        </div>
+      </div>
+
+      <div class="memory-filters" id="memoryFilters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="Friends">Friends</button>
+        <button class="filter-btn" data-filter="Teachers">Teachers</button>
+        <button class="filter-btn" data-filter="Events">Events</button>
+        <button class="filter-btn" data-filter="Fun Moments">Fun Moments</button>
+        <button class="filter-btn" data-filter="Sports">Sports</button>
+        <button class="filter-btn" data-filter="Academics">Academics</button>
+        <button class="filter-btn" data-filter="Other">Other</button>
+      </div>
+
+      <div class="memory-grid" id="memoryGrid">
+        <div class="memory-loading" style="grid-column: 1/-1;">
+          <div class="loading-spinner"></div>
+          <p>Loading memories...</p>
+        </div>
+      
+</div>
+
+<!-- SINGLE EXCLUSIVE GALLERY LINK -->
+<div class="memories-preview-actions" style="display: flex; justify-content: center; margin-top: 40px; margin-bottom: 20px;">
+    <a href="/all-memories.html" class="btn btn-primary" style="padding: 16px 45px; font-size: 1.1rem; text-decoration: none; border-radius: 30px; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);">
+        ✦ Open Full Memory Gallery ✦
+    </a>
+</div>
+</div>
+</section>

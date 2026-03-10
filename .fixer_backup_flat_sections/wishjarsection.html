@@ -1,0 +1,34 @@
+<section id="wishJarSection" class="ff-section-hidden">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-badge">Dreams & Hopes</span>
+      <h2 class="section-title">The Wish <span class="highlight">Jar</span></h2>
+      <p class="section-description">Drop your dream, hope, or advice for the class into the jar.</p>
+    </div>
+    <div style="position:relative;display:inline-block;text-align:center;width:100%;margin-bottom:28px;">
+      <div style="display:inline-block;position:relative;">
+        <div class="jar-svg-wrap" style="position:relative;z-index:1;">🫙</div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;border:1px solid rgba(212,175,55,.3);animation:jarRing 3s linear infinite;pointer-events:none;"></div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:160px;height:160px;border-radius:50%;border:1px solid rgba(212,175,55,.15);animation:jarRing 3s linear infinite .6s;pointer-events:none;"></div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;border-radius:50%;border:1px solid rgba(212,175,55,.07);animation:jarRing 3s linear infinite 1.2s;pointer-events:none;"></div>
+      </div>
+    </div>
+    <div class="ff-form-box">
+      <div class="ff-grid-2">
+        <div><label class="ff-label">Your Name</label><input class="ff-input" id="wishName" placeholder="Anonymous is okay" maxlength="60"/></div>
+        <div><label class="ff-label">Category</label>
+          <select class="ff-input" id="wishCategory">
+            <option value="dream">A Dream 🌟</option>
+            <option value="advice">Advice 💡</option>
+            <option value="hope">A Hope 🕊️</option>
+            <option value="funny">Something Funny 😂</option>
+          </select>
+        </div>
+      </div>
+      <label class="ff-label">Your wish</label>
+      <textarea class="ff-input" id="wishText" placeholder="Write something meaningful, funny, or heartfelt..." maxlength="320"></textarea>
+      <button class="ff-submit-btn" type="button" onclick="submitWish()">Drop into Jar 🫙</button>
+    </div>
+    <div class="wishes-scroll" id="wishesScroll"><div class="ff-empty">The jar is empty. Be first!</div></div>
+  </div>
+</section>
