@@ -3833,7 +3833,25 @@
       "purgedAt": null,
       "created_at": "2026-03-06T15:02:42.808Z",
       "updated_at": "2026-03-09T08:00:24.718Z"
+    },
+    {
+      "id": 218,
+      "student_name": "Anish Kilari",
+      "caption": "this was me with my friends during our school trip",
+      "memory_type": "Friends",
+      "file_path": "1773220934585-207698669-download__1_.jfif",
+      "file_name": "download (1).jfif",
+      "file_type": "image",
+      "file_size": 12042,
+      "sha256": "3ac5500b6e4caa43c468a2dd9fe110aa5386c5b75731a868907c818d9d518722",
+      "approved": 1,
+      "featured": 0,
+      "likes": 0,
+      "deletedAt": null,
+      "purgedAt": null,
+      "created_at": "2026-03-11T09:22:14.589Z",
+      "updated_at": "2026-03-11T09:22:20.642Z"
     }
   ],
-  "nextId": 218
+  "nextId": 219
 }

@@ -1,4 +1,12 @@
 {
-  "entries": [],
-  "nextId": 1
+  "entries": [
+    {
+      "id": 1,
+      "name": "Anish Kilari",
+      "category": "funny",
+      "text": "monkey banana",
+      "createdAt": "2026-03-11T09:12:00.166Z"
+    }
+  ],
+  "nextId": 2
 }

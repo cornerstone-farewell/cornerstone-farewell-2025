@@ -1,4 +1,12 @@
 {
-  "entries": [],
-  "nextId": 1
+  "entries": [
+    {
+      "id": 1,
+      "name": "Anish Kilari",
+      "revealDate": "2027-03-11",
+      "letter": "dear future me...\n I love you 💕",
+      "createdAt": "2026-03-11T09:15:35.501Z"
+    }
+  ],
+  "nextId": 2
 }

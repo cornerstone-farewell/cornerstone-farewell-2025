@@ -1,4 +1,12 @@
 {
-  "entries": [],
-  "nextId": 1
+  "entries": [
+    {
+      "id": 1,
+      "from": "Anish",
+      "to": "Anish",
+      "message": "I am you",
+      "createdAt": "2026-03-11T09:10:01.006Z"
+    }
+  ],
+  "nextId": 2
 }

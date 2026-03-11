@@ -92,8 +92,6 @@ const adminPath = path.join(databaseDir, 'admin.json');
 const commentsPath = path.join(databaseDir, 'comments.json');
 const reactionsPath = path.join(databaseDir, 'reactions.json');
 const auditPath = path.join(databaseDir, 'audit.json');
-const studentDirectoryPath = path.join(databaseDir, 'student_directory.json');
-const superlativeVotesPath = path.join(databaseDir, 'superlative_votes.json');
 function initDatabase() {
   if (!fs.existsSync(dbPath)) {
     fs.writeFileSync(dbPath, JSON.stringify({ memories: [], nextId: 1 }, null, 2));
@@ -123,15 +121,7 @@ function initDatabase() {
   // Admin users database:
   //  - creates super admin from ADMIN_PASSWORD
   //  - you can create other users in admin panel
-  if (!fs.existsSync(studentDirectoryPath)) {
-  fs.writeFileSync(studentDirectoryPath, JSON.stringify({ students: [] }, null, 2));
-  console.log(' Created student directory database');
- }
- if (!fs.existsSync(superlativeVotesPath)) {
-  fs.writeFileSync(superlativeVotesPath, JSON.stringify({ votes: [] }, null, 2));
-  console.log(' Created superlative votes database');
- }
- if (!fs.existsSync(adminPath)) {
+  if (!fs.existsSync(adminPath)) {
     const now = new Date().toISOString();
     fs.writeFileSync(adminPath, JSON.stringify({
       users: [
@@ -1234,7 +1224,7 @@ app.post('/api/admin/upload-batch', upload.array('files', 50), (req, res) => {
       const memory = {
         id: db.nextId++,
         student_name: String(name).trim().substring(0, 100),
-        caption: String(caption).trim().substring(0, 1000),
+        caption: String(caption).trim().substring(0, 500),
         memory_type: String(type).trim(),
         file_path: file.filename,
         file_name: file.originalname,

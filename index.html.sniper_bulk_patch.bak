@@ -2634,34 +2634,46 @@ function backToMainPage() {
 }
 document.addEventListener('DOMContentLoaded', () => {
  const viewAllBtn = document.getElementById('viewAllMemoriesBtn');
- if (viewAllBtn) viewAllBtn.addEventListener('click', openMemoriesOnlyPage);
- const backBtn = document.getElementById('backFromMemoriesOnlyPage');
- if (backBtn) backBtn.addEventListener('click', closeMemoriesOnlyPage);
- const loadMoreBtnPage = document.getElementById('loadMoreBtnOnlyPage');
+ if (viewAllBtn) viewAllBtn.addEventListener('click', openMemoriesPage);
+ const backBtn = document.getElementById('backToHomeFromMemoriesPage');
+ if (backBtn) backBtn.addEventListener('click', backToMainPage);
+ const loadMoreBtnPage = document.getElementById('loadMoreBtnPage');
  if (loadMoreBtnPage) loadMoreBtnPage.addEventListener('click', async () => {
   await loadMemories(false);
-  renderMemoriesOnlyPage();
+  renderMemoriesPage();
  });
  document.querySelectorAll('a[href="#home"]').forEach(el => {
   el.addEventListener('click', (evt) => {
    evt.preventDefault();
-   closeMemoriesOnlyPage();
+   backToMainPage();
   });
  });
 });
 window.addEventListener('popstate', () => {
- const page = document.getElementById('memoriesPageOnly');
+ const page = document.getElementById('memoriesPage');
  if (!page) return;
- if (location.hash === '#memories-only') {
+ if (location.hash === '#memories-page') {
   state.viewingAllMemoriesPage = true;
   page.classList.remove('hidden');
-  renderMemoriesOnlyPage();
+  renderMemoriesPage();
  } else {
   state.viewingAllMemoriesPage = false;
   page.classList.add('hidden');
   renderMemories();
  }
 });
+
+ document.addEventListener('DOMContentLoaded', () => {
+ const viewAllBtn = document.getElementById('viewAllMemoriesBtn');
+ if (viewAllBtn) viewAllBtn.addEventListener('click', openMemoriesPage);
+ const backBtn = document.getElementById('backToHomeFromMemoriesPage');
+ if (backBtn) backBtn.addEventListener('click', backToMainPage);
+ document.querySelectorAll('a[href="#home"]').forEach(el => {
+  el.addEventListener('click', (evt) => {
+   evt.preventDefault();
+   backToMainPage();
+  });
+ });
  });
  window.addEventListener('popstate', () => {
  const page = document.getElementById('memoriesPage');
@@ -2675,85 +2687,7 @@ window.addEventListener('popstate', () => {
   page.classList.add('hidden');
  }
  });
- 
-function cloneMemoryFiltersToOnlyPage() {
- const src = document.getElementById('memoryFilters');
- const dst = document.getElementById('memoryFiltersOnlyPage');
- if (!src || !dst) return;
- dst.innerHTML = src.innerHTML;
- dst.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.classList.toggle('active', btn.dataset.filter === state.currentFilter);
-  btn.addEventListener('click', async () => {
-   document.querySelectorAll('#memoryFilters .filter-btn, #memoryFiltersOnlyPage .filter-btn').forEach(b => b.classList.remove('active'));
-   document.querySelectorAll(`#memoryFilters .filter-btn[data-filter="${btn.dataset.filter}"], #memoryFiltersOnlyPage .filter-btn[data-filter="${btn.dataset.filter}"]`).forEach(b => b.classList.add('active'));
-   state.currentFilter = btn.dataset.filter;
-   await loadMemories(true);
-   renderMemoriesOnlyPage();
-  });
- });
-}
-function renderMemoriesOnlyPage() {
- const grid = document.getElementById('memoryGridOnlyPage');
- const wrap = document.getElementById('loadMoreWrapOnlyPage');
- if (!grid) return;
- cloneMemoryFiltersToOnlyPage();
- if (!state.memories.length) {
-  grid.innerHTML = `<div class="memory-empty" style="grid-column:1/-1;"><div class="memory-empty-icon">📷</div><h3>No Memories Yet</h3><p>Be the first to share!</p></div>`;
-  if (wrap) wrap.style.display = 'none';
-  return;
- }
- grid.innerHTML = state.memories.map((memory, index) => `
- <div class="memory-card" data-index="${index}">
-  <div class="memory-media" onclick="openLightbox(${index})">
-   ${memory.file_type === 'video'
-    ? `<video src="${memory.file_url}" preload="metadata"></video><div class="play-button">▶</div>`
-    : `<img src="${memory.file_url}" alt="${escapeAttr(memory.caption)}" loading="lazy" />`}
-   <span class="memory-type-badge">${escapeHtml(memory.memory_type)}</span>
-   ${memory.featured ? `<span class="memory-featured-badge">Featured</span>` : ''}
-  </div>
-  <div class="memory-content">
-   <div class="memory-author">
-    <div class="memory-avatar">${escapeHtml((memory.student_name || '').charAt(0).toUpperCase())}</div>
-    <div class="memory-author-info">
-     <div class="memory-author-name">${escapeHtml(memory.student_name || '')}</div>
-     <div class="memory-time">${timeAgo(memory.created_at)}</div>
-    </div>
-   </div>
-   <p class="memory-caption">${escapeHtml(memory.caption || '')}</p>
-   <div class="memory-actions">
-    <div class="action-row">
-     <button class="like-btn ${isLiked(memory.id) ? 'liked' : ''}" onclick="likeMemory(${memory.id}, this)">
-      <span class="heart-icon">${isLiked(memory.id) ? '♥' : '♡'}</span>
-      <span class="like-count">${memory.likes || 0}</span>
-     </button>
-     <button class="comments-open-btn" onclick="openLightbox(${index}); setTimeout(() => scrollCommentsTop(), 50);">Comments</button>
-    </div>
-    <div class="react-group">${renderReactionButtons(memory)}</div>
-   </div>
-  </div>
- </div>
- `).join('');
- if (wrap) wrap.style.display = state.memHasMore ? 'flex' : 'none';
-}
-function openMemoriesOnlyPage() {
- state.viewingAllMemoriesPage = true;
- const page = document.getElementById('memoriesPageOnly');
- if (page) page.classList.remove('hidden');
- history.pushState({ memoriesOnlyPage: true }, '', '#memories-only');
- renderMemoriesOnlyPage();
- window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-function closeMemoriesOnlyPage() {
- state.viewingAllMemoriesPage = false;
- const page = document.getElementById('memoriesPageOnly');
- if (page) page.classList.add('hidden');
- if (location.hash === '#memories-only') history.pushState({}, '', '#home');
- const home = document.getElementById('home');
- if (home) home.scrollIntoView({ behavior: 'smooth', block: 'start' });
- renderMemories();
-}
-
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeLightbox(); closeAdminLogin(); closeCompilationPlayer(); } const lightbox = document.getElementById('lightbox'); if (lightbox && lightbox.classList.contains('active')) { if (e.key === 'ArrowLeft') navigateLightbox(-1); if (e.key === 'ArrowRight') navigateLightbox(1); } });
+ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeLightbox(); closeAdminLogin(); closeCompilationPlayer(); } const lightbox = document.getElementById('lightbox'); if (lightbox && lightbox.classList.contains('active')) { if (e.key === 'ArrowLeft') navigateLightbox(-1); if (e.key === 'ArrowRight') navigateLightbox(1); } });
 
     function renderTeachers() { const grid = document.getElementById('teachersGrid'); if (!grid) return; const t = Array.isArray(state.settings.teachers) ? state.settings.teachers : []; if (t.length === 0) { grid.innerHTML = `<div class="memory-empty" style="grid-column:1/-1;"><h3>No teachers configured</h3></div>`; return; } grid.innerHTML = t.map(teacher => { const initials = getInitials(teacher.name || 'T'); const img = (teacher.imageUrl || '').trim(); return `<div class="teacher-card"><div class="teacher-image">${img ? `<img src="${escapeAttr(img)}" alt="${escapeAttr(teacher.name || '')}" />` : escapeHtml(initials)}</div><h3 class="teacher-name">${escapeHtml(teacher.name || '')}</h3><p class="teacher-subject">${escapeHtml(teacher.subject || '')}</p><p class="teacher-quote">${escapeHtml(teacher.quote || '')}</p></div>`; }).join(''); }
     function renderTimeline() { const list = document.getElementById('timelineList'); if (!list) return; const items = Array.isArray(state.settings.timeline) ? state.settings.timeline : []; if (items.length === 0) { list.innerHTML = `<div class="memory-empty" style="grid-column:1/-1;"><h3>No timeline configured</h3></div>`; return; } list.innerHTML = items.map(item => `<div class="timeline-item"><div class="timeline-content"><div class="timeline-dot"></div><div class="timeline-year">${escapeHtml(item.year || '')}</div><h3 class="timeline-title">${escapeHtml(item.title || '')}</h3><p class="timeline-description">${escapeHtml(item.description || '')}</p></div></div>`).join(''); }
@@ -2769,14 +2703,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeLig
     async function adminLogout() { try { await fetch(apiUrl('/api/admin/logout'), { method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` } }); } catch {} state.adminToken = null; state.adminUser = null; localStorage.removeItem('adminToken'); localStorage.removeItem('adminUser'); const dashboard = document.getElementById('adminDashboard'); if (dashboard) dashboard.classList.remove('active'); document.body.style.overflow = ''; window.location.hash = ''; }
     function switchAdminTab(tab) { ['moderation', 'settings', 'theme', 'users', 'compilations', 'security'].forEach(t => { const tabEl = document.getElementById('tab' + capitalize(t)); const panelEl = document.getElementById('panel' + capitalize(t)); if (tabEl) tabEl.classList.toggle('active', t === tab); if (panelEl) panelEl.classList.toggle('active', t === tab); }); }
     function can(perm) { const u = state.adminUser; if (!u) return false; if (u.role === 'superadmin') return true; return !!u.permissions?.[perm]; }
-    
-function renderSuperlativesAdminPanel() {
- const panel = document.getElementById('panelFunFeatures');
- if (!panel) return;
- if (!panel.innerHTML.includes('Bulk Superlatives Control')) return;
-}
-
-function buildAdminPanels() { const tabs = { 'tabSettings': 'settings', 'tabTheme': 'theme', 'tabUsers': 'users' }; Object.entries(tabs).forEach(([id, perm]) => { const el = document.getElementById(id); if (el) el.style.display = can(perm) ? 'inline-block' : 'none'; }); const exportBtn = document.getElementById('btnExportCsv'); if (exportBtn) exportBtn.style.display = can('export') ? 'inline-flex' : 'none'; const approveAllBtn = document.getElementById('btnApproveAll'); if (approveAllBtn) approveAllBtn.style.display = can('bulk') ? 'inline-flex' : 'none'; const panelSettings = document.getElementById('panelSettings'); if (panelSettings) panelSettings.innerHTML = can('settings') ? renderSettingsPanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelTheme = document.getElementById('panelTheme'); if (panelTheme) panelTheme.innerHTML = can('theme') ? renderThemePanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelUsers = document.getElementById('panelUsers'); if (panelUsers) panelUsers.innerHTML = can('users') ? renderUsersPanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelSecurity = document.getElementById('panelSecurity'); if (panelSecurity) panelSecurity.innerHTML = renderSecurityPanelHtml(); if (can('settings')) wireSettingsPanel(); if (can('theme')) wireThemePanel(); if (can('users')) wireUsersPanel(); wireSecurityPanel(); const panelCompilations = document.getElementById('panelCompilations');
+    function buildAdminPanels() { const tabs = { 'tabSettings': 'settings', 'tabTheme': 'theme', 'tabUsers': 'users' }; Object.entries(tabs).forEach(([id, perm]) => { const el = document.getElementById(id); if (el) el.style.display = can(perm) ? 'inline-block' : 'none'; }); const exportBtn = document.getElementById('btnExportCsv'); if (exportBtn) exportBtn.style.display = can('export') ? 'inline-flex' : 'none'; const approveAllBtn = document.getElementById('btnApproveAll'); if (approveAllBtn) approveAllBtn.style.display = can('bulk') ? 'inline-flex' : 'none'; const panelSettings = document.getElementById('panelSettings'); if (panelSettings) panelSettings.innerHTML = can('settings') ? renderSettingsPanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelTheme = document.getElementById('panelTheme'); if (panelTheme) panelTheme.innerHTML = can('theme') ? renderThemePanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelUsers = document.getElementById('panelUsers'); if (panelUsers) panelUsers.innerHTML = can('users') ? renderUsersPanelHtml() : `<div class="mini-pill">No permission.</div>`; const panelSecurity = document.getElementById('panelSecurity'); if (panelSecurity) panelSecurity.innerHTML = renderSecurityPanelHtml(); if (can('settings')) wireSettingsPanel(); if (can('theme')) wireThemePanel(); if (can('users')) wireUsersPanel(); wireSecurityPanel(); const panelCompilations = document.getElementById('panelCompilations');
     if (panelCompilations) panelCompilations.innerHTML = renderCompilationsPanelHtml();
     loadCompilationsAdmin(); syncSettingsEditor(); syncThemeEditor(); }
 
@@ -2817,7 +2744,7 @@ function buildAdminPanels() { const tabs = { 'tabSettings': 'settings', 'tabThem
           <button class="admin-btn admin-btn-danger" style="width:100%; justify-content:center;" type="button" onclick="removeIntroVideo()">Remove Video (Disable)</button>
         </div>
       </div>
-    </div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Teachers Editor</h4><button class="admin-btn admin-btn-secondary" type="button" onclick="addTeacherRow()">+ Add Teacher</button></div><div class="mini-pill">Fields: name, subject, quote, imageUrl (optional)</div><div id="teachersEditor" style="margin-top:12px; display:grid; gap:12px;"></div></div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Timeline Editor</h4><button class="admin-btn admin-btn-secondary" type="button" onclick="addTimelineRow()">+ Add Timeline Item</button></div><div class="mini-pill">Fields: year, title, description</div><div id="timelineEditor" style="margin-top:12px; display:grid; gap:12px;"></div></div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Student Directory CSV</h4><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="admin-btn admin-btn-secondary" type="button" onclick="downloadStudentDirectoryTemplate()">Download Template</button><label class="admin-btn admin-btn-secondary" style="cursor:pointer;">Import CSV<input type="file" accept=".csv" style="display:none;" onchange="uploadStudentDirectoryCsv(this.files[0])"></label><button class="admin-btn admin-btn-primary" type="button" onclick="bulkApplyStudentsToSuperlatives()">Use in Superlatives</button></div></div><div class="mini-pill">Bulk update students with columns: name, section</div></div></div></div></div>`; }
+    </div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Teachers Editor</h4><button class="admin-btn admin-btn-secondary" type="button" onclick="addTeacherRow()">+ Add Teacher</button></div><div class="mini-pill">Fields: name, subject, quote, imageUrl (optional)</div><div id="teachersEditor" style="margin-top:12px; display:grid; gap:12px;"></div></div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Timeline Editor</h4><button class="admin-btn admin-btn-secondary" type="button" onclick="addTimelineRow()">+ Add Timeline Item</button></div><div class="mini-pill">Fields: year, title, description</div><div id="timelineEditor" style="margin-top:12px; display:grid; gap:12px;"></div></div></div></div></div>`; }
     function wireSettingsPanel() { renderTeachersEditor(); renderTimelineEditor(); }
     function syncSettingsEditor() { const s = state.settings; setVal('setSchoolName', s.schoolName); setVal('setEventName', s.eventName); setVal('setLogoText', s.logoText); setVal('setFarewellIST', s.farewellIST); setVal('setContactEmail', s.contactEmail); setVal('setLocationLine', s.locationLine); setVal('setHeroBadge', s.heroBadge); setVal('setHeroTitle', s.heroTitle); setVal('setHeroSubtitle', s.heroSubtitle); setVal('setHeroDescription', s.heroDescription); setVal('setQuoteText', s.quoteText); setVal('setQuoteAuthor', s.quoteAuthor); setVal('setUploadsEnabled', String(!!s.uploadsEnabled)); setVal('setCommentsEnabled', String(!!s.commentsEnabled)); setVal('setProfanityEnabled', String(!!s.profanityFilterEnabled)); setVal('setUploadWindowEnabled', String(!!s.uploadWindowEnabled)); setVal('setUploadWindowStart', s.uploadWindowStartIST || ''); setVal('setUploadWindowEnd', s.uploadWindowEndIST || ''); setVal('setAutoApproveEnabled', String(!!s.autoApproveEnabled)); setVal('setAutoApproveStart', s.autoApproveStartIST || ''); setVal('setAutoApproveEnd', s.autoApproveEndIST || ''); setVal('setFooterDesc', s.footerDesc); setVal('setFooterContactNote', s.footerContactNote); setVal('setFooterMadeBy', s.footerMadeBy); setVal('setFooterCopyright', s.footerCopyright); renderTeachersEditor(); renderTimelineEditor(); }
     function readSettingsFromEditor() { const s = structuredClone(state.settings); s.schoolName = getVal('setSchoolName'); s.eventName = getVal('setEventName'); s.logoText = getVal('setLogoText'); s.farewellIST = getVal('setFarewellIST'); s.contactEmail = getVal('setContactEmail'); s.locationLine = getVal('setLocationLine'); s.heroBadge = getVal('setHeroBadge'); s.heroTitle = getVal('setHeroTitle'); s.heroSubtitle = getVal('setHeroSubtitle'); s.heroDescription = getVal('setHeroDescription'); s.quoteText = getVal('setQuoteText'); s.quoteAuthor = getVal('setQuoteAuthor'); s.uploadsEnabled = getVal('setUploadsEnabled') === 'true'; s.commentsEnabled = getVal('setCommentsEnabled') === 'true'; s.profanityFilterEnabled = getVal('setProfanityEnabled') === 'true'; s.uploadWindowEnabled = getVal('setUploadWindowEnabled') === 'true'; s.uploadWindowStartIST = getVal('setUploadWindowStart'); s.uploadWindowEndIST = getVal('setUploadWindowEnd'); s.autoApproveEnabled = getVal('setAutoApproveEnabled') === 'true'; s.autoApproveStartIST = getVal('setAutoApproveStart'); s.autoApproveEndIST = getVal('setAutoApproveEnd'); s.footerDesc = getVal('setFooterDesc'); s.footerContactNote = getVal('setFooterContactNote'); s.footerMadeBy = getVal('setFooterMadeBy'); s.footerCopyright = getVal('setFooterCopyright'); s.introHideSkip = getVal('setIntroHideSkip') === 'true'; return s; }
@@ -2831,66 +2758,7 @@ function buildAdminPanels() { const tabs = { 'tabSettings': 'settings', 'tabThem
     function resetThemeDefaults() { if (!confirm('Reset theme to defaults?')) return; state.settings.theme = structuredClone(DEFAULT_SETTINGS.theme); syncThemeEditor(); applyThemeToCSS(); }
     async function saveTheme() { const t = readThemeFromEditor(); const merged = structuredClone(state.settings); merged.theme = t; try { const res = await fetch(apiUrl('/api/admin/settings'), { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` }, body: JSON.stringify({ settings: merged }) }); const data = await res.json(); if (data.success) { state.settings = mergeDeep(structuredClone(DEFAULT_SETTINGS), merged); showNotification('success', 'Saved', 'Theme saved.'); } else showNotification('error', 'Failed', data.error || 'Could not save theme.'); } catch (e) { showNotification('error', 'Failed', e.message); } }
 
-    
-async function loadStudentDirectoryIntoAdmin() {
- try {
-  const res = await fetch(apiUrl('/api/student-directory'));
-  const data = await res.json();
-  return data.success && Array.isArray(data.students) ? data.students : [];
- } catch (_) {
-  return [];
- }
-}
-function buildStudentDirectoryCsvTemplate(students) {
- const rows = [['name','section']];
- (students || []).forEach(s => rows.push([s.name || '', s.section || '']));
- return rows.map(r => r.map(v => `"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');
-}
-async function downloadStudentDirectoryTemplate() {
- const students = await loadStudentDirectoryIntoAdmin();
- const csv = buildStudentDirectoryCsvTemplate(students);
- const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
- const a = document.createElement('a');
- a.href = URL.createObjectURL(blob);
- a.download = 'student-directory-template.csv';
- a.click();
- URL.revokeObjectURL(a.href);
-}
-async function uploadStudentDirectoryCsv(file) {
- if (!file) return showNotification('error', 'Missing file', 'Choose a CSV file first.');
- const text = await file.text();
- const lines = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
- if (!lines.length) return showNotification('error', 'Empty file', 'CSV file is empty.');
- const rows = lines.slice(1).map(line => {
-  const parts = line.split(',').map(x => x.trim().replace(/^"|"$/g, ''));
-  return { name: parts[0] || '', section: parts[1] || '' };
- }).filter(r => r.name && r.section);
- const res = await fetch(apiUrl('/api/admin/student-directory'), {
-  method:'POST',
-  headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.adminToken}`},
-  body:JSON.stringify({ students: rows })
- });
- const data = await res.json();
- if (!data.success) return showNotification('error', 'Failed', data.error || 'Could not update student directory.');
- showNotification('success', 'Updated', `${rows.length} students imported.`);
- await reloadSettingsAdmin();
-}
-async function bulkApplyStudentsToSuperlatives() {
- const students = await loadStudentDirectoryIntoAdmin();
- if (!students.length) return showNotification('error', 'No students', 'Student directory is empty.');
- const categories = Array.isArray(window.supData) ? window.supData : [];
- categories.forEach(cat => {
-  cat.nominees = students.map(s => ({
-   id: `${cat.id}_${s.name}`,
-   name: s.name,
-   votes: 0
-  }));
- });
- showNotification('success', 'Applied', 'Student directory has been copied into all superlative categories.');
- if (typeof renderSuperlatives === 'function') renderSuperlatives();
-}
-
-function renderUsersPanelHtml() { return `<div class="stat-card" style="text-align:left;"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Admin Users</h3><button class="admin-btn admin-btn-secondary" onclick="loadUsers()">Refresh</button></div><div class="mini-pill" style="margin-top:12px;">Create admin IDs and toggle permissions.</div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Create User</h4><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>User ID</label><input class="form-input" id="newUserId" placeholder="moderator1" /></div><div class="form-group"><label>Name</label><input class="form-input" id="newUserName" placeholder="Moderator" /></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Password</label><input class="form-input" id="newUserPass" placeholder="min 8 chars" /></div><div class="form-group"><label>Role</label><select class="form-select" id="newUserRole"><option value="moderator">moderator</option><option value="admin">admin</option></select></div></div><div class="mini-pill" style="margin:10px 0;">Permissions</div><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 10px;"><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_moderation" checked /><span>Moderation</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_settings" /><span>Settings</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_theme" /><span>Theme</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_export" /><span>Export</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_users" /><span>Users</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_trash" checked /><span>Trash</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_replaceFile" /><span>Replace File</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_editMemory" checked /><span>Edit Memory</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_bulk" /><span>Bulk Actions</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_featured" /><span>Featured</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_teachers" /><span>Teachers</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_timeline" /><span>Timeline</span></label></div><div style="display:flex; justify-content:flex-end; margin-top:12px;"><button class="admin-btn admin-btn-primary" onclick="createUser()">Create</button></div></div><div style="margin-top:16px;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Existing Users</h4><div id="usersList" class="admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px,1fr));"></div></div></div>`; }
+    function renderUsersPanelHtml() { return `<div class="stat-card" style="text-align:left;"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Admin Users</h3><button class="admin-btn admin-btn-secondary" onclick="loadUsers()">Refresh</button></div><div class="mini-pill" style="margin-top:12px;">Create admin IDs and toggle permissions.</div><div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Create User</h4><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>User ID</label><input class="form-input" id="newUserId" placeholder="moderator1" /></div><div class="form-group"><label>Name</label><input class="form-input" id="newUserName" placeholder="Moderator" /></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Password</label><input class="form-input" id="newUserPass" placeholder="min 8 chars" /></div><div class="form-group"><label>Role</label><select class="form-select" id="newUserRole"><option value="moderator">moderator</option><option value="admin">admin</option></select></div></div><div class="mini-pill" style="margin:10px 0;">Permissions</div><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 10px;"><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_moderation" checked /><span>Moderation</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_settings" /><span>Settings</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_theme" /><span>Theme</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_export" /><span>Export</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_users" /><span>Users</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_trash" checked /><span>Trash</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_replaceFile" /><span>Replace File</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_editMemory" checked /><span>Edit Memory</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_bulk" /><span>Bulk Actions</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_featured" /><span>Featured</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_teachers" /><span>Teachers</span></label><label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);"><input type="checkbox" id="perm_timeline" /><span>Timeline</span></label></div><div style="display:flex; justify-content:flex-end; margin-top:12px;"><button class="admin-btn admin-btn-primary" onclick="createUser()">Create</button></div></div><div style="margin-top:16px;"><h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Existing Users</h4><div id="usersList" class="admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px,1fr));"></div></div></div>`; }
     function wireUsersPanel() { loadUsers(); }
     function gatherPermsFromCreateForm() { const ids = ['moderation','settings','theme','export','users','trash','replaceFile','editMemory','bulk','featured','teachers','timeline']; const p = {}; ids.forEach(k => p[k] = !!document.getElementById(`perm_${k}`)?.checked); return p; }
     async function loadUsers() { try { const res = await fetch(apiUrl('/api/admin/users'), { headers: { 'Authorization': `Bearer ${state.adminToken}` } }); const data = await res.json(); if (!data.success) return showNotification('error', 'Failed', data.error || 'Could not load users.'); renderUsersList(data.users || []); } catch (e) { showNotification('error', 'Failed', e.message); } }

@@ -7525,7 +7525,30 @@
       "action": "login",
       "meta": {},
       "createdAt": "2026-03-11T08:21:28.933Z"
+    },
+    {
+      "id": 899,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-11T09:11:07.776Z"
+    },
+    {
+      "id": 900,
+      "userId": "techteam",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-11T09:12:44.923Z"
+    },
+    {
+      "id": 901,
+      "userId": "techteam",
+      "action": "approve",
+      "meta": {
+        "memoryId": 218
+      },
+      "createdAt": "2026-03-11T09:22:20.645Z"
     }
   ],
-  "nextId": 899
+  "nextId": 902
 }
