@@ -711,7 +711,6 @@
       <li><a href="#countdown">Countdown</a></li>
       <li><a href="#memories">Memories</a></li>
       <li><a href="#teachers">Teachers</a></li>
- <li><a href="#adviceWall">Senior Advice</a></li>
       <li><a href="#timeline">Journey</a></li>
       <li><a href="#compilations">Compilations</a></li>
         <li><a href="#upload" class="nav-cta">Upload Memory</a></li>
@@ -1184,8 +1183,7 @@
         </div>
       </div>
 
-      <div class="memories-preview-actions"><button class="btn btn-secondary" id="viewAllMemoriesBtn" type="button">View All Memories</button></div>
- <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+      <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
         <button class="btn btn-secondary load-more-btn" id="loadMoreBtn" type="button">Load More</button>
       </div>
     </div>
@@ -1575,7 +1573,7 @@ textarea.ff-input{resize:vertical;min-height:90px}
 (function(){
   if(window.__FF_LOADED__)return;
   window.__FF_LOADED__=true;
-  const FF_DEFAULTS={gratitudeWall:true,superlatives:true,wishJar:true,songDedications:true,moodBoard:true,timeCapsule:true,seniorAdvice:true,memoryMosaic:false};
+  const FF_DEFAULTS={gratitudeWall:true,superlatives:true,wishJar:true,songDedications:true,moodBoard:true,timeCapsule:true,memoryMosaic:false};
   const STICKY_COLORS=[{bg:'rgba(0,255,200,.08)',text:'#00ffc8',border:'#00ffc8'},{bg:'rgba(180,100,255,.08)',text:'#c87aff',border:'#c87aff'},{bg:'rgba(255,200,0,.08)',text:'#ffd700',border:'#ffd700'},{bg:'rgba(0,180,255,.08)',text:'#00b4ff',border:'#00b4ff'},{bg:'rgba(255,80,160,.08)',text:'#ff50a0',border:'#ff50a0'},{bg:'rgba(80,255,120,.08)',text:'#50ff78',border:'#50ff78'}];
   const MOOD_DATA=[{key:'happy',emoji:'😄',label:'Excited',color:'#FFD700'},{key:'proud',emoji:'🥲',label:'Proud',color:'#A8E6CF'},{key:'nostalgic',emoji:'🌅',label:'Nostalgic',color:'#FFB347'},{key:'thankful',emoji:'🙏',label:'Grateful',color:'#DDA0DD'},{key:'bittersweet',emoji:'💛',label:'Bittersweet',color:'#FFE66D'},{key:'nervous',emoji:'😬',label:'Nervous',color:'#74B9FF'}];
   const WISH_ICONS={dream:'🌟',advice:'💡',hope:'🕊️',funny:'😂'};
@@ -1593,7 +1591,7 @@ textarea.ff-input{resize:vertical;min-height:90px}
     window.__FF_TOGGLES__=t;applyFunFeatureToggles(t);return t;
   }
   function applyFunFeatureToggles(t){
-    const map={gratitudeWall:'gratitudeWall',superlatives:'superlativesSection',wishJar:'wishJarSection',songDedications:'songDedicationsSection',moodBoard:'moodBoardSection',timeCapsule:'timeCapsuleSection',seniorAdvice:'adviceWall',memoryMosaic:'memoryMosaicSection'};
+    const map={gratitudeWall:'gratitudeWall',superlatives:'superlativesSection',wishJar:'wishJarSection',songDedications:'songDedicationsSection',moodBoard:'moodBoardSection',timeCapsule:'timeCapsuleSection',memoryMosaic:'memoryMosaicSection'};
     for(const[k,id]of Object.entries(map)){const el=document.getElementById(id);if(!el)continue;el.classList.toggle('ff-section-hidden',!t[k])}
   }
   async function loadGratitudeNotes(){
@@ -1688,40 +1686,7 @@ textarea.ff-input{resize:vertical;min-height:90px}
     try{const d=await ffPost('/api/fun/capsules',{name,revealDate,letter});if(d.success){['capsuleName','capsuleLetter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});ffNotify('success','Sealed!','Your time capsule is locked 📮');if(typeof triggerConfetti==='function')triggerConfetti();loadTimeCapsules()}else ffNotify('error','Failed',d.error)}
     catch(e){ffNotify('error','Error',e.message)}
   };
- 
- async function loadSeniorAdvice(){
-  const list=document.getElementById('adviceList');if(!list)return;
-  try{
-   const d=await ffGet('/api/fun/advice');
-   const entries=d.entries||d.advice||[];
-   if(entries.length){
-    list.innerHTML=entries.map(a=>`<div class="dedication-card"><div class="dedication-content"><div class="dedication-song">${ffEsc(a.name||'Anonymous')}</div><div class="dedication-msg">${ffEsc(a.text||a.advice||'')}</div><div class="dedication-meta">For <strong>${ffEsc(a.for||a.target||'Everyone')}</strong> · ${ffAgo(a.createdAt||a.created_at)}</div></div></div>`).join('');
-   }else{
-    list.innerHTML='<div class="ff-empty">No advice yet. Be the first senior voice here.</div>';
-   }
-  }catch(_){
-   list.innerHTML='<div class="ff-empty">Could not load advice right now.</div>';
-  }
- }
- window.submitSeniorAdvice=async function(){
-  const name=document.getElementById('adviceName')?.value?.trim();
-  const target=document.getElementById('adviceFor')?.value?.trim()||'Everyone';
-  const text=document.getElementById('adviceText')?.value?.trim();
-  if(!name)return ffNotify('error','Missing','Enter your name.');
-  if(!text)return ffNotify('error','Missing','Write some advice first.');
-  try{
-   const d=await ffPost('/api/fun/advice',{name,for:target,text});
-   if(d.success){
-    document.getElementById('adviceName').value='';
-    document.getElementById('adviceFor').value='';
-    document.getElementById('adviceText').value='';
-    ffNotify('success','Shared','Your advice is now visible to juniors.');
-    loadSeniorAdvice();
-   }else ffNotify('error','Failed',d.error||'Could not save advice.');
-  }catch(e){ffNotify('error','Error',e.message)}
- };
-
- function loadMemoryMosaic(){
+  function loadMemoryMosaic(){
     const g=document.getElementById('mosaicGrid');if(!g)return;
     const memories=(window.state&&window.state.memories)||[];const map={};
     memories.forEach(m=>{const n=(m.student_name||'').trim();if(n)map[n]=(map[n]||0)+1});
@@ -1741,15 +1706,15 @@ textarea.ff-input{resize:vertical;min-height:90px}
     const t=window.__FF_TOGGLES__||FF_DEFAULTS;
     try{const res=await fetch(ffApi('/api/fun/settings'),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(window.state?.adminToken||'')},body:JSON.stringify({settings:t})});const d=await res.json();if(d.success)ffNotify('success','Saved','Fun feature settings updated.');else ffNotify('error','Failed',d.error||'Could not save.')}catch(e){ffNotify('error','Error',e.message)}
   };
-  window.enableAllFunFeatures=function(){['gratitudeWall','superlatives','wishJar','songDedications','moodBoard','timeCapsule','seniorAdvice','memoryMosaic'].forEach(k=>{const el=document.getElementById(`ffToggle_${k}`);if(el)el.checked=(k!=='memoryMosaic');window.previewFunFeatureToggle(k,k!=='memoryMosaic')})};
-  window.disableAllFunFeatures=function(){['gratitudeWall','superlatives','wishJar','songDedications','moodBoard','timeCapsule','seniorAdvice','memoryMosaic'].forEach(k=>{const el=document.getElementById(`ffToggle_${k}`);if(el)el.checked=false;window.previewFunFeatureToggle(k,false)})};
+  window.enableAllFunFeatures=function(){['gratitudeWall','superlatives','wishJar','songDedications','moodBoard','timeCapsule','memoryMosaic'].forEach(k=>{const el=document.getElementById(`ffToggle_${k}`);if(el)el.checked=(k!=='memoryMosaic');window.previewFunFeatureToggle(k,k!=='memoryMosaic')})};
+  window.disableAllFunFeatures=function(){['gratitudeWall','superlatives','wishJar','songDedications','moodBoard','timeCapsule','memoryMosaic'].forEach(k=>{const el=document.getElementById(`ffToggle_${k}`);if(el)el.checked=false;window.previewFunFeatureToggle(k,false)})};
   const _origBuildAdminPanels=window.buildAdminPanels;
   window.buildAdminPanels=function(){if(typeof _origBuildAdminPanels==='function')_origBuildAdminPanels.apply(this,arguments);buildFunFeaturesPanel()};
   const _origSwitchAdminTab=window.switchAdminTab;
   window.switchAdminTab=function(tab){if(typeof _origSwitchAdminTab==='function')_origSwitchAdminTab.apply(this,arguments);const tabEl=document.getElementById('tabFunFeatures');const panelEl=document.getElementById('panelFunFeatures');if(tabEl)tabEl.classList.toggle('active',tab==='funFeatures');if(panelEl){panelEl.classList.toggle('active',tab==='funFeatures');if(tab==='funFeatures')buildFunFeaturesPanel()}};
   async function init(){
     await loadFunFeatureToggles();
-    loadGratitudeNotes();loadSuperlatives();loadWishes();loadDedications();loadMoodBoard();loadTimeCapsules();loadSeniorAdvice();
+    loadGratitudeNotes();loadSuperlatives();loadWishes();loadDedications();loadMoodBoard();loadTimeCapsules();
     
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init)}else{init()}
@@ -2726,7 +2691,7 @@ window.addEventListener('popstate', () => {
     function downloadAllApproved() { window.location.href = apiUrl(`/api/admin/download-all?token=${encodeURIComponent(state.adminToken || '')}`); showNotification('info', 'Downloading', 'Preparing ZIP...'); }
     function exportCSV() { fetch(apiUrl(`/api/admin/export/csv`), { headers: { 'Authorization': `Bearer ${state.adminToken}` } }).then(async r => { if (!r.ok) throw new Error('Export failed'); const blob = await r.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `memories-export-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(a.href); showNotification('success', 'Exported', 'CSV downloaded.'); }).catch(e => showNotification('error', 'Failed', e.message)); }
 
-    function renderSettingsPanelHtml() { return `<div style="display:grid; gap: 18px;"><div class="stat-card" style="text-align:left;"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Site Settings</h3><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="admin-btn admin-btn-primary" onclick="saveSettingsFromEditor()">Save</button><button class="admin-btn admin-btn-secondary" onclick="reloadSettingsAdmin()">Reload</button></div></div><div style="margin-top:12px; display:grid; gap: 14px;"><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>School Name</label><input class="form-input" id="setSchoolName"/></div><div class="form-group"><label>Event Name</label><input class="form-input" id="setEventName"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Logo Text</label><input class="form-input" id="setLogoText" maxlength="5"/></div><div class="form-group"><label>Farewell IST (YYYY-MM-DDTHH:mm)</label><input class="form-input" id="setFarewellIST"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Contact Email</label><input class="form-input" id="setContactEmail"/></div><div class="form-group"><label>Location Line</label><input class="form-input" id="setLocationLine"/></div></div><div class="form-group"><label>Hero Badge</label><input class="form-input" id="setHeroBadge"/></div><div class="form-group"><label>Hero Title (use {year})</label><input class="form-input" id="setHeroTitle"/></div><div class="form-group"><label>Hero Subtitle</label><input class="form-input" id="setHeroSubtitle"/></div><div class="form-group"><label>Hero Description</label><textarea class="form-textarea" id="setHeroDescription" maxlength="600"></textarea></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Quote Text</label><textarea class="form-textarea" id="setQuoteText" maxlength="7000"></textarea></div><div class="form-group"><label>Quote Author</label><input class="form-input" id="setQuoteAuthor"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Uploads Enabled</label><select class="form-select" id="setUploadsEnabled"><option value="true">true</option><option value="false">false</option></select></div><div class="form-group"><label>Comments Enabled</label><select class="form-select" id="setCommentsEnabled"><option value="true">true</option><option value="false">false</option></select></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Profanity Filter</label><select class="form-select" id="setProfanityEnabled"><option value="false">false</option><option value="true">true</option></select></div><div class="form-group"><label>Upload Window Enabled</label><select class="form-select" id="setUploadWindowEnabled"><option value="false">false</option><option value="true">true</option></select></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Upload Window Start (IST)</label><input class="form-input" id="setUploadWindowStart"/></div><div class="form-group"><label>Upload Window End (IST)</label><input class="form-input" id="setUploadWindowEnd"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Auto-Approve Enabled</label><select class="form-select" id="setAutoApproveEnabled"><option value="false">false</option><option value="true">true</option></select></div><div class="form-group"><label>(Auto) Start (IST)</label><input class="form-input" id="setAutoApproveStart"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>(Auto) End (IST)</label><input class="form-input" id="setAutoApproveEnd"/></div><div class="form-group"><label>—</label><div class="mini-pill">Auto-approve applies at upload time.</div></div></div><div class="form-group"><label>Footer Description</label><textarea class="form-textarea" id="setFooterDesc" maxlength="400"></textarea></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Footer Contact Note</label><input class="form-input" id="setFooterContactNote"/></div><div class="form-group"><label>Footer Made By</label><input class="form-input" id="setFooterMadeBy"/></div></div><div class="form-group"><label>Footer Copyright</label><input class="form-input" id="setFooterCopyright"/></div>
+    function renderSettingsPanelHtml() { return `<div style="display:grid; gap: 18px;"><div class="stat-card" style="text-align:left;"><div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;"><h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Site Settings</h3><div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="admin-btn admin-btn-primary" onclick="saveSettingsFromEditor()">Save</button><button class="admin-btn admin-btn-secondary" onclick="reloadSettingsAdmin()">Reload</button></div></div><div style="margin-top:12px; display:grid; gap: 14px;"><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>School Name</label><input class="form-input" id="setSchoolName"/></div><div class="form-group"><label>Event Name</label><input class="form-input" id="setEventName"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Logo Text</label><input class="form-input" id="setLogoText" maxlength="5"/></div><div class="form-group"><label>Farewell IST (YYYY-MM-DDTHH:mm)</label><input class="form-input" id="setFarewellIST"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Contact Email</label><input class="form-input" id="setContactEmail"/></div><div class="form-group"><label>Location Line</label><input class="form-input" id="setLocationLine"/></div></div><div class="form-group"><label>Hero Badge</label><input class="form-input" id="setHeroBadge"/></div><div class="form-group"><label>Hero Title (use {year})</label><input class="form-input" id="setHeroTitle"/></div><div class="form-group"><label>Hero Subtitle</label><input class="form-input" id="setHeroSubtitle"/></div><div class="form-group"><label>Hero Description</label><textarea class="form-textarea" id="setHeroDescription" maxlength="600"></textarea></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Quote Text</label><textarea class="form-textarea" id="setQuoteText" maxlength="500"></textarea></div><div class="form-group"><label>Quote Author</label><input class="form-input" id="setQuoteAuthor"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Uploads Enabled</label><select class="form-select" id="setUploadsEnabled"><option value="true">true</option><option value="false">false</option></select></div><div class="form-group"><label>Comments Enabled</label><select class="form-select" id="setCommentsEnabled"><option value="true">true</option><option value="false">false</option></select></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Profanity Filter</label><select class="form-select" id="setProfanityEnabled"><option value="false">false</option><option value="true">true</option></select></div><div class="form-group"><label>Upload Window Enabled</label><select class="form-select" id="setUploadWindowEnabled"><option value="false">false</option><option value="true">true</option></select></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Upload Window Start (IST)</label><input class="form-input" id="setUploadWindowStart"/></div><div class="form-group"><label>Upload Window End (IST)</label><input class="form-input" id="setUploadWindowEnd"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Auto-Approve Enabled</label><select class="form-select" id="setAutoApproveEnabled"><option value="false">false</option><option value="true">true</option></select></div><div class="form-group"><label>(Auto) Start (IST)</label><input class="form-input" id="setAutoApproveStart"/></div></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>(Auto) End (IST)</label><input class="form-input" id="setAutoApproveEnd"/></div><div class="form-group"><label>—</label><div class="mini-pill">Auto-approve applies at upload time.</div></div></div><div class="form-group"><label>Footer Description</label><textarea class="form-textarea" id="setFooterDesc" maxlength="400"></textarea></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div class="form-group"><label>Footer Contact Note</label><input class="form-input" id="setFooterContactNote"/></div><div class="form-group"><label>Footer Made By</label><input class="form-input" id="setFooterMadeBy"/></div></div><div class="form-group"><label>Footer Copyright</label><input class="form-input" id="setFooterCopyright"/></div>
     <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
       <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Intro Video Settings</h4>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end;">

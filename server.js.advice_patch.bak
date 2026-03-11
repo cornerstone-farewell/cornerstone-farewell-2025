@@ -532,7 +532,7 @@ app.post('/api/upload', upload.array('files', MAX_FILES), checkTotalSize, (req, 
       const memory = {
         id: db.nextId++,
         student_name: name.trim(),
-        caption: caption.trim().substring(0, 1000),
+        caption: caption.trim().substring(0, 500),
         memory_type: type,
         file_path: file.filename,
         file_name: file.originalname,
@@ -1077,7 +1077,7 @@ app.post('/api/admin/memory/edit/:id', (req, res) => {
     const m = db.memories.find(x => x.id === id && !x.purgedAt);
     if (!m) return res.status(404).json({ success: false, error: 'Not found' });
 
-    if (typeof caption === 'string') m.caption = caption.trim().substring(0, 1000);
+    if (typeof caption === 'string') m.caption = caption.trim().substring(0, 500);
     if (typeof memory_type === 'string') m.memory_type = memory_type.trim();
     if (typeof student_name === 'string') m.student_name = student_name.trim().substring(0, 100);
     if (typeof featured === 'number') m.featured = featured ? 1 : 0;

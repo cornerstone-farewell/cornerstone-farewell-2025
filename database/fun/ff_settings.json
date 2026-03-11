@@ -1,0 +1,10 @@
+{
+  "enabled": {
+    "gratitude": true,
+    "superlatives": true,
+    "wishes": true,
+    "dedications": true,
+    "mood": true,
+    "capsules": true
+  }
+}

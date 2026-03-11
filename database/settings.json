@@ -77,7 +77,7 @@
       {
         "name": "Mrs.Ancy Thomas.",
         "subject": "Social Science HOD.",
-        "quote": ".",
+        "quote": "You came here with tiny bags and big dreams—and handwriting we could barely read. Today you leave with bigger dreams… and handwriting we still can’t read! \n\nGo make the world proud—and don’t forget this place where it all began.",
         "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2023/12/ancy.png"
       },
       {
@@ -192,7 +192,10 @@
       "globeMusic": "",
       "boomboxGraduationVibes": "",
       "boomboxSadBoiHours": "",
-      "boomboxHype": ""
+      "boomboxHype": "",
+      "ghostPopupMusic": "",
+      "notesPopupMusic": "",
+      "lockerBangSound": ""
     }
   }
 }
