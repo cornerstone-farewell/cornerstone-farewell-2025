@@ -1,1 +1,456 @@
 <!-- FRAGMENT: admin_sitesettings -->
+
+<script data-fragment-script="admin_sitesettings">
+// ── Teacher / Timeline row templates ────────────────────────────────────────
+
+function teacherRowHtml(t = {}, idx = 0) {
+  return `<div class="admin-memory-card" style="padding:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <div style="font-weight:800;">Teacher #${idx + 1}</div>
+      <button class="admin-btn admin-btn-danger" type="button" onclick="removeTeacherRow(${idx})">Remove</button>
+    </div>
+    <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="form-group">
+        <label>Name</label>
+        <input class="form-input" data-teacher-field="name" data-teacher-idx="${idx}" value="${escapeAttr(t.name || '')}" />
+      </div>
+      <div class="form-group">
+        <label>Subject</label>
+        <input class="form-input" data-teacher-field="subject" data-teacher-idx="${idx}" value="${escapeAttr(t.subject || '')}" />
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:10px;">
+      <label>Quote</label>
+      <textarea class="form-textarea" data-teacher-field="quote" data-teacher-idx="${idx}" maxlength="250">${escapeHtml(t.quote || '')}</textarea>
+    </div>
+    <div class="form-group" style="margin-top:10px;">
+      <label>Image URL (optional)</label>
+      <input class="form-input" data-teacher-field="imageUrl" data-teacher-idx="${idx}" value="${escapeAttr(t.imageUrl || '')}" placeholder="https://..." />
+    </div>
+  </div>`;
+}
+
+function timelineRowHtml(x = {}, idx = 0) {
+  return `<div class="admin-memory-card" style="padding:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <div style="font-weight:800;">Item #${idx + 1}</div>
+      <button class="admin-btn admin-btn-danger" type="button" onclick="removeTimelineRow(${idx})">Remove</button>
+    </div>
+    <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="form-group">
+        <label>Year</label>
+        <input class="form-input" data-timeline-field="year" data-timeline-idx="${idx}" value="${escapeAttr(x.year || '')}" placeholder="2022" />
+      </div>
+      <div class="form-group">
+        <label>Title</label>
+        <input class="form-input" data-timeline-field="title" data-timeline-idx="${idx}" value="${escapeAttr(x.title || '')}" />
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:10px;">
+      <label>Description</label>
+      <textarea class="form-textarea" data-timeline-field="description" data-timeline-idx="${idx}" maxlength="350">${escapeHtml(x.description || '')}</textarea>
+    </div>
+  </div>`;
+}
+
+function renderTeachersEditor() {
+  const wrap = document.getElementById('teachersEditor');
+  if (!wrap) return;
+  const arr = Array.isArray(state.settings.teachers) ? state.settings.teachers : [];
+  wrap.innerHTML = arr.map((t, i) => teacherRowHtml(t, i)).join('') || `<div class="mini-pill">No teachers yet.</div>`;
+}
+
+function renderTimelineEditor() {
+  const wrap = document.getElementById('timelineEditor');
+  if (!wrap) return;
+  const arr = Array.isArray(state.settings.timeline) ? state.settings.timeline : [];
+  wrap.innerHTML = arr.map((x, i) => timelineRowHtml(x, i)).join('') || `<div class="mini-pill">No timeline items yet.</div>`;
+}
+
+function addTeacherRow() {
+  if (!Array.isArray(state.settings.teachers)) state.settings.teachers = [];
+  state.settings.teachers.push({ name: '', subject: '', quote: '', imageUrl: '' });
+  renderTeachersEditor();
+}
+
+function removeTeacherRow(idx) {
+  if (!Array.isArray(state.settings.teachers)) return;
+  state.settings.teachers.splice(idx, 1);
+  renderTeachersEditor();
+}
+
+function addTimelineRow() {
+  if (!Array.isArray(state.settings.timeline)) state.settings.timeline = [];
+  state.settings.timeline.push({ year: '', title: '', description: '' });
+  renderTimelineEditor();
+}
+
+function removeTimelineRow(idx) {
+  if (!Array.isArray(state.settings.timeline)) return;
+  state.settings.timeline.splice(idx, 1);
+  renderTimelineEditor();
+}
+
+function readTeachersFromEditor() {
+  const inputs = Array.from(document.querySelectorAll('[data-teacher-idx]'));
+  const arr = [];
+  for (const el of inputs) {
+    const idx = Number(el.dataset.teacherIdx);
+    const field = el.dataset.teacherField;
+    arr[idx] = arr[idx] || { name: '', subject: '', quote: '', imageUrl: '' };
+    arr[idx][field] = el.value;
+  }
+  return (arr || []).filter(Boolean)
+    .map(t => ({ name: String(t.name||'').trim(), subject: String(t.subject||'').trim(), quote: String(t.quote||'').trim(), imageUrl: String(t.imageUrl||'').trim() }))
+    .filter(t => t.name);
+}
+
+function readTimelineFromEditor() {
+  const inputs = Array.from(document.querySelectorAll('[data-timeline-idx]'));
+  const arr = [];
+  for (const el of inputs) {
+    const idx = Number(el.dataset.timelineIdx);
+    const field = el.dataset.timelineField;
+    arr[idx] = arr[idx] || { year: '', title: '', description: '' };
+    arr[idx][field] = el.value;
+  }
+  return (arr || []).filter(Boolean)
+    .map(x => ({ year: String(x.year||'').trim(), title: String(x.title||'').trim(), description: String(x.description||'').trim() }))
+    .filter(x => x.year || x.title || x.description);
+}
+
+// ── Student Directory ────────────────────────────────────────────────────────
+
+async function loadStudentDirectoryIntoAdmin() {
+  try {
+    const res  = await fetch(apiUrl('/api/student-directory'));
+    const data = await res.json();
+    return data.success && Array.isArray(data.students) ? data.students : [];
+  } catch (_) { return []; }
+}
+
+function buildStudentDirectoryCsvTemplate(students) {
+  const rows = [['name','section']];
+  (students || []).forEach(s => rows.push([s.name || '', s.section || '']));
+  return rows.map(r => r.map(v => `"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');
+}
+
+async function downloadStudentDirectoryTemplate() {
+  const students = await loadStudentDirectoryIntoAdmin();
+  const csv  = buildStudentDirectoryCsvTemplate(students);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'student-directory-template.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function uploadStudentDirectoryCsv(file) {
+  if (!file) return showNotification('error', 'Missing file', 'Choose a CSV file first.');
+  const text  = await file.text();
+  const lines = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+  if (!lines.length) return showNotification('error', 'Empty file', 'CSV file is empty.');
+  const rows = lines.slice(1).map(line => {
+    const parts = line.split(',').map(x => x.trim().replace(/^"|"$/g, ''));
+    return { name: parts[0] || '', section: parts[1] || '' };
+  }).filter(r => r.name && r.section);
+  const res  = await fetch(apiUrl('/api/admin/student-directory'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` },
+    body: JSON.stringify({ students: rows })
+  });
+  const data = await res.json();
+  if (!data.success) return showNotification('error', 'Failed', data.error || 'Could not update student directory.');
+  showNotification('success', 'Updated', `${rows.length} students imported.`);
+  await reloadSettingsAdmin();
+}
+
+async function bulkApplyStudentsToSuperlatives() {
+  const students = await loadStudentDirectoryIntoAdmin();
+  if (!students.length) return showNotification('error', 'No students', 'Student directory is empty.');
+  const categories = Array.isArray(window.supData) ? window.supData : [];
+  categories.forEach(cat => {
+    cat.nominees = students.map(s => ({ id: `${cat.id}_${s.name}`, name: s.name, votes: 0 }));
+  });
+  showNotification('success', 'Applied', 'Student directory has been copied into all superlative categories.');
+  if (typeof renderSuperlatives === 'function') renderSuperlatives();
+}
+
+// ── Settings panel HTML / wiring ─────────────────────────────────────────────
+
+function renderSettingsPanelHtml() {
+  return `
+  <div style="display:grid; gap:18px;">
+    <div class="stat-card" style="text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Site Settings</h3>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="admin-btn admin-btn-primary" onclick="saveSettingsFromEditor()">Save</button>
+          <button class="admin-btn admin-btn-secondary" onclick="reloadSettingsAdmin()">Reload</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px; display:grid; gap:14px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>School Name</label><input class="form-input" id="setSchoolName"/></div>
+          <div class="form-group"><label>Event Name</label><input class="form-input" id="setEventName"/></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Logo Text</label><input class="form-input" id="setLogoText" maxlength="5"/></div>
+          <div class="form-group"><label>Farewell IST (YYYY-MM-DDTHH:mm)</label><input class="form-input" id="setFarewellIST"/></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Contact Email</label><input class="form-input" id="setContactEmail"/></div>
+          <div class="form-group"><label>Location Line</label><input class="form-input" id="setLocationLine"/></div>
+        </div>
+        <div class="form-group"><label>Hero Badge</label><input class="form-input" id="setHeroBadge"/></div>
+        <div class="form-group"><label>Hero Title (use {year})</label><input class="form-input" id="setHeroTitle"/></div>
+        <div class="form-group"><label>Hero Subtitle</label><input class="form-input" id="setHeroSubtitle"/></div>
+        <div class="form-group"><label>Hero Description</label><textarea class="form-textarea" id="setHeroDescription" maxlength="600"></textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Quote Text</label><textarea class="form-textarea" id="setQuoteText" maxlength="7000"></textarea></div>
+          <div class="form-group"><label>Quote Author</label><input class="form-input" id="setQuoteAuthor"/></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Uploads Enabled</label>
+            <select class="form-select" id="setUploadsEnabled"><option value="true">true</option><option value="false">false</option></select></div>
+          <div class="form-group"><label>Comments Enabled</label>
+            <select class="form-select" id="setCommentsEnabled"><option value="true">true</option><option value="false">false</option></select></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Profanity Filter</label>
+            <select class="form-select" id="setProfanityEnabled"><option value="false">false</option><option value="true">true</option></select></div>
+          <div class="form-group"><label>Upload Window Enabled</label>
+            <select class="form-select" id="setUploadWindowEnabled"><option value="false">false</option><option value="true">true</option></select></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Upload Window Start (IST)</label><input class="form-input" id="setUploadWindowStart"/></div>
+          <div class="form-group"><label>Upload Window End (IST)</label><input class="form-input" id="setUploadWindowEnd"/></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Auto-Approve Enabled</label>
+            <select class="form-select" id="setAutoApproveEnabled"><option value="false">false</option><option value="true">true</option></select></div>
+          <div class="form-group"><label>(Auto) Start (IST)</label><input class="form-input" id="setAutoApproveStart"/></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>(Auto) End (IST)</label><input class="form-input" id="setAutoApproveEnd"/></div>
+          <div class="form-group"><label>—</label><div class="mini-pill">Auto-approve applies at upload time.</div></div>
+        </div>
+        <div class="form-group"><label>Footer Description</label><textarea class="form-textarea" id="setFooterDesc" maxlength="400"></textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Footer Contact Note</label><input class="form-input" id="setFooterContactNote"/></div>
+          <div class="form-group"><label>Footer Made By</label><input class="form-input" id="setFooterMadeBy"/></div>
+        </div>
+        <div class="form-group"><label>Footer Copyright</label><input class="form-input" id="setFooterCopyright"/></div>
+
+        <!-- Intro Video -->
+        <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+          <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Intro Video Settings</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end;">
+            <div class="form-group">
+              <label>Upload Intro Video (MP4/WebM)</label>
+              <input type="file" class="form-input" accept="video/mp4,video/webm" onchange="uploadIntroVideoFile(this.files[0])" style="padding:6px;" />
+              <div class="mini-pill" style="margin-top:6px; display:inline-block;" id="currentIntroVideoStatus"></div>
+            </div>
+            <div class="form-group">
+              <label>Hide "Skip" Button?</label>
+              <select class="form-select" id="setIntroHideSkip" style="margin-bottom:6px;">
+                <option value="false">false (Users can skip)</option>
+                <option value="true">true (Forced to watch)</option>
+              </select>
+              <button class="admin-btn admin-btn-danger" style="width:100%; justify-content:center;" type="button" onclick="removeIntroVideo()">Remove Video (Disable)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teachers Editor -->
+        <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+            <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Teachers Editor</h4>
+            <button class="admin-btn admin-btn-secondary" type="button" onclick="addTeacherRow()">+ Add Teacher</button>
+          </div>
+          <div class="mini-pill">Fields: name, subject, quote, imageUrl (optional)</div>
+          <div id="teachersEditor" style="margin-top:12px; display:grid; gap:12px;"></div>
+        </div>
+
+        <!-- Timeline Editor -->
+        <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+            <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Timeline Editor</h4>
+            <button class="admin-btn admin-btn-secondary" type="button" onclick="addTimelineRow()">+ Add Timeline Item</button>
+          </div>
+          <div class="mini-pill">Fields: year, title, description</div>
+          <div id="timelineEditor" style="margin-top:12px; display:grid; gap:12px;"></div>
+        </div>
+
+        <!-- Student Directory CSV -->
+        <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+            <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:6px;">Student Directory CSV</h4>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="admin-btn admin-btn-secondary" type="button" onclick="downloadStudentDirectoryTemplate()">Download Template</button>
+              <label class="admin-btn admin-btn-secondary" style="cursor:pointer;">Import CSV
+                <input type="file" accept=".csv" style="display:none;" onchange="uploadStudentDirectoryCsv(this.files[0])">
+              </label>
+              <button class="admin-btn admin-btn-primary" type="button" onclick="bulkApplyStudentsToSuperlatives()">Use in Superlatives</button>
+            </div>
+          </div>
+          <div class="mini-pill">Bulk update students with columns: name, section</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function wireSettingsPanel() {
+  renderTeachersEditor();
+  renderTimelineEditor();
+  syncSettingsEditor();
+}
+
+function syncSettingsEditor() {
+  const s = state.settings;
+  setVal('setSchoolName',         s.schoolName);
+  setVal('setEventName',          s.eventName);
+  setVal('setLogoText',           s.logoText);
+  setVal('setFarewellIST',        s.farewellIST);
+  setVal('setContactEmail',       s.contactEmail);
+  setVal('setLocationLine',       s.locationLine);
+  setVal('setHeroBadge',          s.heroBadge);
+  setVal('setHeroTitle',          s.heroTitle);
+  setVal('setHeroSubtitle',       s.heroSubtitle);
+  setVal('setHeroDescription',    s.heroDescription);
+  setVal('setQuoteText',          s.quoteText);
+  setVal('setQuoteAuthor',        s.quoteAuthor);
+  setVal('setUploadsEnabled',     String(!!s.uploadsEnabled));
+  setVal('setCommentsEnabled',    String(!!s.commentsEnabled));
+  setVal('setProfanityEnabled',   String(!!s.profanityFilterEnabled));
+  setVal('setUploadWindowEnabled',String(!!s.uploadWindowEnabled));
+  setVal('setUploadWindowStart',  s.uploadWindowStartIST || '');
+  setVal('setUploadWindowEnd',    s.uploadWindowEndIST   || '');
+  setVal('setAutoApproveEnabled', String(!!s.autoApproveEnabled));
+  setVal('setAutoApproveStart',   s.autoApproveStartIST  || '');
+  setVal('setAutoApproveEnd',     s.autoApproveEndIST    || '');
+  setVal('setFooterDesc',         s.footerDesc);
+  setVal('setFooterContactNote',  s.footerContactNote);
+  setVal('setFooterMadeBy',       s.footerMadeBy);
+  setVal('setFooterCopyright',    s.footerCopyright);
+  setVal('setIntroHideSkip',      String(!!s.introHideSkip));
+  renderTeachersEditor();
+  renderTimelineEditor();
+  const statusEl = document.getElementById('currentIntroVideoStatus');
+  if (statusEl) statusEl.textContent = s.introVideoPath ? 'Video uploaded ✓' : 'No video';
+}
+
+function readSettingsFromEditor() {
+  const s = structuredClone(state.settings);
+  s.schoolName           = getVal('setSchoolName');
+  s.eventName            = getVal('setEventName');
+  s.logoText             = getVal('setLogoText');
+  s.farewellIST          = getVal('setFarewellIST');
+  s.contactEmail         = getVal('setContactEmail');
+  s.locationLine         = getVal('setLocationLine');
+  s.heroBadge            = getVal('setHeroBadge');
+  s.heroTitle            = getVal('setHeroTitle');
+  s.heroSubtitle         = getVal('setHeroSubtitle');
+  s.heroDescription      = getVal('setHeroDescription');
+  s.quoteText            = getVal('setQuoteText');
+  s.quoteAuthor          = getVal('setQuoteAuthor');
+  s.uploadsEnabled       = getVal('setUploadsEnabled')       === 'true';
+  s.commentsEnabled      = getVal('setCommentsEnabled')      === 'true';
+  s.profanityFilterEnabled = getVal('setProfanityEnabled')   === 'true';
+  s.uploadWindowEnabled  = getVal('setUploadWindowEnabled')  === 'true';
+  s.uploadWindowStartIST = getVal('setUploadWindowStart');
+  s.uploadWindowEndIST   = getVal('setUploadWindowEnd');
+  s.autoApproveEnabled   = getVal('setAutoApproveEnabled')   === 'true';
+  s.autoApproveStartIST  = getVal('setAutoApproveStart');
+  s.autoApproveEndIST    = getVal('setAutoApproveEnd');
+  s.footerDesc           = getVal('setFooterDesc');
+  s.footerContactNote    = getVal('setFooterContactNote');
+  s.footerMadeBy         = getVal('setFooterMadeBy');
+  s.footerCopyright      = getVal('setFooterCopyright');
+  s.introHideSkip        = getVal('setIntroHideSkip')        === 'true';
+  return s;
+}
+
+async function saveSettingsFromEditor() {
+  const newSettings = readSettingsFromEditor();
+  newSettings.teachers = readTeachersFromEditor();
+  newSettings.timeline = readTimelineFromEditor();
+  newSettings.theme    = state.settings.theme || {};
+  try {
+    const res  = await fetch(apiUrl('/api/admin/settings'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` },
+      body: JSON.stringify({ settings: newSettings })
+    });
+    const data = await res.json();
+    if (data.success) {
+      state.settings = mergeDeep(structuredClone(DEFAULT_SETTINGS), newSettings);
+      applySettingsToUI();
+      applyThemeToCSS();
+      if (typeof updateUploadStatusCallout === 'function') updateUploadStatusCallout();
+      if (typeof renderTeachers === 'function') renderTeachers();
+      if (typeof renderTimeline === 'function') renderTimeline();
+      showNotification('success', 'Saved', 'Settings updated.');
+    } else showNotification('error', 'Save failed', data.error || 'Unknown error');
+  } catch (e) { showNotification('error', 'Save failed', e.message); }
+}
+
+async function reloadSettingsAdmin() {
+  await loadSettings();
+  applySettingsToUI();
+  applyThemeToCSS();
+  syncSettingsEditor();
+  if (typeof syncThemeEditor === 'function') syncThemeEditor();
+  if (typeof renderTeachers === 'function') renderTeachers();
+  if (typeof renderTimeline === 'function') renderTimeline();
+  showNotification('success', 'Reloaded', 'Settings loaded from server.');
+}
+
+// Intro video upload/remove
+async function uploadIntroVideoFile(file) {
+  if (!file) return;
+  const status = document.getElementById('currentIntroVideoStatus');
+  if (status) status.textContent = 'Uploading...';
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const res  = await fetch(apiUrl('/api/admin/settings/intro-video'), {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + state.adminToken },
+      body: fd
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('success', 'Uploaded', 'Intro video saved.');
+      if (status) status.textContent = 'Video uploaded successfully ✓';
+      state.settings.introVideoPath = data.path;
+    } else {
+      showNotification('error', 'Failed', data.error || 'Upload failed');
+      if (status) status.textContent = 'Upload failed';
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+    if (status) status.textContent = 'Upload error';
+  }
+}
+
+async function removeIntroVideo() {
+  if (!confirm('Remove intro video?')) return;
+  try {
+    const res  = await fetch(apiUrl('/api/admin/settings/intro-video'), {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + state.adminToken }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('success', 'Removed', 'Intro video deleted.');
+      const status = document.getElementById('currentIntroVideoStatus');
+      if (status) status.textContent = 'No video';
+      state.settings.introVideoPath = null;
+    } else showNotification('error', 'Failed', data.error);
+  } catch (e) { showNotification('error', 'Error', e.message); }
+}
+</script>

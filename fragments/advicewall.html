@@ -1,0 +1,967 @@
+<!-- FRAGMENT: advicewall -->
+<style data-fragment-style="advicewall">
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SENIOR ADVICE WALL
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+#adviceWall {
+  background: linear-gradient(180deg, var(--navy-dark) 0%, var(--navy-medium) 50%, var(--navy-dark) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative background elements */
+#adviceWall::before {
+  content: "💡";
+  position: absolute;
+  top: 10%;
+  left: 5%;
+  font-size: 8rem;
+  opacity: 0.03;
+  transform: rotate(-15deg);
+  pointer-events: none;
+}
+
+#adviceWall::after {
+  content: "🎓";
+  position: absolute;
+  bottom: 10%;
+  right: 5%;
+  font-size: 10rem;
+  opacity: 0.03;
+  transform: rotate(15deg);
+  pointer-events: none;
+}
+
+/* Form Section */
+.advice-form-container {
+  max-width: 700px;
+  margin: 0 auto 60px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 35px;
+  backdrop-filter: blur(10px);
+}
+
+.advice-form-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--primary-gold);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.advice-form-subtitle {
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 0.95rem;
+}
+
+.advice-form {
+  display: grid;
+  gap: 20px;
+}
+
+.advice-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+@media (max-width: 600px) {
+  .advice-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.advice-input,
+.advice-select,
+.advice-textarea {
+  width: 100%;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.advice-input:focus,
+.advice-select:focus,
+.advice-textarea:focus {
+  outline: none;
+  border-color: var(--primary-gold);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+}
+
+.advice-input::placeholder,
+.advice-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.advice-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 18px;
+  padding-right: 45px;
+}
+
+.advice-select option {
+  background: var(--navy-dark);
+  color: #fff;
+}
+
+.advice-textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.advice-char-count {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: -10px;
+}
+
+.advice-char-count.warning {
+  color: var(--accent-rose);
+}
+
+.advice-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: var(--gradient-gold);
+  color: var(--navy-dark);
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--font-body);
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+}
+
+.advice-submit-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5);
+}
+
+.advice-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Filter/Category Pills */
+.advice-filters {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.advice-filter-btn {
+  padding: 10px 22px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 25px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--font-body);
+}
+
+.advice-filter-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--primary-gold);
+}
+
+.advice-filter-btn.active {
+  background: var(--primary-gold);
+  color: var(--navy-dark);
+  border-color: var(--primary-gold);
+  font-weight: 600;
+}
+
+/* Stats Bar */
+.advice-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.advice-stat {
+  text-align: center;
+}
+
+.advice-stat-number {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--primary-gold);
+}
+
+.advice-stat-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Advice Cards Grid */
+.advice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 400px) {
+  .advice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Individual Advice Card */
+.advice-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 25px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.advice-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-gold);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.advice-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(212, 175, 55, 0.3);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+.advice-card:hover::before {
+  opacity: 1;
+}
+
+/* Card Header */
+.advice-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.advice-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--gradient-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+}
+
+.advice-author-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.advice-author-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text-light);
+  margin-bottom: 3px;
+}
+
+.advice-author-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.advice-batch {
+  font-size: 0.8rem;
+  color: var(--primary-gold);
+  font-weight: 600;
+}
+
+.advice-category-badge {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+}
+
+/* Card Content */
+.advice-card-content {
+  margin-bottom: 18px;
+}
+
+.advice-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.advice-quote-icon {
+  font-size: 2rem;
+  color: var(--primary-gold);
+  opacity: 0.3;
+  margin-bottom: 8px;
+}
+
+/* Card Footer */
+.advice-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.advice-time {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.advice-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.advice-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--font-body);
+}
+
+.advice-action-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--primary-gold);
+  color: var(--primary-gold);
+}
+
+.advice-action-btn.liked {
+  background: rgba(233, 69, 96, 0.15);
+  border-color: var(--accent-rose);
+  color: var(--accent-rose);
+}
+
+.advice-action-btn.liked:hover {
+  background: rgba(233, 69, 96, 0.25);
+}
+
+/* Featured Card */
+.advice-card.featured {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border-color: rgba(212, 175, 55, 0.25);
+}
+
+.advice-card.featured::before {
+  opacity: 1;
+}
+
+.advice-featured-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 5px 12px;
+  background: var(--gradient-gold);
+  color: var(--navy-dark);
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Empty State */
+.advice-empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-muted);
+}
+
+.advice-empty-icon {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.advice-empty-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--text-light);
+  margin-bottom: 10px;
+}
+
+.advice-empty-text {
+  font-size: 1rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Load More */
+.advice-load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Loading Spinner */
+.advice-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 15px;
+}
+
+.advice-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--primary-gold);
+  border-radius: 50%;
+  animation: adviceSpin 1s linear infinite;
+}
+
+@keyframes adviceSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Animations */
+@keyframes adviceSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.advice-card {
+  animation: adviceSlideIn 0.5s ease forwards;
+}
+
+.advice-card:nth-child(1) { animation-delay: 0.05s; }
+.advice-card:nth-child(2) { animation-delay: 0.1s; }
+.advice-card:nth-child(3) { animation-delay: 0.15s; }
+.advice-card:nth-child(4) { animation-delay: 0.2s; }
+.advice-card:nth-child(5) { animation-delay: 0.25s; }
+.advice-card:nth-child(6) { animation-delay: 0.3s; }
+</style>
+
+<section id="adviceWall">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-badge">Wisdom from Seniors</span>
+      <h2 class="section-title">Senior <span class="highlight">Advice Wall</span></h2>
+      <p class="section-description">Words of wisdom from those who walked these halls before you</p>
+    </div>
+
+    <!-- Submit Form -->
+    <div class="advice-form-container">
+      <h3 class="advice-form-title">💡 Share Your Wisdom</h3>
+      <p class="advice-form-subtitle">Leave advice for the juniors who will follow in your footsteps</p>
+      
+      <form class="advice-form" id="adviceForm" onsubmit="submitAdvice(event)">
+        <div class="advice-form-row">
+          <input 
+            type="text" 
+            class="advice-input" 
+            id="adviceName" 
+            placeholder="Your Name" 
+            maxlength="60"
+            required
+          />
+          <input 
+            type="text" 
+            class="advice-input" 
+            id="adviceBatch" 
+            placeholder="Batch/Year (e.g., 2025)" 
+            maxlength="20"
+          />
+        </div>
+        
+        <select class="advice-select" id="adviceCategory">
+          <option value="general">💬 General Advice</option>
+          <option value="academics">📚 Academics & Studies</option>
+          <option value="friends">👥 Friendships & Relationships</option>
+          <option value="teachers">👨‍🏫 Dealing with Teachers</option>
+          <option value="exams">📝 Exams & Stress</option>
+          <option value="life">🌟 Life Lessons</option>
+          <option value="fun">🎉 Having Fun</option>
+          <option value="regrets">💭 Things I Wish I Knew</option>
+        </select>
+        
+        <div>
+          <textarea 
+            class="advice-textarea" 
+            id="adviceText" 
+            placeholder="Share your advice, tips, or wisdom for the juniors..."
+            maxlength="500"
+            required
+            oninput="updateAdviceCharCount()"
+          ></textarea>
+          <div class="advice-char-count" id="adviceCharCount">0 / 500</div>
+        </div>
+        
+        <button type="submit" class="advice-submit-btn" id="adviceSubmitBtn">
+          <span>✨</span>
+          <span>Share Advice</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Stats -->
+    <div class="advice-stats" id="adviceStats">
+      <div class="advice-stat">
+        <div class="advice-stat-number" id="adviceTotalCount">0</div>
+        <div class="advice-stat-label">Pieces of Advice</div>
+      </div>
+      <div class="advice-stat">
+        <div class="advice-stat-number" id="adviceSeniorsCount">0</div>
+        <div class="advice-stat-label">Seniors Contributed</div>
+      </div>
+      <div class="advice-stat">
+        <div class="advice-stat-number" id="adviceLikesCount">0</div>
+        <div class="advice-stat-label">Total Likes</div>
+      </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="advice-filters" id="adviceFilters">
+      <button class="advice-filter-btn active" data-category="all">🌟 All</button>
+      <button class="advice-filter-btn" data-category="academics">📚 Academics</button>
+      <button class="advice-filter-btn" data-category="friends">👥 Friends</button>
+      <button class="advice-filter-btn" data-category="life">🌟 Life</button>
+      <button class="advice-filter-btn" data-category="exams">📝 Exams</button>
+      <button class="advice-filter-btn" data-category="fun">🎉 Fun</button>
+      <button class="advice-filter-btn" data-category="regrets">💭 Regrets</button>
+    </div>
+
+    <!-- Advice Cards Grid -->
+    <div class="advice-grid" id="adviceGrid">
+      <!-- Cards will be rendered here by JavaScript -->
+    </div>
+
+    <!-- Load More -->
+    <div class="advice-load-more" id="adviceLoadMore" style="display: none;">
+      <button class="btn btn-secondary" onclick="loadMoreAdvice()">Load More Advice</button>
+    </div>
+  </div>
+</section>
+
+<script data-fragment-script="advicewall">
+// ═══════════════════════════════════════════════════════════════════════════════
+// SENIOR ADVICE WALL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+(function() {
+  let adviceList = [];
+  let currentFilter = 'all';
+  let displayedCount = 0;
+  const ITEMS_PER_PAGE = 12;
+
+  // Category config
+  const CATEGORIES = {
+    general: { label: 'General', emoji: '💬' },
+    academics: { label: 'Academics', emoji: '📚' },
+    friends: { label: 'Friends', emoji: '👥' },
+    teachers: { label: 'Teachers', emoji: '👨‍🏫' },
+    exams: { label: 'Exams', emoji: '📝' },
+    life: { label: 'Life', emoji: '🌟' },
+    fun: { label: 'Fun', emoji: '🎉' },
+    regrets: { label: 'Regrets', emoji: '💭' }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LOAD ADVICE
+  // ═══════════════════════════════════════════════════════════════════════════
+  async function loadAdvice() {
+    const grid = document.getElementById('adviceGrid');
+    if (!grid) return;
+
+    grid.innerHTML = `
+      <div class="advice-loading" style="grid-column: 1 / -1;">
+        <div class="advice-spinner"></div>
+        <p style="color: var(--text-muted);">Loading advice...</p>
+      </div>
+    `;
+
+    try {
+      const res = await fetch(apiUrl('/api/fun/advice'));
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.entries)) {
+        adviceList = data.entries.sort((a, b) => {
+          // Featured first, then by likes, then by date
+          if (a.featured !== b.featured) return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
+          if ((b.likes || 0) !== (a.likes || 0)) return (b.likes || 0) - (a.likes || 0);
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        
+        displayedCount = 0;
+        renderAdvice();
+        updateStats();
+      } else {
+        showEmptyState();
+      }
+    } catch (e) {
+      console.error('Failed to load advice:', e);
+      showEmptyState('Failed to load advice. Please try again later.');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RENDER ADVICE
+  // ═══════════════════════════════════════════════════════════════════════════
+  function renderAdvice() {
+    const grid = document.getElementById('adviceGrid');
+    if (!grid) return;
+
+    // Filter by category
+    let filtered = currentFilter === 'all' 
+      ? adviceList 
+      : adviceList.filter(a => a.category === currentFilter);
+
+    if (filtered.length === 0) {
+      showEmptyState(currentFilter === 'all' 
+        ? 'No advice yet. Be the first to share!' 
+        : 'No advice in this category yet.');
+      return;
+    }
+
+    // Get items to display
+    const toShow = filtered.slice(0, displayedCount + ITEMS_PER_PAGE);
+    displayedCount = toShow.length;
+
+    grid.innerHTML = toShow.map(advice => renderAdviceCard(advice)).join('');
+
+    // Show/hide load more button
+    const loadMoreBtn = document.getElementById('adviceLoadMore');
+    if (loadMoreBtn) {
+      loadMoreBtn.style.display = displayedCount < filtered.length ? 'flex' : 'none';
+    }
+  }
+
+  function renderAdviceCard(advice) {
+    const initials = getInitials(advice.name || 'Anonymous');
+    const category = CATEGORIES[advice.category] || CATEGORIES.general;
+    const timeAgoStr = typeof timeAgo === 'function' ? timeAgo(advice.createdAt) : '';
+    const isLiked = hasLikedAdvice(advice.id);
+
+    return `
+      <div class="advice-card ${advice.featured ? 'featured' : ''}" data-id="${advice.id}">
+        ${advice.featured ? '<div class="advice-featured-badge">⭐ Featured</div>' : ''}
+        
+        <div class="advice-card-header">
+          <div class="advice-avatar">${initials}</div>
+          <div class="advice-author-info">
+            <div class="advice-author-name">${escapeHtml(advice.name || 'Anonymous')}</div>
+            <div class="advice-author-meta">
+              ${advice.batch ? `<span class="advice-batch">Class of ${escapeHtml(advice.batch)}</span>` : ''}
+              <span class="advice-category-badge">${category.emoji} ${category.label}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="advice-card-content">
+          <div class="advice-quote-icon">❝</div>
+          <p class="advice-text">${escapeHtml(advice.text)}</p>
+        </div>
+        
+        <div class="advice-card-footer">
+          <span class="advice-time">${timeAgoStr}</span>
+          <div class="advice-actions">
+            <button class="advice-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleAdviceLike(${advice.id})">
+              <span>${isLiked ? '❤️' : '🤍'}</span>
+              <span>${advice.likes || 0}</span>
+            </button>
+            <button class="advice-action-btn" onclick="shareAdvice(${advice.id})">
+              <span>📤</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function showEmptyState(message = 'No advice yet. Be the first to share!') {
+    const grid = document.getElementById('adviceGrid');
+    if (!grid) return;
+
+    grid.innerHTML = `
+      <div class="advice-empty" style="grid-column: 1 / -1;">
+        <div class="advice-empty-icon">💡</div>
+        <h3 class="advice-empty-title">Share Your Wisdom</h3>
+        <p class="advice-empty-text">${escapeHtml(message)}</p>
+      </div>
+    `;
+
+    const loadMoreBtn = document.getElementById('adviceLoadMore');
+    if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // UPDATE STATS
+  // ═══════════════════════════════════════════════════════════════════════════
+  function updateStats() {
+    const totalEl = document.getElementById('adviceTotalCount');
+    const seniorsEl = document.getElementById('adviceSeniorsCount');
+    const likesEl = document.getElementById('adviceLikesCount');
+
+    if (totalEl) totalEl.textContent = adviceList.length;
+    
+    if (seniorsEl) {
+      const uniqueSeniors = new Set(adviceList.map(a => (a.name || '').toLowerCase().trim())).size;
+      seniorsEl.textContent = uniqueSeniors;
+    }
+    
+    if (likesEl) {
+      const totalLikes = adviceList.reduce((sum, a) => sum + (a.likes || 0), 0);
+      likesEl.textContent = totalLikes;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SUBMIT ADVICE
+  // ═══════════════════════════════════════════════════════════════════════════
+  window.submitAdvice = async function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('adviceName')?.value?.trim();
+    const batch = document.getElementById('adviceBatch')?.value?.trim();
+    const category = document.getElementById('adviceCategory')?.value || 'general';
+    const text = document.getElementById('adviceText')?.value?.trim();
+    const submitBtn = document.getElementById('adviceSubmitBtn');
+
+    if (!name || !text) {
+      showNotification('error', 'Missing Fields', 'Please enter your name and advice.');
+      return;
+    }
+
+    if (text.length < 10) {
+      showNotification('error', 'Too Short', 'Please write at least 10 characters of advice.');
+      return;
+    }
+
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+      const res = await fetch(apiUrl('/api/fun/advice'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, batch, category, text })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        showNotification('success', 'Advice Shared!', 'Thank you for sharing your wisdom! 💡');
+        
+        // Reset form
+        document.getElementById('adviceForm')?.reset();
+        updateAdviceCharCount();
+        
+        // Reload advice
+        await loadAdvice();
+        
+        // Trigger confetti
+        if (typeof triggerConfetti === 'function') triggerConfetti();
+      } else {
+        showNotification('error', 'Failed', data.error || 'Could not submit advice.');
+      }
+    } catch (e) {
+      console.error('Submit advice error:', e);
+      showNotification('error', 'Error', 'Failed to submit. Please try again.');
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LIKE ADVICE
+  // ═══════════════════════════════════════════════════════════════════════════
+  function hasLikedAdvice(id) {
+    const liked = JSON.parse(localStorage.getItem('adviceLiked') || '[]');
+    return liked.includes(id);
+  }
+
+  function setAdviceLiked(id, liked) {
+    let likedList = JSON.parse(localStorage.getItem('adviceLiked') || '[]');
+    if (liked && !likedList.includes(id)) {
+      likedList.push(id);
+    } else if (!liked) {
+      likedList = likedList.filter(x => x !== id);
+    }
+    localStorage.setItem('adviceLiked', JSON.stringify(likedList));
+  }
+
+  window.toggleAdviceLike = async function(id) {
+    const isLiked = hasLikedAdvice(id);
+    
+    try {
+      const res = await fetch(apiUrl(`/api/fun/advice/${id}/like`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ unlike: isLiked })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setAdviceLiked(id, !isLiked);
+        
+        // Update in local list
+        const advice = adviceList.find(a => a.id === id);
+        if (advice) {
+          advice.likes = data.likes ?? (isLiked ? (advice.likes || 1) - 1 : (advice.likes || 0) + 1);
+        }
+        
+        renderAdvice();
+        updateStats();
+      }
+    } catch (e) {
+      console.error('Like error:', e);
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SHARE ADVICE
+  // ═══════════════════════════════════════════════════════════════════════════
+  window.shareAdvice = function(id) {
+    const advice = adviceList.find(a => a.id === id);
+    if (!advice) return;
+
+    const text = `💡 Senior Advice from ${advice.name || 'Anonymous'}:\n\n"${advice.text}"\n\n— Class of ${advice.batch || '2025'}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: 'Senior Advice',
+        text: text
+      }).catch(() => {});
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(text).then(() => {
+        showNotification('success', 'Copied!', 'Advice copied to clipboard.');
+      }).catch(() => {
+        showNotification('error', 'Failed', 'Could not copy to clipboard.');
+      });
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FILTER
+  // ═══════════════════════════════════════════════════════════════════════════
+  function setupFilters() {
+    const filterContainer = document.getElementById('adviceFilters');
+    if (!filterContainer) return;
+
+    filterContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.advice-filter-btn');
+      if (!btn) return;
+
+      // Update active state
+      filterContainer.querySelectorAll('.advice-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Set filter and re-render
+      currentFilter = btn.dataset.category || 'all';
+      displayedCount = 0;
+      renderAdvice();
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LOAD MORE
+  // ═══════════════════════════════════════════════════════════════════════════
+  window.loadMoreAdvice = function() {
+    renderAdvice();
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CHARACTER COUNT
+  // ═══════════════════════════════════════════════════════════════════════════
+  window.updateAdviceCharCount = function() {
+    const textarea = document.getElementById('adviceText');
+    const counter = document.getElementById('adviceCharCount');
+    if (!textarea || !counter) return;
+
+    const len = textarea.value.length;
+    const max = 500;
+    counter.textContent = `${len} / ${max}`;
+    counter.classList.toggle('warning', len > max * 0.9);
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INITIALIZE
+  // ═══════════════════════════════════════════════════════════════════════════
+  function initAdviceWall() {
+    setupFilters();
+    loadAdvice();
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAdviceWall);
+  } else {
+    setTimeout(initAdviceWall, 100);
+  }
+
+  // Expose functions
+  window.loadAdvice = loadAdvice;
+  window.initAdviceWall = initAdviceWall;
+})();
+</script>

@@ -1068,7 +1068,150 @@ app.post('/api/destinations/submit', (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+// ═══════════════════════════════════════════════════════════════════════════════
+// SENIOR ADVICE WALL API
+// ═══════════════════════════════════════════════════════════════════════════════
+(() => {
+  const advicePath = path.join(databaseDir, 'advice.json');
+  if (!fs.existsSync(advicePath)) {
+    safeWriteJson(advicePath, { entries: [], nextId: 1 });
+  }
 
+  function readAdvice() { return safeReadJson(advicePath, { entries: [], nextId: 1 }); }
+  function writeAdvice(d) { safeWriteJson(advicePath, d); }
+
+  // GET all advice
+  app.get('/api/fun/advice', (req, res) => {
+    try {
+      const db = readAdvice();
+      res.json({ success: true, entries: db.entries.filter(e => !e.deletedAt) });
+    } catch (e) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  // POST new advice
+  app.post('/api/fun/advice', (req, res) => {
+    try {
+      const { name, batch, category, text } = req.body || {};
+      
+      if (!name?.trim() || !text?.trim()) {
+        return res.status(400).json({ success: false, error: 'Name and text are required' });
+      }
+
+      if (text.trim().length < 10) {
+        return res.status(400).json({ success: false, error: 'Advice must be at least 10 characters' });
+      }
+
+      // Profanity filter
+      const settings = getEffectiveSettings();
+      if (settings.profanityFilterEnabled) {
+        if (containsProfanity(name) || containsProfanity(text)) {
+          return res.status(400).json({ success: false, error: 'Content rejected by profanity filter.' });
+        }
+      }
+
+      const db = readAdvice();
+      const entry = {
+        id: db.nextId++,
+        name: String(name).trim().substring(0, 60),
+        batch: String(batch || '').trim().substring(0, 20),
+        category: String(category || 'general').trim().substring(0, 30),
+        text: String(text).trim().substring(0, 500),
+        likes: 0,
+        featured: false,
+        createdAt: nowIso(),
+        deletedAt: null
+      };
+
+      db.entries.push(entry);
+      writeAdvice(db);
+
+      broadcast('advice:new', { id: entry.id });
+      res.json({ success: true, entry });
+    } catch (e) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  // POST like/unlike advice
+  app.post('/api/fun/advice/:id/like', (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const { unlike } = req.body || {};
+
+      const db = readAdvice();
+      const entry = db.entries.find(e => e.id === id && !e.deletedAt);
+      
+      if (!entry) {
+        return res.status(404).json({ success: false, error: 'Advice not found' });
+      }
+
+      if (unlike) {
+        entry.likes = Math.max(0, (entry.likes || 0) - 1);
+      } else {
+        entry.likes = (entry.likes || 0) + 1;
+      }
+
+      writeAdvice(db);
+      broadcast('advice:like', { id, likes: entry.likes });
+
+      res.json({ success: true, likes: entry.likes });
+    } catch (e) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  // DELETE advice (admin only)
+  app.delete('/api/fun/advice/:id', (req, res) => {
+    try {
+      const auth = requireAdmin(req, res);
+      if (!auth) return;
+
+      const id = parseInt(req.params.id, 10);
+      const db = readAdvice();
+      const entry = db.entries.find(e => e.id === id);
+      
+      if (!entry) {
+        return res.status(404).json({ success: false, error: 'Not found' });
+      }
+
+      entry.deletedAt = nowIso();
+      writeAdvice(db);
+
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  // POST feature/unfeature advice (admin only)
+  app.post('/api/fun/advice/:id/feature', (req, res) => {
+    try {
+      const auth = requireAdmin(req, res);
+      if (!auth) return;
+
+      const id = parseInt(req.params.id, 10);
+      const { featured } = req.body || {};
+
+      const db = readAdvice();
+      const entry = db.entries.find(e => e.id === id && !e.deletedAt);
+      
+      if (!entry) {
+        return res.status(404).json({ success: false, error: 'Not found' });
+      }
+
+      entry.featured = !!featured;
+      writeAdvice(db);
+
+      res.json({ success: true, featured: entry.featured });
+    } catch (e) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  console.log('✅ Senior Advice Wall API loaded.');
+})();
 // Get all destinations
 app.get('/api/destinations/list', (req, res) => {
   try {

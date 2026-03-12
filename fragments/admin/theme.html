@@ -1,1 +1,115 @@
 <!-- FRAGMENT: admin_theme -->
+
+<script data-fragment-script="admin_theme">
+// ── Theme panel ──────────────────────────────────────────────────────────────
+
+function renderThemePanelHtml() {
+  return `
+  <div class="stat-card" style="text-align:left;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+      <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Theme Editor</h3>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="admin-btn admin-btn-secondary" onclick="resetThemeDefaults()">Reset</button>
+        <button class="admin-btn admin-btn-primary"   onclick="saveTheme()">Save Theme</button>
+      </div>
+    </div>
+    <div class="mini-pill" style="margin-top:12px;">Changes apply live. Save to persist.</div>
+    <div style="margin-top:16px; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:14px;">
+      <div class="form-group"><label>Primary Gold</label>        <input class="form-input" type="color" id="themePrimaryGold" /></div>
+      <div class="form-group"><label>Gold Light</label>          <input class="form-input" type="color" id="themePrimaryGoldLight" /></div>
+      <div class="form-group"><label>Gold Dark</label>           <input class="form-input" type="color" id="themePrimaryGoldDark" /></div>
+      <div class="form-group"><label>Navy Dark</label>           <input class="form-input" type="color" id="themeNavyDark" /></div>
+      <div class="form-group"><label>Navy Medium</label>         <input class="form-input" type="color" id="themeNavyMedium" /></div>
+      <div class="form-group"><label>Navy Light</label>          <input class="form-input" type="color" id="themeNavyLight" /></div>
+      <div class="form-group"><label>Accent Rose</label>         <input class="form-input" type="color" id="themeAccentRose" /></div>
+      <div class="form-group"><label>Accent Purple</label>       <input class="form-input" type="color" id="themeAccentPurple" /></div>
+      <div class="form-group"><label>Text Light</label>          <input class="form-input" type="color" id="themeTextLight" /></div>
+      <div class="form-group"><label>Text Muted (rgba)</label>   <input class="form-input" id="themeTextMuted"   placeholder="rgba(255,255,255,0.7)" /></div>
+      <div class="form-group"><label>Glass BG (rgba)</label>     <input class="form-input" id="themeGlassBg"     placeholder="rgba(255,255,255,0.1)" /></div>
+      <div class="form-group"><label>Glass Border (rgba)</label> <input class="form-input" id="themeGlassBorder" placeholder="rgba(255,255,255,0.2)" /></div>
+      <div class="form-group"><label>Success Green</label>       <input class="form-input" type="color" id="themeSuccessGreen" /></div>
+      <div class="form-group"><label>Error Red</label>           <input class="form-input" type="color" id="themeErrorRed" /></div>
+    </div>
+  </div>`;
+}
+
+function wireThemePanel() {
+  const ids = [
+    'themePrimaryGold','themePrimaryGoldLight','themePrimaryGoldDark',
+    'themeNavyDark','themeNavyMedium','themeNavyLight',
+    'themeAccentRose','themeAccentPurple','themeTextLight',
+    'themeTextMuted','themeGlassBg','themeGlassBorder',
+    'themeSuccessGreen','themeErrorRed'
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      state.settings.theme = readThemeFromEditor();
+      applyThemeToCSS();
+    });
+  });
+  syncThemeEditor();
+}
+
+function syncThemeEditor() {
+  const t = state.settings.theme || {};
+  setVal('themePrimaryGold',      t.primaryGold);
+  setVal('themePrimaryGoldLight', t.primaryGoldLight);
+  setVal('themePrimaryGoldDark',  t.primaryGoldDark);
+  setVal('themeNavyDark',         t.navyDark);
+  setVal('themeNavyMedium',       t.navyMedium);
+  setVal('themeNavyLight',        t.navyLight);
+  setVal('themeAccentRose',       t.accentRose);
+  setVal('themeAccentPurple',     t.accentPurple);
+  setVal('themeTextLight',        t.textLight);
+  setVal('themeTextMuted',        t.textMuted);
+  setVal('themeGlassBg',          t.glassBg);
+  setVal('themeGlassBorder',      t.glassBorder);
+  setVal('themeSuccessGreen',     t.successGreen);
+  setVal('themeErrorRed',         t.errorRed);
+}
+
+function readThemeFromEditor() {
+  return {
+    primaryGold:      getVal('themePrimaryGold'),
+    primaryGoldLight: getVal('themePrimaryGoldLight'),
+    primaryGoldDark:  getVal('themePrimaryGoldDark'),
+    navyDark:         getVal('themeNavyDark'),
+    navyMedium:       getVal('themeNavyMedium'),
+    navyLight:        getVal('themeNavyLight'),
+    accentRose:       getVal('themeAccentRose'),
+    accentPurple:     getVal('themeAccentPurple'),
+    textLight:        getVal('themeTextLight'),
+    textMuted:        getVal('themeTextMuted'),
+    glassBg:          getVal('themeGlassBg'),
+    glassBorder:      getVal('themeGlassBorder'),
+    successGreen:     getVal('themeSuccessGreen'),
+    errorRed:         getVal('themeErrorRed'),
+  };
+}
+
+function resetThemeDefaults() {
+  if (!confirm('Reset theme to defaults?')) return;
+  state.settings.theme = structuredClone(DEFAULT_SETTINGS.theme);
+  syncThemeEditor();
+  applyThemeToCSS();
+}
+
+async function saveTheme() {
+  const t = readThemeFromEditor();
+  const merged = structuredClone(state.settings);
+  merged.theme = t;
+  try {
+    const res  = await fetch(apiUrl('/api/admin/settings'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` },
+      body: JSON.stringify({ settings: merged })
+    });
+    const data = await res.json();
+    if (data.success) {
+      state.settings = mergeDeep(structuredClone(DEFAULT_SETTINGS), merged);
+      showNotification('success', 'Saved', 'Theme saved.');
+    } else showNotification('error', 'Failed', data.error || 'Could not save theme.');
+  } catch (e) { showNotification('error', 'Failed', e.message); }
+}
+</script>

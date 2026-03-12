@@ -1,1 +1,173 @@
 <!-- FRAGMENT: admin_users -->
+
+<script data-fragment-script="admin_users">
+// ── Users panel ──────────────────────────────────────────────────────────────
+
+function renderUsersPanelHtml() {
+  const permList = [
+    ['moderation', true],  ['settings', false],    ['theme', false],
+    ['export', false],     ['users', false],        ['trash', true],
+    ['replaceFile', false],['editMemory', true],    ['bulk', false],
+    ['featured', false],   ['teachers', false],     ['timeline', false],
+  ];
+  const permCheckboxes = permList.map(([k, def]) =>
+    `<label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);">
+       <input type="checkbox" id="perm_${k}" ${def ? 'checked' : ''} /><span>${k}</span>
+     </label>`
+  ).join('');
+
+  return `
+  <div class="stat-card" style="text-align:left;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+      <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Admin Users</h3>
+      <button class="admin-btn admin-btn-secondary" onclick="loadUsers()">Refresh</button>
+    </div>
+    <div class="mini-pill" style="margin-top:12px;">Create admin IDs and toggle permissions.</div>
+
+    <!-- Create User -->
+    <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+      <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Create User</h4>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group"><label>User ID</label>  <input class="form-input" id="newUserId"   placeholder="moderator1" /></div>
+        <div class="form-group"><label>Name</label>     <input class="form-input" id="newUserName" placeholder="Moderator" /></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group"><label>Password</label> <input class="form-input" id="newUserPass" placeholder="min 8 chars" /></div>
+        <div class="form-group"><label>Role</label>
+          <select class="form-select" id="newUserRole">
+            <option value="moderator">moderator</option>
+            <option value="admin">admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="mini-pill" style="margin:10px 0;">Permissions</div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px;">
+        ${permCheckboxes}
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+        <button class="admin-btn admin-btn-primary" onclick="createUser()">Create</button>
+      </div>
+    </div>
+
+    <!-- Existing Users -->
+    <div style="margin-top:16px;">
+      <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Existing Users</h4>
+      <div id="usersList" class="admin-grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));"></div>
+    </div>
+  </div>`;
+}
+
+function wireUsersPanel() { loadUsers(); }
+
+function gatherPermsFromCreateForm() {
+  const ids = ['moderation','settings','theme','export','users','trash','replaceFile','editMemory','bulk','featured','teachers','timeline'];
+  const p = {};
+  ids.forEach(k => p[k] = !!document.getElementById(`perm_${k}`)?.checked);
+  return p;
+}
+
+async function loadUsers() {
+  try {
+    const res  = await fetch(apiUrl('/api/admin/users'), {
+      headers: { 'Authorization': `Bearer ${state.adminToken}` }
+    });
+    const data = await res.json();
+    if (!data.success) return showNotification('error', 'Failed', data.error || 'Could not load users.');
+    renderUsersList(data.users || []);
+  } catch (e) { showNotification('error', 'Failed', e.message); }
+}
+
+function renderUsersList(users) {
+  const list = document.getElementById('usersList');
+  if (!list) return;
+  if (!users.length) { list.innerHTML = `<div class="mini-pill">No users.</div>`; return; }
+
+  list.innerHTML = users.map(u => {
+    const permBadges = Object.keys(u.permissions || {})
+      .filter(k => u.permissions[k]).join(', ') || 'none';
+    const statusStyle = u.disabled
+      ? 'border-color:rgba(244,67,54,0.4); color:#ffb3ad;'
+      : 'border-color:rgba(76,175,80,0.4); color:#b7ffbf;';
+    const editForm = u.id === 'super'
+      ? `<div class="mini-pill" style="margin-top:10px;">Super admin cannot be edited here.</div>`
+      : `<div style="margin-top:12px; display:grid; gap:10px;">
+           <input class="form-input" id="editName_${u.id}" value="${escapeAttr(u.name)}" />
+           <input class="form-input" id="editPass_${u.id}" placeholder="New password (optional)" />
+           <select class="form-select" id="editDisabled_${u.id}">
+             <option value="false" ${!u.disabled ? 'selected' : ''}>Active</option>
+             <option value="true"  ${u.disabled  ? 'selected' : ''}>Disabled</option>
+           </select>
+           <div class="mini-pill">Toggle permissions</div>
+           <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px;">
+             ${Object.entries(u.permissions || {}).map(([k, v]) =>
+               `<label style="display:flex; gap:8px; align-items:center; padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12); font-size:0.85rem;">
+                  <input type="checkbox" id="editPerm_${u.id}_${k}" ${v ? 'checked' : ''} />
+                  <span>${escapeHtml(k)}</span>
+                </label>`
+             ).join('')}
+           </div>
+           <button class="admin-btn admin-btn-primary" onclick="updateUser('${escapeAttr(u.id)}')">Save User</button>
+         </div>`;
+
+    return `
+      <div class="admin-memory-card" style="padding:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <div>
+            <div style="font-weight:800;">${escapeHtml(u.name)} <span class="mini-pill" style="margin-left:8px;">${escapeHtml(u.role)}</span></div>
+            <div style="color:var(--text-muted); font-size:0.85rem;">ID: <strong style="color:var(--text-light);">${escapeHtml(u.id)}</strong></div>
+          </div>
+          <div class="mini-pill" style="${statusStyle}">${u.disabled ? 'Disabled' : 'Active'}</div>
+        </div>
+        <div style="margin-top:10px; color:var(--text-muted); font-size:0.85rem;">Permissions: ${permBadges}</div>
+        ${editForm}
+      </div>`;
+  }).join('');
+}
+
+async function createUser() {
+  const id          = document.getElementById('newUserId')?.value?.trim();
+  const name        = document.getElementById('newUserName')?.value?.trim();
+  const password    = document.getElementById('newUserPass')?.value || '';
+  const role        = document.getElementById('newUserRole')?.value || 'moderator';
+  const permissions = gatherPermsFromCreateForm();
+  try {
+    const res  = await fetch(apiUrl('/api/admin/users'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` },
+      body: JSON.stringify({ id, name, password, role, permissions })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('success', 'Created', 'User created.');
+      document.getElementById('newUserId').value   = '';
+      document.getElementById('newUserName').value = '';
+      document.getElementById('newUserPass').value = '';
+      loadUsers();
+    } else showNotification('error', 'Failed', data.error || 'Could not create user.');
+  } catch (e) { showNotification('error', 'Failed', e.message); }
+}
+
+async function updateUser(id) {
+  const name     = document.getElementById(`editName_${id}`)?.value?.trim();
+  const password = document.getElementById(`editPass_${id}`)?.value || '';
+  const disabled = document.getElementById(`editDisabled_${id}`)?.value === 'true';
+  const permInputs = Array.from(document.querySelectorAll(`[id^="editPerm_${CSS.escape(id)}_"]`));
+  const permissions = {};
+  permInputs.forEach(inp => {
+    const key = inp.id.replace(`editPerm_${id}_`, '');
+    permissions[key] = !!inp.checked;
+  });
+  const payload = { name, disabled, permissions };
+  if (password && password.length >= 8) payload.password = password;
+  try {
+    const res  = await fetch(apiUrl(`/api/admin/users/${encodeURIComponent(id)}`), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) { showNotification('success', 'Saved', 'User updated.'); loadUsers(); }
+    else showNotification('error', 'Failed', data.error || 'Could not update user.');
+  } catch (e) { showNotification('error', 'Failed', e.message); }
+}
+</script>
