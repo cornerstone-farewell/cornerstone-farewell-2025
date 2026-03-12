@@ -27,6 +27,7 @@ FRAG = {
     "memories": "fragments/our_memories.html",
     "compilations": "fragments/memory_compilations.html",
     "teachers": "fragments/our_beloved_teachers.html",
+    "advicewall": "fragments/advicewall.html",  # <-- ADDED
     "timeline": "fragments/through_the_years.html",
     "quote": "fragments/quote.html",
     "gratitude": "fragments/gratitudewall.html",
@@ -47,10 +48,34 @@ FRAG = {
     "admin_compilations": "fragments/admin/compilations.html",
     "admin_security": "fragments/admin/security.html",
 }
+
 ORDER = [
-    "navbar","hero","countdown","upload","memories","compilations","teachers","timeline","quote",
-    "gratitude","superlatives","wishjar","dedications","mood","capsule","stereodeck","globe","footer",
-    "admin_nav_top","admin_moderation","admin_sitesettings","admin_theme","admin_users","admin_compilations","admin_security"
+    "navbar",
+    "hero",
+    "countdown",
+    "upload",
+    "memories",
+    "compilations",
+    "teachers",
+    "advicewall",  # <-- ADDED (after teachers)
+    "timeline",
+    "quote",
+    "gratitude",
+    "superlatives",
+    "wishjar",
+    "dedications",
+    "mood",
+    "capsule",
+    "stereodeck",
+    "globe",
+    "footer",
+    "admin_nav_top",
+    "admin_moderation",
+    "admin_sitesettings",
+    "admin_theme",
+    "admin_users",
+    "admin_compilations",
+    "admin_security"
 ]
 
 # ---------------------------
@@ -65,6 +90,7 @@ CSS_KEYS: Dict[str, List[str]] = {
     "memories": ["#memories", ".memory-", ".lightbox", "#lightbox", ".comments-", "#comment", "#commentList"],
     "compilations": ["#compilations", ".compilation-", "#compilation", ".compilations-grid", "Compilation Creator"],
     "teachers": ["#teachers", ".teacher-", ".teachers-grid"],
+    "advicewall": ["#adviceWall", ".advice-", ".advice-card", ".advice-grid", ".advice-form", "#adviceForm", "#adviceGrid"],  # <-- ADDED
     "timeline": ["#timeline", ".timeline", ".timeline-item", ".timeline-dot"],
     "quote": ["#quote", ".quote-"],
     "gratitude": ["#gratitudeWall", ".gratitude-", ".sticky-note", "#gwFrom", "#gwMsg"],
@@ -78,6 +104,7 @@ CSS_KEYS: Dict[str, List[str]] = {
     "footer": ["footer", ".footer-", ".footer-content", ".footer-links"],
     "admin_nav_top": ["#adminOverlay", "#adminDashboard", ".admin-", "Admin Dashboard", "admin-tab", "admin-panel"],
 }
+
 # Global/base CSS patterns that MUST stay common (index.html)
 CSS_BASE_HINTS = [":root", "html", "body", "* {", "@keyframes", ".btn", ".container", "section {", "::-webkit-scrollbar"]
 
@@ -89,6 +116,7 @@ JS_KEYS: Dict[str, List[str]] = {
     "memories": ["initMemoryWall", "loadMemories", "renderMemories", "openLightbox", "closeLightbox", "loadComments", "postComment", "react(", "likeMemory"],
     "compilations": ["loadPublicCompilations", "playCompilation", "Compilation", "openCompilationCreator", "saveCompilation", "compSelectedSlides"],
     "teachers": ["renderTeachers", "teachersGrid"],
+    "advicewall": ["submitAdvice", "loadAdvice", "toggleAdviceLike", "shareAdvice", "adviceGrid", "adviceForm", "initAdviceWall", "loadMoreAdvice"],  # <-- ADDED
     "timeline": ["renderTimeline", "timelineList"],
     "gratitude": ["submitGratitudeNote", "loadGratitudeNotes", "gratitudeGrid", "gwFrom", "gwMsg"],
     "superlatives": ["loadSuperlatives", "voteSuperlative", "addSuperlativeNominee", "superlativesGrid"],
@@ -109,6 +137,44 @@ JS_KEYS: Dict[str, List[str]] = {
 
 # Common/base JS hints: leave in index.html (shared helpers/state/config)
 JS_BASE_HINTS = ["const CONFIG", "function apiUrl", "DEFAULT_SETTINGS", "let state =", "function escapeHtml", "function showNotification", "function triggerConfetti"]
+
+
+# ---------------------------
+# DOM selection for fragments (strict)
+# ---------------------------
+SELECTORS: Dict[str, List[str]] = {
+    "navbar": ["nav#navbar"],
+    "hero": ["div#introVideoOverlay", "div#particles-container", "section#home"],
+    "countdown": ["section#countdown"],
+    "upload": ["section#upload"],
+    "memories": ["section#memories", "div#lightbox"],
+    "compilations": ["section#compilations", "div#compilationCreatorModal", "div#compilationPlayer"],
+    "teachers": ["section#teachers"],
+    "advicewall": ["section#adviceWall"],  # <-- ADDED
+    "timeline": ["section#timeline"],
+    "quote": ["section#quote"],
+    "gratitude": ["section#gratitudeWall"],
+    "superlatives": ["section#superlativesSection"],
+    "wishjar": ["section#wishJarSection"],
+    "dedications": ["section#songDedicationsSection"],
+    "mood": ["section#moodBoardSection"],
+    "capsule": ["section#timeCapsuleSection"],
+    "stereodeck": [
+        "div#sniperGlobalFx",
+        "div#leanBackOverlay",
+        "div#boomboxDock",
+        "button#ghostCursorToggle",
+        "button#sendNoteBtn",
+        "div#ghostCursorPopup",
+        "div#ghostOffModal",
+        "div#paperTutorial",
+        "div#paperAirplaneLayer",
+        "div#emojiPhysicsLayer",
+    ],
+    "globe": ["section#distanceMapSection"],
+    "footer": ["footer", "div#notification", "div#confettiContainer", "div#batchUploadModal"],
+    "admin_nav_top": ["div#adminOverlay", "div#adminDashboard"],
+}
 
 
 # ---------------------------
@@ -138,7 +204,6 @@ def extract_doctype(raw: str) -> str:
 
 
 def truncate_to_html_only(raw: str) -> str:
-    # your file contains server.js after </html>
     m = re.search(r"(?is)</html\s*>", raw)
     return raw[: m.end()] if m else raw
 
@@ -172,22 +237,18 @@ def score_text(text: str, needles: List[str]) -> int:
 
 
 def route_css_rule(rule_text: str) -> str:
-    # base/global?
     if score_text(rule_text, CSS_BASE_HINTS) >= 2:
-        # still might also include section selectors; base wins only if no strong section match
         pass
 
     best_key = "base"
     best = 0
 
-    # section/admin candidates
     for k, needles in CSS_KEYS.items():
         s = score_text(rule_text, needles)
         if s > best:
             best = s
             best_key = k
 
-    # base decision: only if base hints are present and no strong fragment match
     base_score = score_text(rule_text, CSS_BASE_HINTS)
     if base_score >= 2 and best < 4:
         return "base"
@@ -196,10 +257,6 @@ def route_css_rule(rule_text: str) -> str:
 
 
 def split_css_to_buckets(css_text: str) -> Dict[str, str]:
-    """
-    Parse CSS and split into buckets by fragment key.
-    Uses tinycss2 to split rules, including @media contents.
-    """
     buckets: Dict[str, List[str]] = {}
     rules = tinycss2.parse_stylesheet(css_text, skip_comments=False, skip_whitespace=True)
 
@@ -210,7 +267,6 @@ def split_css_to_buckets(css_text: str) -> Dict[str, str]:
 
     for r in rules:
         if r.type == "comment":
-            # attach comments to base unless they clearly mention a section
             txt = tinycss2.serialize([r])
             k = route_css_rule(txt)
             add(k, txt)
@@ -220,12 +276,10 @@ def split_css_to_buckets(css_text: str) -> Dict[str, str]:
             name = (r.lower_at_keyword or "").lower()
             txt = tinycss2.serialize([r])
 
-            # keyframes/font-face => base
             if name in ("keyframes", "-webkit-keyframes", "font-face"):
                 add("base", txt)
                 continue
 
-            # media: split inner rules
             if name == "media" and r.content:
                 inner = tinycss2.parse_rule_list(r.content, skip_whitespace=True, skip_comments=False)
                 per_target: Dict[str, List[str]] = {}
@@ -238,7 +292,6 @@ def split_css_to_buckets(css_text: str) -> Dict[str, str]:
                     add(k, f"@media {prelude} {{\n" + "\n".join(items) + "\n}\n")
                 continue
 
-            # other at-rules: best effort route
             k = route_css_rule(txt)
             add(k, txt)
             continue
@@ -249,7 +302,6 @@ def split_css_to_buckets(css_text: str) -> Dict[str, str]:
             add(k, txt)
             continue
 
-        # fallback
         txt = tinycss2.serialize([r])
         add("base", txt)
 
@@ -257,15 +309,11 @@ def split_css_to_buckets(css_text: str) -> Dict[str, str]:
 
 
 def split_js_by_headers(js: str) -> List[str]:
-    """
-    Split big JS into chunks using banner/header comment lines.
-    Keeps chunks reasonably feature-focused.
-    """
     lines = js.splitlines()
     cut = []
     buf = []
 
-    header_re = re.compile(r"^\s*//\s*(=+|─+|═+|INTRO VIDEO|COMPILATION|BATCH UPLOAD|INLINE EDITING|PUBLIC COMPILATIONS|FAVICON|SNIPER|DESTINATIONS|ADMIN)\b", re.I)
+    header_re = re.compile(r"^\s*//\s*(=+|─+|═+|INTRO VIDEO|COMPILATION|BATCH UPLOAD|INLINE EDITING|PUBLIC COMPILATIONS|FAVICON|SNIPER|DESTINATIONS|ADMIN|ADVICE)\b", re.I)
 
     for ln in lines:
         if header_re.search(ln) and buf:
@@ -277,7 +325,6 @@ def split_js_by_headers(js: str) -> List[str]:
     if buf:
         cut.append("\n".join(buf).strip())
 
-    # remove tiny chunks
     out = []
     for c in cut:
         if len(c.strip()) < 40:
@@ -291,9 +338,7 @@ def split_js_by_headers(js: str) -> List[str]:
 
 
 def route_js_chunk(chunk: str) -> str:
-    # base?
     if score_text(chunk, JS_BASE_HINTS) >= 3:
-        # base only if no strong feature signal
         pass
 
     best_key = "base"
@@ -309,46 +354,6 @@ def route_js_chunk(chunk: str) -> str:
         return "base"
 
     return best_key if best_key != "base" else "base"
-
-
-# ---------------------------
-# DOM selection for fragments (strict)
-# ---------------------------
-SELECTORS: Dict[str, List[str]] = {
-    "navbar": ["nav#navbar"],
-    "hero": ["div#introVideoOverlay", "div#particles-container", "section#home"],
-    "countdown": ["section#countdown"],
-    "upload": ["section#upload"],
-    "memories": ["section#memories", "div#lightbox"],
-    "compilations": ["section#compilations", "div#compilationCreatorModal", "div#compilationPlayer"],
-    "teachers": ["section#teachers"],
-    "timeline": ["section#timeline"],
-    "quote": ["section#quote"],
-    "gratitude": ["section#gratitudeWall"],
-    "superlatives": ["section#superlativesSection"],
-    "wishjar": ["section#wishJarSection"],
-    "dedications": ["section#songDedicationsSection"],
-    "mood": ["section#moodBoardSection"],
-    "capsule": ["section#timeCapsuleSection"],
-    "stereodeck": [
-        "div#sniperGlobalFx",
-        "div#leanBackOverlay",
-        "div#boomboxDock",
-        "button#ghostCursorToggle",
-        "button#sendNoteBtn",
-        "div#ghostCursorPopup",
-        "div#ghostOffModal",
-        "div#paperTutorial",
-        # paper airplane layer is inside sniperGlobalFx in your html, but keep selector if present
-        "div#paperAirplaneLayer",
-        "div#emojiPhysicsLayer",
-    ],
-    "globe": ["section#distanceMapSection"],
-    "footer": ["footer", "div#notification", "div#confettiContainer", "div#batchUploadModal"],
-    "admin_nav_top": ["div#adminOverlay", "div#adminDashboard"],
-}
-
-# admin panel HTML divs are largely empty; scripts are routed by JS chunk routing.
 
 
 # ---------------------------
@@ -403,7 +408,6 @@ def expand_includes(text: str, base_dir: Path, max_depth: int = 60) -> str:
                 raise FileNotFoundError(f"Missing include: {rel}")
             inc = read_text(p)
 
-            # indent preservation
             line_start = new_out.rfind("\n", 0, m.start()) + 1
             indent = re.match(r"[ \t]*", new_out[line_start:m.start()]).group(0)
             inc = "\n".join((indent + ln if ln.strip() else ln) for ln in inc.splitlines()) + "\n"
@@ -427,11 +431,9 @@ def extract_strict(input_html: Path, out_root: Path) -> None:
     if not html or not head or not body:
         raise RuntimeError("Missing <html>/<head>/<body>")
 
-    # Prepare dirs
     (out_root / "fragments").mkdir(parents=True, exist_ok=True)
     (out_root / "fragments/admin").mkdir(parents=True, exist_ok=True)
 
-    # 1) Head common: keep meta/title/font links ONLY
     head_common: List[Tag] = []
     for ch in list(head.contents):
         if isinstance(ch, NavigableString) and not str(ch).strip():
@@ -441,20 +443,17 @@ def extract_strict(input_html: Path, out_root: Path) -> None:
                 head_common.append(ch)
                 detach(ch)
             elif ch.name == "link":
-                # keep fonts/preconnect in head common
                 head_common.append(ch)
                 detach(ch)
 
     head_common_html = "".join(outer_html(x) for x in head_common).strip() + "\n"
 
-    # 2) Collect ALL style tags and split rule-by-rule into buckets
     css_buckets: Dict[str, str] = {}
     base_css_parts: List[str] = []
 
     all_styles = soup.find_all("style")
     for st in list(all_styles):
         css_text = st.get_text("\n", strip=False) or ""
-        # remove the style node from DOM; we'll re-home its rules
         detach(st)
         buckets = split_css_to_buckets(css_text)
         for k, css in buckets.items():
@@ -465,7 +464,6 @@ def extract_strict(input_html: Path, out_root: Path) -> None:
 
     base_css = "\n".join(base_css_parts).strip() + "\n"
 
-    # 3) Collect ALL scripts and route chunks
     js_buckets: Dict[str, List[str]] = {}
     base_js_parts: List[str] = []
     external_script_tags_by_key: Dict[str, List[str]] = {}
@@ -476,16 +474,13 @@ def extract_strict(input_html: Path, out_root: Path) -> None:
             src = sc.get("src")
             tag_html = outer_html(sc)
             detach(sc)
-            # route externals mainly to globe, else footer
             key = "globe" if any(x in (src or "").lower() for x in ["leaflet", "three", "globe.gl"]) else "footer"
             external_script_tags_by_key.setdefault(key, []).append(tag_html)
             continue
 
-        # inline JS
         js = sc.get_text("\n", strip=False) or ""
         detach(sc)
 
-        # Split big JS into chunks and route
         chunks = split_js_by_headers(js)
         for c in chunks:
             rkey = route_js_chunk(c)
@@ -496,7 +491,6 @@ def extract_strict(input_html: Path, out_root: Path) -> None:
 
     base_js = "\n".join(base_js_parts).strip() + "\n"
 
-    # 4) Extract markup nodes strictly by selectors, put into fragment buckets
     markup_buckets: Dict[str, List[str]] = {k: [] for k in FRAG.keys()}
 
     def grab(selector: str) -> Optional[Tag]:
@@ -509,7 +503,6 @@ def extract_strict(input_html: Path, out_root: Path) -> None:
                 markup_buckets[key].append(outer_html(node))
                 detach(node)
 
-    # 5) Any remaining body nodes (not captured) => footer (so nothing is lost)
     leftovers = []
     for ch in list(body.contents):
         if isinstance(ch, NavigableString) and not str(ch).strip():
@@ -519,7 +512,6 @@ def extract_strict(input_html: Path, out_root: Path) -> None:
         markup_buckets["footer"].append(outer_html(node))
         detach(node)
 
-    # 6) Write fragment files: style + markup + scripts (strict ownership)
     manifest = {"created": {}, "notes": []}
 
     def emit_fragment(key: str) -> str:
@@ -529,15 +521,12 @@ def extract_strict(input_html: Path, out_root: Path) -> None:
         if css.strip():
             parts.append(f'<style data-fragment-style="{key}">\n{css.rstrip()}\n</style>\n')
 
-        # external libs for that key
         for t in external_script_tags_by_key.get(key, []):
             parts.append(t)
 
-        # markup
         for m in markup_buckets.get(key, []):
             parts.append(m)
 
-        # scripts
         for c in js_buckets.get(key, []):
             parts.append(f'<script data-fragment-script="{key}">\n{c.rstrip()}\n</script>\n')
 
@@ -548,7 +537,6 @@ def extract_strict(input_html: Path, out_root: Path) -> None:
         write_text(out_root / rel, content)
         manifest["created"][key] = rel
 
-    # 7) Build index.template.html (common head + base css/js + includes)
     tpl = build_index_template(
         doctype=doctype,
         html_attrs=dict(html.attrs or {}),
