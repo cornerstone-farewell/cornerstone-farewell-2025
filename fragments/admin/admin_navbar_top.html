@@ -335,6 +335,22 @@
   margin-top: 5px;
 }
 
+/* Button styles for moderation */
+.status-approved { background: rgba(76, 175, 80, 0.9); color: white; }
+.status-pending { background: rgba(255, 193, 7, 0.9); color: #333; }
+.status-trash { background: rgba(244,67,54,0.9); color: white; }
+
+.approve-btn { background: rgba(76, 175, 80, 0.2); color: #8ff09a; border: 1px solid rgba(76,175,80,0.35); }
+.approve-btn:hover { background: var(--success-green); color: white; }
+.delete-btn { background: rgba(244, 67, 54, 0.2); color: #ffb3ad; border: 1px solid rgba(244,67,54,0.35); }
+.delete-btn:hover { background: var(--error-red); color: white; }
+.download-btn { background: rgba(33, 150, 243, 0.2); color: #9cd3ff; border: 1px solid rgba(33,150,243,0.35); }
+.download-btn:hover { background: #2196F3; color: white; }
+.edit-btn { background: rgba(212,175,55,0.18); color: var(--primary-gold-light); border: 1px solid rgba(212,175,55,0.35); }
+.edit-btn:hover { background: rgba(212,175,55,0.35); }
+.restore-btn { background: rgba(255,255,255,0.08); color: var(--text-light); border: 1px solid rgba(255,255,255,0.2); }
+.restore-btn:hover { border-color: var(--primary-gold); }
+
 @media (max-width: 768px) {
   .admin-header { 
     padding: 15px 20px; 
@@ -393,75 +409,64 @@
     </div>
     
     <div class="admin-panel active" id="panelModeration">
-      <div class="admin-stats" id="adminStats">
-        <div class="stat-card">
-          <div class="stat-number" id="statTotal">0</div>
-          <div class="stat-label">Total Uploads</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="statApproved">0</div>
-          <div class="stat-label">Approved</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="statPending">0</div>
-          <div class="stat-label">Pending</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="statStorage">0 MB</div>
-          <div class="stat-label">Storage</div>
-        </div>
-      </div>
-      
-      <div class="admin-filters">
-        <div class="admin-search">
-          <input id="adminSearch" placeholder="Search by name/caption/type..." type="text"/>
-        </div>
-        <div class="admin-filter-group">
-          <button class="filter-btn active" data-admin-filter="all">All</button>
-          <button class="filter-btn" data-admin-filter="approved">Approved</button>
-          <button class="filter-btn" data-admin-filter="pending">Pending</button>
-          <button class="filter-btn" data-admin-filter="featured">Featured</button>
-          <button class="filter-btn" data-admin-filter="trash">Trash</button>
-        </div>
-        <select class="form-select" id="adminSort" style="width: auto; padding: 10px 40px 10px 15px; background: #2a2a4a; color: #fff;">
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-          <option value="likes">Most Liked</option>
-        </select>
-        <select class="form-select" id="adminPageSize" style="width:auto; padding: 10px 40px 10px 15px; background: #2a2a4a; color: #fff;">
-          <option value="30">30/page</option>
-          <option value="60">60/page</option>
-        </select>
-      </div>
-      
-      <div style="display:flex; gap: 10px; flex-wrap:wrap; margin-bottom: 14px;">
-        <button class="admin-btn admin-btn-secondary" id="bulkSelectToggle" onclick="toggleBulkSelect()">☐ Bulk Select: OFF</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('approve')">✓ Bulk Approve</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('trash')">🗑 Bulk Trash</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('restore')">↩ Bulk Restore</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('setType')">📁 Change Category</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('feature')">⭐ Feature</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('unfeature')">☆ Unfeature</button>
-      </div>
-      
-      <div class="admin-grid" id="adminGrid"></div>
-      
-      <div class="load-more-wrap" style="margin-top: 25px;">
-        <button class="btn btn-secondary load-more-btn" id="adminLoadMoreBtn" onclick="adminLoadMore()" type="button">Load More</button>
-      </div>
+      <!-- Content injected by initModerationPanelContent() -->
     </div>
     
     <div class="admin-panel" id="panelSettings">
-      <!-- Settings panel content will be injected by JavaScript -->
+      <!-- Content injected by initSettingsPanelContent() -->
     </div>
-    <div class="admin-panel" id="panelTheme"></div>
-    <div class="admin-panel" id="panelUsers"></div>
-    <div class="admin-panel" id="panelCompilations"></div>
-    <div class="admin-panel" id="panelSecurity"></div>
+    <div class="admin-panel" id="panelTheme">
+      <div class="stat-card" style="text-align:center;">
+        <h3 style="color:var(--primary-gold);">🎨 Theme Settings</h3>
+        <p style="color:var(--text-muted);">Theme panel - coming soon</p>
+      </div>
+    </div>
+    <div class="admin-panel" id="panelUsers">
+      <div class="stat-card" style="text-align:center;">
+        <h3 style="color:var(--primary-gold);">👥 User Management</h3>
+        <p style="color:var(--text-muted);">Users panel - coming soon</p>
+      </div>
+    </div>
+    <div class="admin-panel" id="panelCompilations">
+      <div class="stat-card" style="text-align:center;">
+        <h3 style="color:var(--primary-gold);">🎬 Compilations</h3>
+        <p style="color:var(--text-muted);">Compilations panel - coming soon</p>
+      </div>
+    </div>
+    <div class="admin-panel" id="panelSecurity">
+      <div class="stat-card" style="text-align:center;">
+        <h3 style="color:var(--primary-gold);">🔒 Security Settings</h3>
+        <p style="color:var(--text-muted);">Security panel - coming soon</p>
+      </div>
+    </div>
   </div>
 </div>
 
 <script data-fragment-script="admin_nav_top">
+// ═══════════════════════════════════════════════════════════════════════════════
+// PERMISSION SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function can(permission) {
+  // If no admin user, deny all
+  if (!state.adminUser) return false;
+  
+  const role = state.adminUser.role || 'viewer';
+  
+  // Superadmin can do everything
+  if (role === 'superadmin') return true;
+  
+  // Define permissions per role
+  const permissions = {
+    admin: ['moderation', 'editMemory', 'bulk', 'replaceFile', 'viewStats'],
+    moderator: ['moderation', 'viewStats'],
+    viewer: ['viewStats']
+  };
+  
+  const rolePerms = permissions[role] || [];
+  return rolePerms.includes(permission);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ADMIN TAB SWITCHING - CORE FUNCTION
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -482,40 +487,37 @@ function switchAdminTab(tab) {
   
   if (tabEl) {
     tabEl.classList.add('active');
-    console.log('Activated tab:', tabEl.id);
   } else {
     console.warn('Tab element not found: tab' + capitalize(tab));
   }
   
   if (panelEl) {
     panelEl.classList.add('active');
-    console.log('Activated panel:', panelEl.id);
   } else {
     console.warn('Panel element not found: panel' + capitalize(tab));
   }
   
   // Initialize panel content based on which tab is selected
   switch(tab) {
-    case 'settings':
-      initSettingsPanelContent();
-      break;
-    case 'theme':
-      if (typeof initThemePanelContent === 'function') initThemePanelContent();
-      break;
-    case 'users':
-      if (typeof initUsersPanelContent === 'function') initUsersPanelContent();
-      break;
-    case 'compilations':
-      if (typeof initCompilationsPanelContent === 'function') initCompilationsPanelContent();
-      break;
-    case 'security':
-      if (typeof initSecurityPanelContent === 'function') initSecurityPanelContent();
-      break;
-    case 'moderation':
-      // Moderation panel is already in HTML, just refresh if needed
-      if (typeof loadAdminMemories === 'function') loadAdminMemories();
-      break;
-  }
+  case 'moderation':
+    if (typeof initModerationPanelContent === 'function') initModerationPanelContent();
+    break;
+  case 'settings':
+    if (typeof initSettingsPanelContent === 'function') initSettingsPanelContent();
+    break;
+  case 'theme':
+    if (typeof initThemePanelContent === 'function') initThemePanelContent();
+    break;
+  case 'users':
+    if (typeof initUsersPanelContent === 'function') initUsersPanelContent();
+    break;
+  case 'compilations':
+    if (typeof initCompilationsPanelContent === 'function') initCompilationsPanelContent();
+    break;
+  case 'security':
+    if (typeof initSecurityPanelContent === 'function') initSecurityPanelContent();
+    break;
+}
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -558,7 +560,7 @@ async function adminLogin() {
     
     if (data.success && data.token) {
       state.adminToken = data.token;
-      state.adminUser = data.user;
+      state.adminUser = data.user || { userId, role: 'admin' };
       localStorage.setItem('adminToken', data.token);
       
       closeAdminLogin();
@@ -600,92 +602,15 @@ function adminLogout() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// INLINE EDITING
+// BATCH UPLOAD
 // ═══════════════════════════════════════════════════════════════════════════════
-function makeInlineEditable(element, memoryId, field) {
-  if (!element || (typeof can === 'function' && !can('editMemory'))) return;
-  element.classList.add('inline-editable');
-  element.setAttribute('data-memory-id', memoryId);
-  element.setAttribute('data-field', field);
-  element.addEventListener('dblclick', function(e) {
-    e.stopPropagation();
-    startInlineEdit(this);
-  });
-}
 
-function startInlineEdit(element) {
-  if (element.classList.contains('editing')) return;
-  const originalText = element.textContent;
-  element.classList.add('editing');
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.className = 'inline-edit-input';
-  input.value = originalText;
-  element.textContent = '';
-  element.appendChild(input);
-  input.focus();
-  input.select();
-  
-  const save = async () => {
-    const newValue = input.value.trim();
-    element.classList.remove('editing');
-    element.textContent = newValue || originalText;
-    if (newValue && newValue !== originalText) {
-      try {
-        const res = await fetch(apiUrl('/api/admin/memory/edit/' + element.getAttribute('data-memory-id')), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + state.adminToken
-          },
-          body: JSON.stringify({ [element.getAttribute('data-field')]: newValue })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showNotification('success', 'Saved', 'Updated ' + element.getAttribute('data-field'));
-        } else {
-          element.textContent = originalText;
-          showNotification('error', 'Failed', data.error);
-        }
-      } catch (e) {
-        element.textContent = originalText;
-        showNotification('error', 'Error', e.message);
-      }
-    }
-  };
-  
-  input.addEventListener('blur', save);
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') save();
-    if (e.key === 'Escape') {
-      element.classList.remove('editing');
-      element.textContent = originalText;
-    }
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// BATCH UPLOAD (ADMIN)
-// ═══════════════════════════════════════════════════════════════════════════════
 function openBatchUpload() {
   const modal = document.getElementById('batchUploadModal');
   if (modal) {
     modal.classList.add('active');
-    const batchName = document.getElementById('batchName');
-    const batchCaption = document.getElementById('batchCaption');
-    const batchType = document.getElementById('batchType');
-    const batchFiles = document.getElementById('batchFiles');
-    const batchFileLabel = document.getElementById('batchFileLabel');
-    const batchProgress = document.getElementById('batchProgress');
-    const btnStartBatch = document.getElementById('btnStartBatch');
-    
-    if (batchName) batchName.value = '';
-    if (batchCaption) batchCaption.value = '';
-    if (batchType) batchType.value = 'Friends';
-    if (batchFiles) batchFiles.value = '';
-    if (batchFileLabel) batchFileLabel.textContent = 'Click to select files';
-    if (batchProgress) batchProgress.style.display = 'none';
-    if (btnStartBatch) btnStartBatch.disabled = false;
+  } else {
+    showNotification('info', 'Batch Upload', 'Batch upload modal not found in DOM.');
   }
 }
 
@@ -694,87 +619,11 @@ function closeBatchUpload() {
   if (modal) modal.classList.remove('active');
 }
 
-function updateBatchFileCount(input) {
-  const label = document.getElementById('batchFileLabel');
-  if (label) {
-    label.textContent = input.files && input.files.length > 0 
-      ? `${input.files.length} file(s) selected` 
-      : 'Click to select files';
-  }
-}
-
-async function submitBatchUpload() {
-  const name = document.getElementById('batchName')?.value?.trim();
-  const caption = document.getElementById('batchCaption')?.value?.trim();
-  const type = document.getElementById('batchType')?.value;
-  const fileInput = document.getElementById('batchFiles');
-  const autoApproveEl = document.getElementById('batchAutoApprove');
-  const autoApprove = autoApproveEl ? autoApproveEl.checked : true;
-  
-  if (!name || !caption || !fileInput?.files?.length) {
-    return showNotification('error', 'Missing fields', 'Fill all fields and select files.');
-  }
-  
-  const btnStartBatch = document.getElementById('btnStartBatch');
-  if (btnStartBatch) btnStartBatch.disabled = true;
-  
-  const progressDiv = document.getElementById('batchProgress');
-  const fill = document.getElementById('batchProgressFill');
-  const text = document.getElementById('batchProgressText');
-  if (progressDiv) progressDiv.style.display = 'block';
-  
-  const files = Array.from(fileInput.files);
-  const total = files.length;
-  let successCount = 0;
-  const CHUNK_SIZE = 5;
-  
-  for (let i = 0; i < total; i += CHUNK_SIZE) {
-    const chunk = files.slice(i, i + CHUNK_SIZE);
-    const fd = new FormData();
-    fd.append('name', name);
-    fd.append('caption', caption);
-    fd.append('type', type);
-    fd.append('autoApprove', autoApprove ? 'true' : 'false');
-    chunk.forEach(f => fd.append('files', f));
-    
-    try {
-      if (text) text.textContent = `Uploading batch ${Math.ceil((i+1)/CHUNK_SIZE)} of ${Math.ceil(total/CHUNK_SIZE)}...`;
-      const res = await fetch(apiUrl('/api/admin/upload-batch'), {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${state.adminToken}` },
-        body: fd
-      });
-      const data = await res.json();
-      if (data.success) {
-        successCount += (data.count || 0);
-      } else {
-        showNotification('error', 'Error in chunk', data.error);
-      }
-      if (fill) fill.style.width = Math.min(100, Math.round(((i + chunk.length) / total) * 100)) + '%';
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  
-  showNotification('success', 'Batch Complete', `${successCount} uploaded successfully.`);
-  closeBatchUpload();
-  if (typeof loadAdminMemories === 'function') loadAdminMemories(true);
-}
-
 // ═══════════════════════════════════════════════════════════════════════════════
-// PLACEHOLDER FUNCTIONS (to be defined in other fragments)
+// EXPOSE FUNCTIONS GLOBALLY
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// These will be overwritten by the actual implementations in their respective fragments
-function approveAllPending() { console.log('approveAllPending not implemented'); }
-function downloadAllApproved() { console.log('downloadAllApproved not implemented'); }
-function exportCSV() { console.log('exportCSV not implemented'); }
-function toggleBulkSelect() { console.log('toggleBulkSelect not implemented'); }
-function bulkActionPrompt(action) { console.log('bulkActionPrompt not implemented:', action); }
-function adminLoadMore() { console.log('adminLoadMore not implemented'); }
-function loadAdminMemories() { console.log('loadAdminMemories not implemented'); }
-
-// Expose functions globally
+window.can = can;
 window.switchAdminTab = switchAdminTab;
 window.openAdminLogin = openAdminLogin;
 window.closeAdminLogin = closeAdminLogin;
@@ -783,7 +632,6 @@ window.openAdminDashboard = openAdminDashboard;
 window.adminLogout = adminLogout;
 window.openBatchUpload = openBatchUpload;
 window.closeBatchUpload = closeBatchUpload;
-window.submitBatchUpload = submitBatchUpload;
 
-console.log('✅ Admin Nav Top loaded - switchAdminTab is:', typeof switchAdminTab);
+console.log('✅ Admin Nav Top loaded');
 </script>

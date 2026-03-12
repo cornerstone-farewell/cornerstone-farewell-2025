@@ -1,128 +1,207 @@
 <!-- FRAGMENT: admin_moderation -->
-
 <style data-fragment-style="admin_moderation">
-  /* ── Admin stats ── */
-  .admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-
-  /* ── Admin filters ── */
-  .admin-filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-  .admin-search { flex: 1; min-width: 250px; }
-  .admin-search input {
-    width: 100%;
-    padding: 12px 20px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 25px;
-    color: var(--text-light);
-    font-size: 0.95rem;
-  }
-  .admin-search input:focus { outline: none; border-color: var(--primary-gold); }
-  .admin-filter-group { display: flex; gap: 10px; flex-wrap: wrap; }
-
-  /* ── Admin grid cards ── */
-  .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
-  .admin-memory-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 15px; overflow: hidden; transition: var(--transition-smooth); }
-  .admin-memory-card:hover { border-color: var(--primary-gold); }
-  .admin-memory-media { position: relative; aspect-ratio: 16/10; overflow: hidden; background: var(--navy-dark); }
-  .admin-memory-media img, .admin-memory-media video { width: 100%; height: 100%; object-fit: cover; }
-  .admin-memory-status { position: absolute; top: 10px; right: 10px; padding: 5px 12px; border-radius: 15px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
-  .admin-memory-info { padding: 15px; }
-  .admin-memory-name { font-weight: 800; margin-bottom: 5px; }
-  .admin-memory-caption {
-    font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;
-    display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical; overflow: hidden;
-  }
-  .admin-memory-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; gap: 10px; }
-  .admin-memory-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-  .admin-memory-actions button {
-    padding: 9px; border-radius: 12px; font-size: 0.85rem; cursor: pointer;
-    transition: var(--transition-smooth); border: none;
-    font-family: var(--font-body); font-weight: 700;
-  }
-
-  @media (max-width: 768px) {
-    .admin-filters { flex-direction: column; }
-    .admin-search { width: 100%; }
-  }
+/* Additional moderation-specific styles */
+.inline-editable {
+  cursor: pointer;
+  border: 1px dashed transparent;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: var(--transition-smooth);
+}
+.inline-editable:hover {
+  border-color: var(--primary-gold);
+  background: rgba(212, 175, 55, 0.1);
+}
+.inline-editable.editing {
+  background: rgba(255,255,255,0.1);
+  border-color: var(--primary-gold);
+}
+.inline-edit-input {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--primary-gold);
+  color: var(--text-light);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: inherit;
+  width: 100%;
+}
 </style>
 
 <script data-fragment-script="admin_moderation">
-// ── Moderation panel ─────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODERATION PANEL - STATE
+// ═══════════════════════════════════════════════════════════════════════════════
 
-// This script injects the moderation panel HTML into #panelModeration on DOMContentLoaded.
-// buildAdminPanels() (in admin_navbar_top) does not auto-fill panelModeration because it
-// contains static markup; we inject it once here.
-document.addEventListener('DOMContentLoaded', () => {
+// Extend state object safely
+if (typeof state !== 'undefined') {
+  Object.assign(state, {
+    adminFilter: state.adminFilter || 'all',
+    adminSort: state.adminSort || 'newest',
+    adminSearch: state.adminSearch || '',
+    adminLimit: state.adminLimit || 30,
+    adminPage: state.adminPage || 1,
+    adminHasMore: typeof state.adminHasMore !== 'undefined' ? state.adminHasMore : true,
+    adminBulkMode: typeof state.adminBulkMode !== 'undefined' ? state.adminBulkMode : false,
+    adminSelectedIds: state.adminSelectedIds || new Set(),
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODERATION PANEL HTML
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function renderModerationPanelHtml() {
+  return `
+    <div class="admin-stats" id="adminStats">
+      <div class="stat-card">
+        <div class="stat-number" id="statTotal">0</div>
+        <div class="stat-label">Total Uploads</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statApproved">0</div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statPending">0</div>
+        <div class="stat-label">Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statStorage">0 MB</div>
+        <div class="stat-label">Storage</div>
+      </div>
+    </div>
+    
+    <div class="admin-filters">
+      <div class="admin-search">
+        <input type="text" id="adminSearch" placeholder="Search by name/caption/type..." />
+      </div>
+      <div class="admin-filter-group" id="adminFilterGroup">
+        <button class="filter-btn active" data-admin-filter="all">All</button>
+        <button class="filter-btn" data-admin-filter="approved">Approved</button>
+        <button class="filter-btn" data-admin-filter="pending">Pending</button>
+        <button class="filter-btn" data-admin-filter="featured">Featured</button>
+        <button class="filter-btn" data-admin-filter="trash">Trash</button>
+      </div>
+      <select class="form-select" id="adminSort" style="width:auto; padding:10px 40px 10px 15px; background:#2a2a4a; color:#fff;">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="likes">Most Liked</option>
+      </select>
+      <select class="form-select" id="adminPageSize" style="width:auto; padding:10px 40px 10px 15px; background:#2a2a4a; color:#fff;">
+        <option value="30">30/page</option>
+        <option value="60">60/page</option>
+      </select>
+    </div>
+    
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+      <button class="admin-btn admin-btn-secondary" id="bulkSelectToggle" onclick="toggleBulkSelect()">☐ Bulk Select: OFF</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('approve')">✓ Bulk Approve</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('trash')">🗑 Bulk Trash</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('restore')">↩ Bulk Restore</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('setType')">📁 Change Category</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('feature')">⭐ Feature</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('unfeature')">☆ Unfeature</button>
+    </div>
+    
+    <div class="admin-grid" id="adminGrid"></div>
+    
+    <div class="load-more-wrap" style="margin-top:25px;">
+      <button class="btn btn-secondary load-more-btn" id="adminLoadMoreBtn" type="button" onclick="adminLoadMore()">Load More</button>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INITIALIZE MODERATION PANEL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function initModerationPanelContent() {
+  console.log('initModerationPanelContent called');
+  
   const panel = document.getElementById('panelModeration');
-  if (panel && !panel.dataset.loaded) {
-    panel.dataset.loaded = '1';
-    panel.innerHTML = `
-      <div class="admin-stats" id="adminStats">
-        <div class="stat-card"><div class="stat-number" id="statTotal">0</div><div class="stat-label">Total Uploads</div></div>
-        <div class="stat-card"><div class="stat-number" id="statApproved">0</div><div class="stat-label">Approved</div></div>
-        <div class="stat-card"><div class="stat-number" id="statPending">0</div><div class="stat-label">Pending</div></div>
-        <div class="stat-card"><div class="stat-number" id="statStorage">0 MB</div><div class="stat-label">Storage</div></div>
-      </div>
-
-      <div class="admin-filters">
-        <div class="admin-search">
-          <input type="text" id="adminSearch" placeholder="Search by name/caption/type..." />
-        </div>
-        <div class="admin-filter-group">
-          <button class="filter-btn active" data-admin-filter="all">All</button>
-          <button class="filter-btn" data-admin-filter="approved">Approved</button>
-          <button class="filter-btn" data-admin-filter="pending">Pending</button>
-          <button class="filter-btn" data-admin-filter="featured">Featured</button>
-          <button class="filter-btn" data-admin-filter="trash">Trash</button>
-        </div>
-        <select class="form-select" id="adminSort" style="width:auto; padding:10px 40px 10px 15px;">
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-          <option value="likes">Most Liked</option>
-        </select>
-        <select class="form-select" id="adminPageSize" style="width:auto; padding:10px 40px 10px 15px;">
-          <option value="30">30/page</option>
-          <option value="60">60/page</option>
-        </select>
-      </div>
-
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-        <button class="admin-btn admin-btn-secondary" id="bulkSelectToggle" onclick="toggleBulkSelect()">Bulk Select: OFF</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('approve')">Bulk Approve</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('trash')">Bulk Trash</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('restore')">Bulk Restore</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('setType')">Bulk Change Category</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('feature')">Bulk Feature</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('unfeature')">Bulk Unfeature</button>
-      </div>
-
-      <div class="admin-grid" id="adminGrid"></div>
-
-      <div class="load-more-wrap" style="margin-top:25px;">
-        <button class="btn btn-secondary load-more-btn" id="adminLoadMoreBtn" type="button" onclick="adminLoadMore()">Load More</button>
-      </div>
-    `;
+  if (!panel) {
+    console.error('panelModeration not found');
+    return;
   }
-});
+  
+  // Check if already has content
+  const hasContent = panel.innerHTML.trim().length > 100;
+  
+  if (!hasContent) {
+    console.log('Rendering moderation panel HTML...');
+    panel.innerHTML = renderModerationPanelHtml();
+  }
+  
+  // Setup event listeners after a small delay
+  setTimeout(() => {
+    setupModerationEventListeners();
+    loadAdminMemories(true);
+  }, 50);
+}
 
-// ── State additions for moderation ──
-// (state object is declared in base_script; we extend here safely)
-Object.assign(state, {
-  adminFilter: state.adminFilter || 'all',
-  adminSort:   state.adminSort   || 'newest',
-  adminSearch: state.adminSearch || '',
-  adminLimit:  state.adminLimit  || 30,
-  adminPage:   state.adminPage   || 1,
-  adminHasMore:     typeof state.adminHasMore     !== 'undefined' ? state.adminHasMore : true,
-  adminBulkMode:    typeof state.adminBulkMode    !== 'undefined' ? state.adminBulkMode : false,
-  adminSelectedIds: state.adminSelectedIds || new Set(),
-});
+function setupModerationEventListeners() {
+  console.log('Setting up moderation event listeners...');
+  
+  // Search input
+  const searchInput = document.getElementById('adminSearch');
+  if (searchInput && !searchInput.dataset.listenerAdded) {
+    searchInput.dataset.listenerAdded = '1';
+    searchInput.addEventListener('input', debounce(() => {
+      state.adminSearch = searchInput.value;
+      loadAdminMemories(true);
+    }, 300));
+  }
+  
+  // Filter buttons
+  const filterGroup = document.getElementById('adminFilterGroup');
+  if (filterGroup && !filterGroup.dataset.listenerAdded) {
+    filterGroup.dataset.listenerAdded = '1';
+    filterGroup.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-admin-filter]');
+      if (!btn) return;
+      
+      filterGroup.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      state.adminFilter = btn.dataset.adminFilter;
+      loadAdminMemories(true);
+    });
+  }
+  
+  // Sort select
+  const sortSelect = document.getElementById('adminSort');
+  if (sortSelect && !sortSelect.dataset.listenerAdded) {
+    sortSelect.dataset.listenerAdded = '1';
+    sortSelect.addEventListener('change', () => {
+      state.adminSort = sortSelect.value;
+      loadAdminMemories(true);
+    });
+  }
+  
+  // Page size select
+  const pageSizeSelect = document.getElementById('adminPageSize');
+  if (pageSizeSelect && !pageSizeSelect.dataset.listenerAdded) {
+    pageSizeSelect.dataset.listenerAdded = '1';
+    pageSizeSelect.addEventListener('change', () => {
+      state.adminLimit = parseInt(pageSizeSelect.value, 10);
+      loadAdminMemories(true);
+    });
+  }
+}
 
-async function loadAdminMemories(reset, preserveBulk = false) {
-  if (!state.adminToken) return;
+// ═══════════════════════════════════════════════════════════════════════════════
+// LOAD ADMIN MEMORIES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function loadAdminMemories(reset = false, preserveBulk = false) {
+  if (!state.adminToken) {
+    console.warn('No admin token, cannot load memories');
+    return;
+  }
+  
   if (reset) {
-    state.adminPage    = 1;
+    state.adminPage = 1;
     state.adminHasMore = true;
     if (!preserveBulk) {
       state.adminSelectedIds.clear();
@@ -130,83 +209,120 @@ async function loadAdminMemories(reset, preserveBulk = false) {
     }
     updateBulkToggleUI();
   }
+  
   if (!state.adminHasMore) return;
+  
   try {
     const params = new URLSearchParams({
       filter: state.adminFilter,
-      sort:   state.adminSort,
+      sort: state.adminSort,
       search: state.adminSearch || '',
-      page:   String(state.adminPage),
-      limit:  String(state.adminLimit)
+      page: String(state.adminPage),
+      limit: String(state.adminLimit)
     });
-    const res  = await fetch(apiUrl(`/api/admin/memories?${params}`), {
+    
+    console.log('Loading admin memories with params:', params.toString());
+    
+    const res = await fetch(apiUrl(`/api/admin/memories?${params}`), {
       headers: { 'Authorization': `Bearer ${state.adminToken}` }
     });
+    
     const data = await res.json();
+    
     if (!data.success) {
-      if (res.status === 401) return adminLogout();
+      if (res.status === 401) {
+        adminLogout();
+        return;
+      }
+      console.error('Failed to load memories:', data.error);
       return;
     }
+    
     updateAdminStats(data.stats);
     renderAdminGrid(data.memories || [], reset);
     state.adminHasMore = !!data.hasMore;
-    state.adminPage   += 1;
-  } catch (e) { console.error(e); }
+    state.adminPage += 1;
+    
+  } catch (e) {
+    console.error('Error loading admin memories:', e);
+    showNotification('error', 'Error', 'Failed to load memories');
+  }
 }
 
-function adminLoadMore() { loadAdminMemories(false); }
+function adminLoadMore() {
+  loadAdminMemories(false);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UPDATE STATS
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function updateAdminStats(stats) {
-  const setContent = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  setContent('statTotal',    stats?.total);
-  setContent('statApproved', stats?.approved);
-  setContent('statPending',  stats?.pending);
-  setContent('statStorage',  stats?.totalSizeFormatted);
+  if (!stats) return;
+  
+  const setContent = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val ?? '0';
+  };
+  
+  setContent('statTotal', stats.total);
+  setContent('statApproved', stats.approved);
+  setContent('statPending', stats.pending);
+  setContent('statStorage', stats.totalSizeFormatted || '0 MB');
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RENDER ADMIN GRID
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function renderAdminGrid(memories, reset) {
   const grid = document.getElementById('adminGrid');
   if (!grid) return;
-  const items = (memories || []).map(m => ({ ...m, file_url: mediaUrl(m.file_url) }));
+  
+  const items = (memories || []).map(m => ({
+    ...m,
+    file_url: mediaUrl(m.file_url)
+  }));
+  
   if (reset) grid.innerHTML = '';
+  
   if (!items.length && reset) {
     grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:var(--text-muted);">No memories found.</p>`;
     return;
   }
+  
   grid.insertAdjacentHTML('beforeend', items.map(memory => {
-    const statusClass = memory.purgedAt ? 'status-trash'
-      : (memory.deletedAt ? 'status-trash'
-      : (memory.approved  ? 'status-approved' : 'status-pending'));
+    const statusClass = memory.purgedAt ? 'status-trash' : 
+                       (memory.deletedAt ? 'status-trash' : 
+                       (memory.approved ? 'status-approved' : 'status-pending'));
     const statusText = memory.deletedAt ? 'TRASH' : (memory.approved ? 'APPROVED' : 'PENDING');
-    const bulkBox = state.adminBulkMode
-      ? `<div style="position:absolute;left:10px;top:10px;z-index:2;">
-           <input type="checkbox" style="transform:scale(1.3);"
-             onchange="toggleSelectId(${memory.id}, this.checked)"
-             ${state.adminSelectedIds.has(memory.id) ? 'checked' : ''}/>
-         </div>` : '';
+    
+    const bulkBox = state.adminBulkMode ? `
+      <div style="position:absolute;left:10px;top:10px;z-index:2;">
+        <input type="checkbox" style="transform:scale(1.3);" 
+               onchange="toggleSelectId(${memory.id}, this.checked)" 
+               ${state.adminSelectedIds.has(memory.id) ? 'checked' : ''}/>
+      </div>` : '';
+    
+    const canMod = can('moderation');
+    const canEdit = can('editMemory');
+    const canReplace = can('replaceFile');
+    const isSuperAdmin = state.adminUser?.role === 'superadmin';
+    
     return `
       <div class="admin-memory-card" data-id="${memory.id}">
         <div class="admin-memory-media">
           ${bulkBox}
-          ${memory.file_type === 'video'
-            ? `<video src="${memory.file_url}" preload="metadata"></video>`
+          ${memory.file_type === 'video' 
+            ? `<video src="${memory.file_url}" preload="metadata"></video>` 
             : `<img src="${memory.file_url}" alt="">`}
           <span class="admin-memory-status ${statusClass}">${statusText}</span>
         </div>
         <div class="admin-memory-info">
-          <div class="admin-memory-name inline-editable" title="Double click to edit"
-            ondblclick="this.setAttribute('data-memory-id',${memory.id}); this.setAttribute('data-field','student_name'); startInlineEdit(this)">
-            ${escapeHtml(memory.student_name || '')}
-          </div>
-          <div class="admin-memory-caption inline-editable" title="Double click to edit"
-            ondblclick="this.setAttribute('data-memory-id',${memory.id}); this.setAttribute('data-field','caption'); startInlineEdit(this)">
-            ${escapeHtml(memory.caption || '')}
-          </div>
+          <div class="admin-memory-name">${escapeHtml(memory.student_name || '')}</div>
+          <div class="admin-memory-caption">${escapeHtml(memory.caption || '')}</div>
           <div class="admin-memory-meta">
-            <span class="inline-editable" title="Double click to edit"
-              ondblclick="this.setAttribute('data-memory-id',${memory.id}); this.setAttribute('data-field','memory_type'); startInlineEdit(this)">
-              ${escapeHtml(memory.memory_type || '')}
-            </span>
+            <span>${escapeHtml(memory.memory_type || '')}</span>
             <span>${escapeHtml(memory.file_size_formatted || '')}</span>
           </div>
           <div class="admin-memory-meta">
@@ -214,102 +330,131 @@ function renderAdminGrid(memories, reset) {
             <span>${escapeHtml(timeAgo(memory.created_at))}</span>
           </div>
           <div class="admin-memory-actions">
-            ${(!memory.approved && !memory.deletedAt && can('moderation'))
-              ? `<button class="approve-btn" onclick="approveMemory(${memory.id})">Approve</button>`
-              : `<button class="approve-btn" style="opacity:0.5;" disabled>Approve</button>`}
-            <button class="download-btn" onclick="window.open('${memory.file_url}', '_blank')">Download</button>
-            ${!memory.deletedAt
-              ? `<button class="delete-btn" onclick="trashMemory(${memory.id})">Trash</button>`
-              : `<button class="restore-btn" onclick="restoreMemory(${memory.id})">Restore</button>`}
-            ${can('editMemory')
-              ? `<button class="edit-btn" onclick="openEditMemory(${memory.id})">Edit</button>`
-              : `<button class="edit-btn" style="opacity:0.5;" disabled>Edit</button>`}
+            ${(!memory.approved && !memory.deletedAt && canMod) 
+              ? `<button class="approve-btn" onclick="approveMemory(${memory.id})">✓ Approve</button>` 
+              : `<button class="approve-btn" style="opacity:0.5;" disabled>✓ Approve</button>`}
+            <button class="download-btn" onclick="window.open('${memory.file_url}', '_blank')">⬇ Download</button>
+            ${!memory.deletedAt 
+              ? `<button class="delete-btn" onclick="trashMemory(${memory.id})">🗑 Trash</button>` 
+              : `<button class="restore-btn" onclick="restoreMemory(${memory.id})">↩ Restore</button>`}
+            ${canEdit 
+              ? `<button class="edit-btn" onclick="openEditMemory(${memory.id})">✏ Edit</button>` 
+              : `<button class="edit-btn" style="opacity:0.5;" disabled>✏ Edit</button>`}
           </div>
-          ${can('replaceFile') ? `
-            <div style="margin-top:10px;">
-              <label style="color:var(--text-muted); font-size:0.85rem;">Replace file:</label>
-              <input type="file" accept="image/*,video/*" onchange="replaceFile(${memory.id}, this.files[0])" />
-            </div>` : ''}
-          ${state.adminUser?.role === 'superadmin' && memory.deletedAt ? `
-            <button class="btn btn-danger" style="margin-top:12px; width:100%; justify-content:center; padding:12px 16px;"
-              onclick="purgeMemory(${memory.id})">Purge Permanently</button>` : ''}
+          ${isSuperAdmin && memory.deletedAt ? `
+            <button class="btn btn-danger" style="margin-top:12px; width:100%; justify-content:center; padding:12px 16px;" 
+                    onclick="purgeMemory(${memory.id})">⚠ Purge Permanently</button>
+          ` : ''}
         </div>
       </div>`;
   }).join(''));
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MEMORY ACTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
 async function approveMemory(id) {
   try {
-    const res  = await fetch(apiUrl(`/api/admin/approve/${id}`), {
-      method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` }
+    const res = await fetch(apiUrl(`/api/admin/approve/${id}`), {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${state.adminToken}` }
     });
     const data = await res.json();
-    if (data.success) { showNotification('success', 'Approved', 'Memory approved.'); loadAdminMemories(true); loadMemories(true); }
-    else showNotification('error', 'Failed', data.error || 'Could not approve.');
-  } catch (e) { showNotification('error', 'Failed', e.message); }
+    if (data.success) {
+      showNotification('success', 'Approved', 'Memory approved.');
+      loadAdminMemories(true);
+      if (typeof loadMemories === 'function') loadMemories(true);
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not approve.');
+    }
+  } catch (e) {
+    showNotification('error', 'Failed', e.message);
+  }
 }
 
 async function approveAllPending() {
   if (!confirm('Approve all pending memories?')) return;
   try {
-    const res  = await fetch(apiUrl(`/api/admin/approve-all`), {
-      method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` }
+    const res = await fetch(apiUrl(`/api/admin/approve-all`), {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${state.adminToken}` }
     });
     const data = await res.json();
-    if (data.success) { showNotification('success', 'Approved All', `${data.count} approved.`); loadAdminMemories(true); loadMemories(true); }
-    else showNotification('error', 'Failed', data.error || 'Could not approve all.');
-  } catch (e) { showNotification('error', 'Failed', e.message); }
+    if (data.success) {
+      showNotification('success', 'Approved All', `${data.count} approved.`);
+      loadAdminMemories(true);
+      if (typeof loadMemories === 'function') loadMemories(true);
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not approve all.');
+    }
+  } catch (e) {
+    showNotification('error', 'Failed', e.message);
+  }
 }
 
 async function trashMemory(id) {
   if (!confirm('Move this memory to Trash?')) return;
   try {
-    const res  = await fetch(apiUrl(`/api/admin/delete/${id}`), {
-      method: 'DELETE', headers: { 'Authorization': `Bearer ${state.adminToken}` }
+    const res = await fetch(apiUrl(`/api/admin/delete/${id}`), {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${state.adminToken}` }
     });
     const data = await res.json();
-    if (data.success) { showNotification('success', 'Trashed', 'Moved to trash.'); loadAdminMemories(true); loadMemories(true); }
-    else showNotification('error', 'Failed', data.error || 'Could not trash.');
-  } catch (e) { showNotification('error', 'Failed', e.message); }
+    if (data.success) {
+      showNotification('success', 'Trashed', 'Moved to trash.');
+      loadAdminMemories(true);
+      if (typeof loadMemories === 'function') loadMemories(true);
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not trash.');
+    }
+  } catch (e) {
+    showNotification('error', 'Failed', e.message);
+  }
 }
 
 async function restoreMemory(id) {
   try {
-    const res  = await fetch(apiUrl(`/api/admin/restore/${id}`), {
-      method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` }
+    const res = await fetch(apiUrl(`/api/admin/restore/${id}`), {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${state.adminToken}` }
     });
     const data = await res.json();
-    if (data.success) { showNotification('success', 'Restored', 'Memory restored.'); loadAdminMemories(true); loadMemories(true); }
-    else showNotification('error', 'Failed', data.error || 'Could not restore.');
-  } catch (e) { showNotification('error', 'Failed', e.message); }
+    if (data.success) {
+      showNotification('success', 'Restored', 'Memory restored.');
+      loadAdminMemories(true);
+      if (typeof loadMemories === 'function') loadMemories(true);
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not restore.');
+    }
+  } catch (e) {
+    showNotification('error', 'Failed', e.message);
+  }
 }
 
 async function purgeMemory(id) {
   if (!confirm('Purge permanently? This deletes the file and cannot be undone.')) return;
   try {
-    const res  = await fetch(apiUrl(`/api/admin/purge/${id}`), {
-      method: 'DELETE', headers: { 'Authorization': `Bearer ${state.adminToken}` }
+    const res = await fetch(apiUrl(`/api/admin/purge/${id}`), {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${state.adminToken}` }
     });
     const data = await res.json();
-    if (data.success) { showNotification('success', 'Purged', 'Deleted permanently.'); loadAdminMemories(true); loadMemories(true); }
-    else showNotification('error', 'Failed', data.error || 'Could not purge.');
-  } catch (e) { showNotification('error', 'Failed', e.message); }
+    if (data.success) {
+      showNotification('success', 'Purged', 'Deleted permanently.');
+      loadAdminMemories(true);
+      if (typeof loadMemories === 'function') loadMemories(true);
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not purge.');
+    }
+  } catch (e) {
+    showNotification('error', 'Failed', e.message);
+  }
 }
 
-async function replaceFile(id, file) {
-  if (!file) return;
-  if (!confirm('Replace the file for this memory?')) return;
-  const fd = new FormData();
-  fd.append('file', file);
-  try {
-    const res  = await fetch(apiUrl(`/api/admin/memory/replace-file/${id}`), {
-      method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` }, body: fd
-    });
-    const data = await res.json();
-    if (data.success) { showNotification('success', 'Replaced', 'File replaced.'); loadAdminMemories(true); loadMemories(true); }
-    else showNotification('error', 'Failed', data.error || 'Could not replace.');
-  } catch (e) { showNotification('error', 'Failed', e.message); }
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+// BULK SELECTION
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function toggleBulkSelect() {
   state.adminBulkMode = !state.adminBulkMode;
@@ -320,29 +465,48 @@ function toggleBulkSelect() {
 
 function updateBulkToggleUI() {
   const btn = document.getElementById('bulkSelectToggle');
-  if (btn) btn.textContent = `Bulk Select: ${state.adminBulkMode ? 'ON' : 'OFF'}`;
+  if (btn) {
+    btn.textContent = state.adminBulkMode ? '☑ Bulk Select: ON' : '☐ Bulk Select: OFF';
+  }
 }
 
 function toggleSelectId(id, checked) {
-  if (checked) state.adminSelectedIds.add(id);
-  else state.adminSelectedIds.delete(id);
+  if (checked) {
+    state.adminSelectedIds.add(id);
+  } else {
+    state.adminSelectedIds.delete(id);
+  }
 }
 
 async function bulkActionPrompt(action) {
-  if (!can('bulk')) return showNotification('error', 'No permission', 'You cannot do bulk actions.');
-  if (!state.adminBulkMode) return showNotification('info', 'Enable bulk select', 'Turn Bulk Select ON first.');
+  if (!can('bulk')) {
+    return showNotification('error', 'No permission', 'You cannot do bulk actions.');
+  }
+  
+  if (!state.adminBulkMode) {
+    return showNotification('info', 'Enable bulk select', 'Turn Bulk Select ON first.');
+  }
+  
   const ids = Array.from(state.adminSelectedIds);
-  if (!ids.length) return showNotification('info', 'Select items', 'Select at least one memory.');
+  if (!ids.length) {
+    return showNotification('info', 'Select items', 'Select at least one memory.');
+  }
+  
   let memoryType = undefined;
   if (action === 'setType') {
     memoryType = prompt('Enter new category/type:', 'Friends');
     if (!memoryType) return;
   }
+  
   if (!confirm(`Run bulk action "${action}" on ${ids.length} item(s)?`)) return;
+  
   try {
-    const res  = await fetch(apiUrl(`/api/admin/bulk`), {
+    const res = await fetch(apiUrl(`/api/admin/bulk`), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.adminToken}`
+      },
       body: JSON.stringify({ action, ids, memoryType })
     });
     const data = await res.json();
@@ -350,36 +514,62 @@ async function bulkActionPrompt(action) {
       showNotification('success', 'Bulk done', `${data.changed} updated.`);
       state.adminSelectedIds.clear();
       loadAdminMemories(true, true);
-      loadMemories(true);
-    } else showNotification('error', 'Failed', data.error || 'Bulk failed.');
-  } catch (e) { showNotification('error', 'Failed', e.message); }
+      if (typeof loadMemories === 'function') loadMemories(true);
+    } else {
+      showNotification('error', 'Failed', data.error || 'Bulk failed.');
+    }
+  } catch (e) {
+    showNotification('error', 'Failed', e.message);
+  }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// EDIT MEMORY
+// ═══════════════════════════════════════════════════════════════════════════════
+
 async function openEditMemory(id) {
-  const name        = prompt('Student name (leave blank to keep):');
-  const caption     = prompt('Caption (leave blank to keep):');
-  const type        = prompt('Category/type (leave blank to keep):');
+  const name = prompt('Student name (leave blank to keep):');
+  const caption = prompt('Caption (leave blank to keep):');
+  const type = prompt('Category/type (leave blank to keep):');
   const featuredStr = prompt('Featured? (yes/no/blank keep):');
+  
   let featured = undefined;
   if (featuredStr && featuredStr.toLowerCase().startsWith('y')) featured = 1;
   if (featuredStr && featuredStr.toLowerCase().startsWith('n')) featured = 0;
+  
   const payload = {};
-  if (name    !== null && name.trim()    !== '') payload.student_name = name;
-  if (caption !== null && caption.trim() !== '') payload.caption      = caption;
-  if (type    !== null && type.trim()    !== '') payload.memory_type  = type;
+  if (name !== null && name.trim() !== '') payload.student_name = name;
+  if (caption !== null && caption.trim() !== '') payload.caption = caption;
+  if (type !== null && type.trim() !== '') payload.memory_type = type;
   if (featured !== undefined) payload.featured = featured;
+  
   if (!Object.keys(payload).length) return;
+  
   try {
-    const res  = await fetch(apiUrl(`/api/admin/memory/edit/${id}`), {
+    const res = await fetch(apiUrl(`/api/admin/memory/edit/${id}`), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.adminToken}`
+      },
       body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (data.success) { showNotification('success', 'Saved', 'Memory updated.'); loadAdminMemories(true); loadMemories(true); }
-    else showNotification('error', 'Failed', data.error || 'Edit failed.');
-  } catch (e) { showNotification('error', 'Failed', e.message); }
+    if (data.success) {
+      showNotification('success', 'Saved', 'Memory updated.');
+      loadAdminMemories(true);
+      if (typeof loadMemories === 'function') loadMemories(true);
+    } else {
+      showNotification('error', 'Failed', data.error || 'Edit failed.');
+    }
+  } catch (e) {
+    showNotification('error', 'Failed', e.message);
+  }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DOWNLOAD & EXPORT
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function downloadAllApproved() {
   window.location.href = apiUrl(`/api/admin/download-all?token=${encodeURIComponent(state.adminToken || '')}`);
@@ -387,57 +577,99 @@ function downloadAllApproved() {
 }
 
 function exportCSV() {
-  fetch(apiUrl(`/api/admin/export/csv`), { headers: { 'Authorization': `Bearer ${state.adminToken}` } })
-    .then(async r => {
-      if (!r.ok) throw new Error('Export failed');
-      const blob = await r.blob();
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `memories-export-${new Date().toISOString().slice(0, 10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-      showNotification('success', 'Exported', 'CSV downloaded.');
-    })
-    .catch(e => showNotification('error', 'Failed', e.message));
+  fetch(apiUrl(`/api/admin/export/csv`), {
+    headers: { 'Authorization': `Bearer ${state.adminToken}` }
+  })
+  .then(async r => {
+    if (!r.ok) throw new Error('Export failed');
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `memories-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showNotification('success', 'Exported', 'CSV downloaded.');
+  })
+  .catch(e => showNotification('error', 'Failed', e.message));
 }
 
-// Inline editing (used from admin grid double-click)
-function makeInlineEditable(element, memoryId, field) {
-  if (!element || !can('editMemory')) return;
-  element.classList.add('inline-editable');
-  element.setAttribute('data-memory-id', memoryId);
-  element.setAttribute('data-field', field);
-  element.addEventListener('dblclick', function(e) { e.stopPropagation(); startInlineEdit(this); });
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+// INLINE EDITING
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function startInlineEdit(element) {
   if (element.classList.contains('editing')) return;
+  
   const originalText = element.textContent;
   element.classList.add('editing');
+  
   const input = document.createElement('input');
-  input.type = 'text'; input.className = 'inline-edit-input'; input.value = originalText;
-  element.textContent = ''; element.appendChild(input); input.focus(); input.select();
+  input.type = 'text';
+  input.className = 'inline-edit-input';
+  input.value = originalText;
+  element.textContent = '';
+  element.appendChild(input);
+  input.focus();
+  input.select();
+  
   const save = async () => {
     const newValue = input.value.trim();
     element.classList.remove('editing');
     element.textContent = newValue || originalText;
+    
     if (newValue && newValue !== originalText) {
       try {
-        const res  = await fetch(apiUrl('/api/admin/memory/edit/' + element.getAttribute('data-memory-id')), {
+        const res = await fetch(apiUrl('/api/admin/memory/edit/' + element.getAttribute('data-memory-id')), {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.adminToken },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + state.adminToken
+          },
           body: JSON.stringify({ [element.getAttribute('data-field')]: newValue })
         });
         const data = await res.json();
-        if (data.success) showNotification('success', 'Saved', 'Updated ' + element.getAttribute('data-field'));
-        else { element.textContent = originalText; showNotification('error', 'Failed', data.error); }
-      } catch (e) { element.textContent = originalText; showNotification('error', 'Error', e.message); }
+        if (data.success) {
+          showNotification('success', 'Saved', 'Updated ' + element.getAttribute('data-field'));
+        } else {
+          element.textContent = originalText;
+          showNotification('error', 'Failed', data.error);
+        }
+      } catch (e) {
+        element.textContent = originalText;
+        showNotification('error', 'Error', e.message);
+      }
     }
   };
+  
   input.addEventListener('blur', save);
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') save();
-    if (e.key === 'Escape') { element.classList.remove('editing'); element.textContent = originalText; }
+    if (e.key === 'Escape') {
+      element.classList.remove('editing');
+      element.textContent = originalText;
+    }
   });
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPOSE FUNCTIONS GLOBALLY
+// ═══════════════════════════════════════════════════════════════════════════════
+
+window.initModerationPanelContent = initModerationPanelContent;
+window.loadAdminMemories = loadAdminMemories;
+window.adminLoadMore = adminLoadMore;
+window.approveMemory = approveMemory;
+window.approveAllPending = approveAllPending;
+window.trashMemory = trashMemory;
+window.restoreMemory = restoreMemory;
+window.purgeMemory = purgeMemory;
+window.toggleBulkSelect = toggleBulkSelect;
+window.toggleSelectId = toggleSelectId;
+window.bulkActionPrompt = bulkActionPrompt;
+window.openEditMemory = openEditMemory;
+window.downloadAllApproved = downloadAllApproved;
+window.exportCSV = exportCSV;
+window.startInlineEdit = startInlineEdit;
+
+console.log('✅ Admin Moderation loaded');
 </script>

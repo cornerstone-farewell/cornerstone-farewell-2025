@@ -1,3 +1,4 @@
+
 <!-- FRAGMENT: admin_sitesettings -->
 
 <script data-fragment-script="admin_sitesettings">
@@ -213,7 +214,13 @@ function renderSettingsPanelHtml() {
         <div class="form-group"><label>Hero Subtitle</label><input class="form-input" id="setHeroSubtitle"/></div>
         <div class="form-group"><label>Hero Description</label><textarea class="form-textarea" id="setHeroDescription" maxlength="600"></textarea></div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-          <div class="form-group"><label>Quote Text</label><textarea class="form-textarea" id="setQuoteText" maxlength="7000"></textarea></div>
+        <div class="form-group">
+  <label>Quote Text (max 2000 words)</label>
+  <textarea class="form-textarea" id="setQuoteText" placeholder="2000 words max"></textarea>
+  <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
+    <span id="quoteWordCount">0</span> / 2000 words
+  </div>
+</div>
           <div class="form-group"><label>Quote Author</label><input class="form-input" id="setQuoteAuthor"/></div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
@@ -562,4 +569,27 @@ window.uploadStudentDirectoryCsv = uploadStudentDirectoryCsv;
 window.bulkApplyStudentsToSuperlatives = bulkApplyStudentsToSuperlatives;
 
 console.log('✅ Admin Site Settings loaded');
+  window.bulkApplyStudentsToSuperlatives = bulkApplyStudentsToSuperlatives;
+
+// ── Word counter for quote ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const quoteTextarea = document.getElementById('setQuoteText');
+  const wordCountDisplay = document.getElementById('quoteWordCount');
+  
+  if (quoteTextarea) {
+    quoteTextarea.addEventListener('input', (e) => {
+      const words = e.target.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+      if (wordCountDisplay) wordCountDisplay.textContent = words;
+      
+      if (words > 2000) {
+        const trimmed = e.target.value.trim().split(/\s+/).slice(0, 2000).join(' ');
+        e.target.value = trimmed;
+        if (wordCountDisplay) wordCountDisplay.textContent = '2000';
+      }
+    });
+  }
+});
+
+console.log('✅ Admin Site Settings loaded');
+</script>
 </script>

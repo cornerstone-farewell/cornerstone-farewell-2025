@@ -1,7 +1,9 @@
 <!-- FRAGMENT: admin_compilations -->
 
 <script data-fragment-script="admin_compilations">
-// ── Compilation admin panel + creator ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// COMPILATION ADMIN PANEL + CREATOR
+// ═══════════════════════════════════════════════════════════════════════════════
 
 let currentCompilation = null;
 let currentSlideIndex  = 0;
@@ -10,118 +12,202 @@ let compSelectedSlides  = [];
 let compEditingId       = null;
 let compAvailableMemories = [];
 
-// ── Public render (HTML string returned to buildAdminPanels) ─────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// RENDER PANEL HTML
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function renderCompilationsPanelHtml() {
   return `
   <div class="stat-card" style="text-align:left;">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
-      <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">Memory Compilations</h3>
+      <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.3rem;">🎬 Memory Compilations</h3>
       <div style="display:flex; gap:10px;">
-        <button class="admin-btn admin-btn-secondary" onclick="loadCompilationsAdmin()">Refresh</button>
-        <button class="admin-btn admin-btn-primary"   onclick="openCompilationCreator()">+ New Compilation</button>
+        <button class="admin-btn admin-btn-secondary" onclick="loadCompilationsAdmin()">🔄 Refresh</button>
+        <button class="admin-btn admin-btn-primary" onclick="openCompilationCreator()">+ New Compilation</button>
       </div>
     </div>
     <div class="mini-pill" style="margin-top:12px;">Create photo slideshows with transitions and captions</div>
-    <div id="compilationsListAdmin" style="margin-top:16px;"></div>
+    <div id="compilationsListAdmin" style="margin-top:16px;">
+      <div class="mini-pill">Loading compilations...</div>
+    </div>
   </div>`;
 }
 
-// ── Load & render list ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// INITIALIZE PANEL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function initCompilationsPanelContent() {
+  console.log('initCompilationsPanelContent called');
+  
+  const panel = document.getElementById('panelCompilations');
+  if (!panel) {
+    console.error('panelCompilations not found');
+    return;
+  }
+  
+  const hasContent = panel.innerHTML.trim().length > 100;
+  
+  if (!hasContent) {
+    console.log('Rendering compilations panel HTML...');
+    panel.innerHTML = renderCompilationsPanelHtml();
+  }
+  
+  // Load compilations after rendering
+  setTimeout(() => {
+    loadCompilationsAdmin();
+  }, 50);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LOAD & RENDER LIST
+// ═══════════════════════════════════════════════════════════════════════════════
 
 async function loadCompilationsAdmin() {
+  const list = document.getElementById('compilationsListAdmin');
+  if (list) list.innerHTML = '<div class="mini-pill">Loading...</div>';
+  
   try {
-    const res  = await fetch(apiUrl('/api/compilations'));
+    const res = await fetch(apiUrl('/api/compilations'));
     const data = await res.json();
-    if (!data.success) return;
-    const list = document.getElementById('compilationsListAdmin');
+    
+    if (!data.success) {
+      if (list) list.innerHTML = '<div class="mini-pill">Failed to load compilations</div>';
+      return;
+    }
+    
     if (!list) return;
+    
     if (!data.compilations || !data.compilations.length) {
       list.innerHTML = '<div class="mini-pill">No compilations yet. Create your first one!</div>';
       return;
     }
+    
     list.innerHTML = data.compilations.map(c => {
-      const thumbs = c.slides.slice(0, 8).map(s => {
-        const mem = compAvailableMemories.find(m => m.id === s.memoryId) || (state.memories || []).find(m => m.id === s.memoryId);
-        return mem ? `<img src="${mediaUrl(mem.file_url)}" style="width:60px; height:60px; object-fit:cover; border-radius:8px;" />` : '';
-      }).join('');
+      const slideCount = c.slides?.length || 0;
       return `
         <div class="admin-memory-card" style="padding:16px; margin-bottom:12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
               <div style="font-weight:800; font-size:1.1rem;">${escapeHtml(c.name)}</div>
               <div style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">
-                ${c.slides.length} slides &bull; ${c.displayMode} mode &bull; ${c.transitionType} transition
+                ${slideCount} slides • ${c.displayMode || 'auto'} mode • ${c.transitionType || 'fade'} transition
               </div>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="admin-btn admin-btn-primary"   onclick="playCompilation(${c.id})">▶ Play</button>
-              <button class="admin-btn admin-btn-secondary" onclick="editCompilationAdmin(${c.id})">Edit</button>
-              <button class="admin-btn admin-btn-danger"    onclick="deleteCompilationAdmin(${c.id})">Delete</button>
+              <button class="admin-btn admin-btn-primary" onclick="playCompilation(${c.id})">▶ Play</button>
+              <button class="admin-btn admin-btn-secondary" onclick="editCompilationAdmin(${c.id})">✏ Edit</button>
+              <button class="admin-btn admin-btn-danger" onclick="deleteCompilationAdmin(${c.id})">🗑 Delete</button>
             </div>
-          </div>
-          <div style="display:flex; gap:8px; margin-top:12px; overflow-x:auto; padding:8px 0;">
-            ${thumbs}
-            ${c.slides.length > 8 ? `<span class="mini-pill">+${c.slides.length - 8} more</span>` : ''}
           </div>
         </div>`;
     }).join('');
-  } catch (e) { console.error('Load compilations error:', e); }
+    
+  } catch (e) {
+    console.error('Load compilations error:', e);
+    if (list) list.innerHTML = '<div class="mini-pill">Error loading compilations</div>';
+  }
 }
 
 async function editCompilationAdmin(id) {
   try {
-    const res  = await fetch(apiUrl('/api/compilations/' + id));
+    const res = await fetch(apiUrl('/api/compilations/' + id));
     const data = await res.json();
-    if (!data.success || !data.compilation) return;
-    compEditingId      = id;
-    compSelectedSlides = data.compilation.slides.map(s => ({ memoryId: s.memoryId, caption: s.caption || '', duration: s.duration || 5 }));
-    document.getElementById('compName').value            = data.compilation.name;
-    document.getElementById('compDisplayMode').value     = data.compilation.displayMode   || 'auto';
-    document.getElementById('compTransition').value      = data.compilation.transitionType || 'fade';
-    loadCompPhotoGrid();
-    setTimeout(() => { updateCompPhotoSelection(); renderCompSlidesPreview(); }, 500);
-    document.getElementById('compilationCreatorModal').classList.add('active');
-  } catch (e) { showNotification('error', 'Error', e.message); }
+    
+    if (!data.success || !data.compilation) {
+      showNotification('error', 'Error', 'Could not load compilation');
+      return;
+    }
+    
+    compEditingId = id;
+    compSelectedSlides = (data.compilation.slides || []).map(s => ({
+      memoryId: s.memoryId,
+      caption: s.caption || '',
+      duration: s.duration || 5
+    }));
+    
+    const nameInput = document.getElementById('compName');
+    const modeInput = document.getElementById('compDisplayMode');
+    const transInput = document.getElementById('compTransition');
+    
+    if (nameInput) nameInput.value = data.compilation.name || '';
+    if (modeInput) modeInput.value = data.compilation.displayMode || 'auto';
+    if (transInput) transInput.value = data.compilation.transitionType || 'fade';
+    
+    await loadCompPhotoGrid();
+    
+    setTimeout(() => {
+      updateCompPhotoSelection();
+      renderCompSlidesPreview();
+    }, 300);
+    
+    const modal = document.getElementById('compilationCreatorModal');
+    if (modal) modal.classList.add('active');
+    
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
 }
 
 async function deleteCompilationAdmin(id) {
   if (!confirm('Delete this compilation?')) return;
+  
   try {
-    const res  = await fetch(apiUrl('/api/admin/compilations/' + id), {
+    const res = await fetch(apiUrl('/api/admin/compilations/' + id), {
       method: 'DELETE',
       headers: { 'Authorization': 'Bearer ' + state.adminToken }
     });
     const data = await res.json();
+    
     if (data.success) {
       showNotification('success', 'Deleted', 'Compilation removed');
       loadCompilationsAdmin();
       if (typeof loadPublicCompilations === 'function') loadPublicCompilations();
-    } else showNotification('error', 'Failed', data.error);
-  } catch (e) { showNotification('error', 'Error', e.message); }
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not delete');
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
 }
 
-// ── Compilation player ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// COMPILATION PLAYER
+// ═══════════════════════════════════════════════════════════════════════════════
 
 async function playCompilation(compilationId) {
   try {
-    const res  = await fetch(apiUrl('/api/compilations/' + compilationId));
+    const res = await fetch(apiUrl('/api/compilations/' + compilationId));
     const data = await res.json();
-    if (!data.success || !data.compilation) return showNotification('error', 'Error', 'Could not load compilation');
+    
+    if (!data.success || !data.compilation) {
+      return showNotification('error', 'Error', 'Could not load compilation');
+    }
+    
     currentCompilation = data.compilation;
-    currentSlideIndex  = 0;
+    currentSlideIndex = 0;
+    
     renderCompilationSlides();
+    
     const player = document.getElementById('compilationPlayer');
-    if (player) player.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    showCompilationSlide(0);
-  } catch (e) { showNotification('error', 'Error', e.message); }
+    if (player) {
+      player.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      showCompilationSlide(0);
+    } else {
+      showNotification('error', 'Error', 'Player element not found');
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
 }
 
 function renderCompilationSlides() {
   const container = document.getElementById('compilationSlides');
-  const progress  = document.getElementById('compilationProgress');
+  const progress = document.getElementById('compilationProgress');
+  
   if (!container || !currentCompilation) return;
+  
   const transClass = 'trans-' + (currentCompilation.transitionType || 'fade');
 
   container.innerHTML = currentCompilation.slides.map((slide, i) => {
@@ -129,10 +215,12 @@ function renderCompilationSlides() {
       || (state.memories || []).find(m => m.id === slide.memoryId);
     const rawUrl = slide.file_url || (memory ? memory.file_url : '');
     const imgUrl = rawUrl ? mediaUrl(rawUrl) : '';
-    return `<div class="compilation-slide ${transClass}" data-index="${i}">
-      <img src="${imgUrl}" alt="Memory" onerror="this.style.display='none'"/>
-      ${slide.caption ? `<div class="compilation-caption">${escapeHtml(slide.caption)}</div>` : ''}
-    </div>`;
+    
+    return `
+      <div class="compilation-slide ${transClass}" data-index="${i}">
+        <img src="${imgUrl}" alt="Memory" onerror="this.style.display='none'"/>
+        ${slide.caption ? `<div class="compilation-caption">${escapeHtml(slide.caption)}</div>` : ''}
+      </div>`;
   }).join('');
 
   if (progress) {
@@ -144,136 +232,272 @@ function renderCompilationSlides() {
 
 function showCompilationSlide(index) {
   if (!currentCompilation) return;
+  
   currentSlideIndex = index;
-  document.querySelectorAll('.compilation-slide').forEach((s, i) => s.classList.toggle('active', i === index));
-  document.querySelectorAll('.compilation-dot').forEach((d, i) => d.classList.toggle('active', i === index));
+  
+  document.querySelectorAll('.compilation-slide').forEach((s, i) => {
+    s.classList.toggle('active', i === index);
+  });
+  
+  document.querySelectorAll('.compilation-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === index);
+  });
+  
   if (compilationTimer) clearTimeout(compilationTimer);
+  
   if (currentCompilation.displayMode === 'auto') {
     const duration = (currentCompilation.slides[index]?.duration || 5) * 1000;
     compilationTimer = setTimeout(() => {
-      if (currentSlideIndex < currentCompilation.slides.length - 1) showCompilationSlide(currentSlideIndex + 1);
-      else showCompilationSlide(0);
+      if (currentSlideIndex < currentCompilation.slides.length - 1) {
+        showCompilationSlide(currentSlideIndex + 1);
+      } else {
+        showCompilationSlide(0);
+      }
     }, duration);
   }
 }
 
-function nextCompilationSlide() { if (currentCompilation) showCompilationSlide((currentSlideIndex + 1) % currentCompilation.slides.length); }
-function prevCompilationSlide() { if (currentCompilation) showCompilationSlide((currentSlideIndex - 1 + currentCompilation.slides.length) % currentCompilation.slides.length); }
-function goToCompilationSlide(index) { showCompilationSlide(index); }
+function nextCompilationSlide() {
+  if (currentCompilation) {
+    showCompilationSlide((currentSlideIndex + 1) % currentCompilation.slides.length);
+  }
+}
+
+function prevCompilationSlide() {
+  if (currentCompilation) {
+    showCompilationSlide((currentSlideIndex - 1 + currentCompilation.slides.length) % currentCompilation.slides.length);
+  }
+}
+
+function goToCompilationSlide(index) {
+  showCompilationSlide(index);
+}
 
 function closeCompilationPlayer() {
   if (compilationTimer) clearTimeout(compilationTimer);
+  
   const player = document.getElementById('compilationPlayer');
   if (player) player.classList.remove('active');
+  
   document.body.style.overflow = '';
   currentCompilation = null;
 }
 
-// ── Compilation creator ───────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// COMPILATION CREATOR
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function openCompilationCreator(editId = null) {
-  compEditingId = editId; compSelectedSlides = [];
-  document.getElementById('compName').value            = '';
-  document.getElementById('compDisplayMode').value     = 'auto';
-  document.getElementById('compTransition').value      = 'fade';
-  document.getElementById('compDefaultDuration').value = '5';
+  compEditingId = editId;
+  compSelectedSlides = [];
+  
+  const nameInput = document.getElementById('compName');
+  const modeInput = document.getElementById('compDisplayMode');
+  const transInput = document.getElementById('compTransition');
+  const durInput = document.getElementById('compDefaultDuration');
+  
+  if (nameInput) nameInput.value = '';
+  if (modeInput) modeInput.value = 'auto';
+  if (transInput) transInput.value = 'fade';
+  if (durInput) durInput.value = '5';
+  
   loadCompPhotoGrid();
   renderCompSlidesPreview();
-  document.getElementById('compilationCreatorModal').classList.add('active');
+  
+  const modal = document.getElementById('compilationCreatorModal');
+  if (modal) {
+    modal.classList.add('active');
+  } else {
+    showNotification('error', 'Error', 'Compilation creator modal not found');
+  }
 }
 
 function closeCompilationCreator() {
-  document.getElementById('compilationCreatorModal').classList.remove('active');
-  compSelectedSlides = []; compEditingId = null;
+  const modal = document.getElementById('compilationCreatorModal');
+  if (modal) modal.classList.remove('active');
+  
+  compSelectedSlides = [];
+  compEditingId = null;
 }
 
 async function loadCompPhotoGrid() {
   const grid = document.getElementById('compPhotoGrid');
   if (!grid) return;
+  
+  grid.innerHTML = '<div class="mini-pill">Loading photos...</div>';
+  
   try {
-    const res  = await fetch(apiUrl('/api/admin/memories?limit=5000&filter=approved'), {
+    const res = await fetch(apiUrl('/api/admin/memories?limit=5000&filter=approved'), {
       headers: { 'Authorization': 'Bearer ' + state.adminToken }
     });
     const data = await res.json();
-    if (!data.success) return;
+    
+    if (!data.success) {
+      grid.innerHTML = '<div class="mini-pill">Failed to load photos</div>';
+      return;
+    }
+    
     const memories = (data.memories || []).filter(m => m.file_type === 'image');
     compAvailableMemories = memories;
+    
+    if (!memories.length) {
+      grid.innerHTML = '<div class="mini-pill">No photos available</div>';
+      return;
+    }
+    
     grid.innerHTML = memories.map(m =>
       `<div class="compilation-photo-item" data-id="${m.id}" onclick="toggleCompPhoto(${m.id})">
          <img src="${mediaUrl(m.file_url)}" alt="" />
          <div class="photo-check">✓</div>
        </div>`
-    ).join('') || '<div class="mini-pill">No photos available</div>';
-  } catch (e) { grid.innerHTML = '<div class="mini-pill">Error loading photos</div>'; }
+    ).join('');
+    
+  } catch (e) {
+    grid.innerHTML = '<div class="mini-pill">Error loading photos</div>';
+  }
 }
 
 function toggleCompPhoto(memoryId) {
   const idx = compSelectedSlides.findIndex(s => s.memoryId === memoryId);
-  if (idx >= 0) compSelectedSlides.splice(idx, 1);
-  else compSelectedSlides.push({
-    memoryId,
-    caption:  '',
-    duration: parseInt(document.getElementById('compDefaultDuration').value) || 5
-  });
+  
+  if (idx >= 0) {
+    compSelectedSlides.splice(idx, 1);
+  } else {
+    const durInput = document.getElementById('compDefaultDuration');
+    compSelectedSlides.push({
+      memoryId,
+      caption: '',
+      duration: parseInt(durInput?.value) || 5
+    });
+  }
+  
   updateCompPhotoSelection();
   renderCompSlidesPreview();
 }
 
 function updateCompPhotoSelection() {
   document.querySelectorAll('.compilation-photo-item').forEach(el => {
-    el.classList.toggle('selected', compSelectedSlides.some(s => s.memoryId === parseInt(el.dataset.id)));
+    const id = parseInt(el.dataset.id);
+    el.classList.toggle('selected', compSelectedSlides.some(s => s.memoryId === id));
   });
 }
 
 function renderCompSlidesPreview() {
   const preview = document.getElementById('compSlidesPreview');
   if (!preview) return;
+  
   if (compSelectedSlides.length === 0) {
     preview.innerHTML = '<div class="mini-pill" style="margin:auto;">No slides selected yet</div>';
     return;
   }
+  
   preview.innerHTML = compSelectedSlides.map((slide, i) => {
-    const mem    = compAvailableMemories.find(m => m.id === slide.memoryId) || (state.memories || []).find(m => m.id === slide.memoryId);
+    const mem = compAvailableMemories.find(m => m.id === slide.memoryId)
+      || (state.memories || []).find(m => m.id === slide.memoryId);
     const imgUrl = mem ? mediaUrl(mem.file_url) : '';
-    return `<div class="compilation-slide-preview" data-index="${i}">
-      <img src="${imgUrl}" alt="" />
-      <input type="text"   placeholder="Caption..."  value="${escapeAttr(slide.caption)}"  onchange="updateSlideCaption(${i}, this.value)" />
-      <input type="number" min="1" max="60" value="${slide.duration}" onchange="updateSlideDuration(${i}, this.value)" style="margin-top:4px;" />
-      <button class="remove-slide" onclick="removeCompSlide(${i})">Remove</button>
-    </div>`;
+    
+    return `
+      <div class="compilation-slide-preview" data-index="${i}">
+        <img src="${imgUrl}" alt="" />
+        <input type="text" placeholder="Caption..." value="${escapeAttr(slide.caption)}" 
+               onchange="updateSlideCaption(${i}, this.value)" />
+        <input type="number" min="1" max="60" value="${slide.duration}" 
+               onchange="updateSlideDuration(${i}, this.value)" style="margin-top:4px;" />
+        <button class="remove-slide" onclick="removeCompSlide(${i})">✕ Remove</button>
+      </div>`;
   }).join('');
 }
 
-function updateSlideCaption(index, caption)   { if (compSelectedSlides[index]) compSelectedSlides[index].caption  = caption; }
-function updateSlideDuration(index, duration) { if (compSelectedSlides[index]) compSelectedSlides[index].duration = Math.max(1, Math.min(60, parseInt(duration) || 5)); }
-function removeCompSlide(index) { compSelectedSlides.splice(index, 1); updateCompPhotoSelection(); renderCompSlidesPreview(); }
+function updateSlideCaption(index, caption) {
+  if (compSelectedSlides[index]) {
+    compSelectedSlides[index].caption = caption;
+  }
+}
+
+function updateSlideDuration(index, duration) {
+  if (compSelectedSlides[index]) {
+    compSelectedSlides[index].duration = Math.max(1, Math.min(60, parseInt(duration) || 5));
+  }
+}
+
+function removeCompSlide(index) {
+  compSelectedSlides.splice(index, 1);
+  updateCompPhotoSelection();
+  renderCompSlidesPreview();
+}
 
 async function saveCompilation() {
-  const name = document.getElementById('compName').value.trim();
-  if (!name) return showNotification('error', 'Name required', 'Enter a compilation name');
-  if (compSelectedSlides.length < 2) return showNotification('error', 'Need slides', 'Select at least 2 photos');
+  const nameInput = document.getElementById('compName');
+  const name = nameInput?.value?.trim();
+  
+  if (!name) {
+    return showNotification('error', 'Name required', 'Enter a compilation name');
+  }
+  
+  if (compSelectedSlides.length < 2) {
+    return showNotification('error', 'Need slides', 'Select at least 2 photos');
+  }
+  
+  const modeInput = document.getElementById('compDisplayMode');
+  const transInput = document.getElementById('compTransition');
+  
   const payload = {
     name,
-    slides:         compSelectedSlides,
-    displayMode:    document.getElementById('compDisplayMode').value,
-    transitionType: document.getElementById('compTransition').value
+    slides: compSelectedSlides,
+    displayMode: modeInput?.value || 'auto',
+    transitionType: transInput?.value || 'fade'
   };
+  
   try {
     const url = compEditingId
       ? apiUrl('/api/admin/compilations/' + compEditingId)
       : apiUrl('/api/admin/compilations');
-    const res  = await fetch(url, {
+      
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.adminToken },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + state.adminToken
+      },
       body: JSON.stringify(payload)
     });
+    
     const data = await res.json();
+    
     if (data.success) {
       showNotification('success', 'Saved', compEditingId ? 'Compilation updated' : 'Compilation created');
       closeCompilationCreator();
       loadCompilationsAdmin();
       if (typeof loadPublicCompilations === 'function') loadPublicCompilations();
-    } else showNotification('error', 'Failed', data.error);
-  } catch (e) { showNotification('error', 'Error', e.message); }
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not save');
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPOSE GLOBALLY
+// ═══════════════════════════════════════════════════════════════════════════════
+
+window.initCompilationsPanelContent = initCompilationsPanelContent;
+window.renderCompilationsPanelHtml = renderCompilationsPanelHtml;
+window.loadCompilationsAdmin = loadCompilationsAdmin;
+window.editCompilationAdmin = editCompilationAdmin;
+window.deleteCompilationAdmin = deleteCompilationAdmin;
+window.playCompilation = playCompilation;
+window.closeCompilationPlayer = closeCompilationPlayer;
+window.nextCompilationSlide = nextCompilationSlide;
+window.prevCompilationSlide = prevCompilationSlide;
+window.goToCompilationSlide = goToCompilationSlide;
+window.openCompilationCreator = openCompilationCreator;
+window.closeCompilationCreator = closeCompilationCreator;
+window.toggleCompPhoto = toggleCompPhoto;
+window.updateSlideCaption = updateSlideCaption;
+window.updateSlideDuration = updateSlideDuration;
+window.removeCompSlide = removeCompSlide;
+window.saveCompilation = saveCompilation;
+
+console.log('✅ Admin Compilations loaded');
 </script>
