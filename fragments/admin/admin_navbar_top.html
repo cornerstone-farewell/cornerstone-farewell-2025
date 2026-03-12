@@ -485,39 +485,32 @@ function switchAdminTab(tab) {
   const tabEl = document.getElementById('tab' + capitalize(tab));
   const panelEl = document.getElementById('panel' + capitalize(tab));
   
-  if (tabEl) {
-    tabEl.classList.add('active');
-  } else {
-    console.warn('Tab element not found: tab' + capitalize(tab));
-  }
-  
-  if (panelEl) {
-    panelEl.classList.add('active');
-  } else {
-    console.warn('Panel element not found: panel' + capitalize(tab));
-  }
+  if (tabEl) tabEl.classList.add('active');
+  if (panelEl) panelEl.classList.add('active');
   
   // Initialize panel content based on which tab is selected
   switch(tab) {
-  case 'moderation':
-    if (typeof initModerationPanelContent === 'function') initModerationPanelContent();
-    break;
-  case 'settings':
-    if (typeof initSettingsPanelContent === 'function') initSettingsPanelContent();
-    break;
-  case 'theme':
-    if (typeof initThemePanelContent === 'function') initThemePanelContent();
-    break;
-  case 'users':
-    if (typeof initUsersPanelContent === 'function') initUsersPanelContent();
-    break;
-  case 'compilations':
-    if (typeof initCompilationsPanelContent === 'function') initCompilationsPanelContent();
-    break;
-  case 'security':
-    if (typeof initSecurityPanelContent === 'function') initSecurityPanelContent();
-    break;
-}
+    case 'moderation':
+      if (typeof initModerationPanelContent === 'function') initModerationPanelContent();
+      break;
+    case 'settings':
+      if (typeof initSettingsPanelContent === 'function') initSettingsPanelContent();
+      break;
+    case 'theme':
+      if (typeof initThemePanelContent === 'function') initThemePanelContent();
+      break;
+    case 'users':
+      if (typeof initUsersPanelContent === 'function') initUsersPanelContent();
+      break;
+    case 'compilations':
+      if (typeof initCompilationsPanelContent === 'function') initCompilationsPanelContent();
+      break;
+    case 'security':
+      if (typeof initSecurityPanelContent === 'function') initSecurityPanelContent();
+      break;
+    default:
+      console.warn('Unknown tab:', tab);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
