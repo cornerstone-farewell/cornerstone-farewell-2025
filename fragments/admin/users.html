@@ -20,7 +20,7 @@ function renderUsersPanelHtml() {
     ['teachers', false],
     ['timeline', false],
   ];
-  
+
   const permCheckboxes = permList.map(([k, def]) =>
     `<label style="display:flex; gap:10px; align-items:center; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.12);">
        <input type="checkbox" id="perm_${k}" ${def ? 'checked' : ''} /><span>${k}</span>
@@ -76,21 +76,21 @@ function renderUsersPanelHtml() {
 
 function initUsersPanelContent() {
   console.log('initUsersPanelContent called');
-  
+
   const panel = document.getElementById('panelUsers');
   if (!panel) {
     console.error('panelUsers not found');
     return;
   }
-  
-  const hasContent = panel.innerHTML.trim().length > 100;
-  
-  if (!hasContent) {
+
+  // Use data attribute instead of length check
+  if (panel.dataset.initialized !== 'true') {
     console.log('Rendering users panel HTML...');
     panel.innerHTML = renderUsersPanelHtml();
+    panel.dataset.initialized = 'true';
   }
-  
-  // Load users
+
+  // Always load fresh data
   setTimeout(() => {
     loadUsers();
   }, 50);
@@ -113,19 +113,19 @@ function gatherPermsFromCreateForm() {
 async function loadUsers() {
   const list = document.getElementById('usersList');
   if (list) list.innerHTML = '<div class="mini-pill">Loading...</div>';
-  
+
   try {
     const res = await fetch(apiUrl('/api/admin/users'), {
       headers: { 'Authorization': `Bearer ${state.adminToken}` }
     });
     const data = await res.json();
-    
+
     if (!data.success) {
       if (list) list.innerHTML = '<div class="mini-pill">Failed to load users</div>';
       showNotification('error', 'Failed', data.error || 'Could not load users.');
       return;
     }
-    
+
     renderUsersList(data.users || []);
   } catch (e) {
     if (list) list.innerHTML = '<div class="mini-pill">Error loading users</div>';
@@ -136,7 +136,7 @@ async function loadUsers() {
 function renderUsersList(users) {
   const list = document.getElementById('usersList');
   if (!list) return;
-  
+
   if (!users.length) {
     list.innerHTML = `<div class="mini-pill">No users found.</div>`;
     return;
@@ -146,13 +146,13 @@ function renderUsersList(users) {
     const permBadges = Object.keys(u.permissions || {})
       .filter(k => u.permissions[k])
       .join(', ') || 'none';
-      
+
     const statusStyle = u.disabled
       ? 'border-color:rgba(244,67,54,0.4); color:#ffb3ad;'
       : 'border-color:rgba(76,175,80,0.4); color:#b7ffbf;';
-      
+
     const isSuper = u.id === 'super';
-    
+
     const editForm = isSuper
       ? `<div class="mini-pill" style="margin-top:10px;">Super admin cannot be edited here.</div>`
       : `<div style="margin-top:12px; display:grid; gap:10px;">
@@ -178,7 +178,7 @@ function renderUsersList(users) {
       <div class="admin-memory-card" style="padding:14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
           <div>
-            <div style="font-weight:800;">${escapeHtml(u.name || u.id)} 
+            <div style="font-weight:800;">${escapeHtml(u.name || u.id)}
               <span class="mini-pill" style="margin-left:8px;">${escapeHtml(u.role || 'user')}</span>
             </div>
             <div style="color:var(--text-muted); font-size:0.85rem;">ID: <strong style="color:var(--text-light);">${escapeHtml(u.id)}</strong></div>
@@ -201,15 +201,15 @@ async function createUser() {
   const password = document.getElementById('newUserPass')?.value || '';
   const role = document.getElementById('newUserRole')?.value || 'moderator';
   const permissions = gatherPermsFromCreateForm();
-  
+
   if (!id) {
     return showNotification('error', 'Missing ID', 'Enter a user ID');
   }
-  
+
   if (!password || password.length < 8) {
     return showNotification('error', 'Password required', 'Password must be at least 8 characters');
   }
-  
+
   try {
     const res = await fetch(apiUrl('/api/admin/users'), {
       method: 'POST',
@@ -219,12 +219,12 @@ async function createUser() {
       },
       body: JSON.stringify({ id, name: name || id, password, role, permissions })
     });
-    
+
     const data = await res.json();
-    
+
     if (data.success) {
       showNotification('success', 'Created', 'User created successfully.');
-      
+
       // Clear form
       const idInput = document.getElementById('newUserId');
       const nameInput = document.getElementById('newUserName');
@@ -232,7 +232,7 @@ async function createUser() {
       if (idInput) idInput.value = '';
       if (nameInput) nameInput.value = '';
       if (passInput) passInput.value = '';
-      
+
       loadUsers();
     } else {
       showNotification('error', 'Failed', data.error || 'Could not create user.');
@@ -250,11 +250,11 @@ async function updateUser(id) {
   const nameInput = document.getElementById(`editName_${id}`);
   const passInput = document.getElementById(`editPass_${id}`);
   const disabledInput = document.getElementById(`editDisabled_${id}`);
-  
+
   const name = nameInput?.value?.trim();
   const password = passInput?.value || '';
   const disabled = disabledInput?.value === 'true';
-  
+
   // Gather permissions
   const permInputs = document.querySelectorAll(`[id^="editPerm_${id}_"]`);
   const permissions = {};
@@ -262,12 +262,12 @@ async function updateUser(id) {
     const key = inp.id.replace(`editPerm_${id}_`, '');
     permissions[key] = !!inp.checked;
   });
-  
+
   const payload = { name, disabled, permissions };
   if (password && password.length >= 8) {
     payload.password = password;
   }
-  
+
   try {
     const res = await fetch(apiUrl(`/api/admin/users/${encodeURIComponent(id)}`), {
       method: 'POST',
@@ -277,9 +277,9 @@ async function updateUser(id) {
       },
       body: JSON.stringify(payload)
     });
-    
+
     const data = await res.json();
-    
+
     if (data.success) {
       showNotification('success', 'Saved', 'User updated successfully.');
       loadUsers();

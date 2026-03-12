@@ -41,21 +41,21 @@ function renderThemePanelHtml() {
 
 function initThemePanelContent() {
   console.log('initThemePanelContent called');
-  
+
   const panel = document.getElementById('panelTheme');
   if (!panel) {
     console.error('panelTheme not found');
     return;
   }
-  
-  const hasContent = panel.innerHTML.trim().length > 100;
-  
-  if (!hasContent) {
+
+  // Use data attribute instead of length check
+  if (panel.dataset.initialized !== 'true') {
     console.log('Rendering theme panel HTML...');
     panel.innerHTML = renderThemePanelHtml();
+    panel.dataset.initialized = 'true';
   }
-  
-  // Wire up event listeners and sync values
+
+  // Always wire up and sync (in case values changed)
   setTimeout(() => {
     wireThemePanel();
   }, 50);
@@ -73,13 +73,13 @@ function wireThemePanel() {
       });
     }
   });
-  
+
   syncThemeEditor();
 }
 
 function syncThemeEditor() {
   const t = state.settings?.theme || {};
-  
+
   setVal('themePrimaryGold', t.primaryGold || '#D4AF37');
   setVal('themePrimaryGoldLight', t.primaryGoldLight || '#F4E5B2');
   setVal('themePrimaryGoldDark', t.primaryGoldDark || '#B8860B');
@@ -117,13 +117,13 @@ function readThemeFromEditor() {
 
 function resetThemeDefaults() {
   if (!confirm('Reset theme to defaults?')) return;
-  
+
   if (!state.settings) state.settings = {};
   state.settings.theme = structuredClone(DEFAULT_SETTINGS.theme);
-  
+
   syncThemeEditor();
   if (typeof applyThemeToCSS === 'function') applyThemeToCSS();
-  
+
   showNotification('info', 'Reset', 'Theme reset to defaults (not saved yet)');
 }
 
@@ -131,7 +131,7 @@ async function saveTheme() {
   const theme = readThemeFromEditor();
   const merged = structuredClone(state.settings || {});
   merged.theme = theme;
-  
+
   try {
     const res = await fetch(apiUrl('/api/admin/settings'), {
       method: 'POST',
@@ -141,9 +141,9 @@ async function saveTheme() {
       },
       body: JSON.stringify({ settings: merged })
     });
-    
+
     const data = await res.json();
-    
+
     if (data.success) {
       state.settings = mergeDeep(structuredClone(DEFAULT_SETTINGS), merged);
       showNotification('success', 'Saved', 'Theme saved successfully.');
