@@ -1806,7 +1806,7 @@ app.get('/api/admin/export/csv', (req, res) => {
   app.get('/api/destinations', (req, res) => {
     try {
       const db = readDest();
-      const approved = db.pins.filter(p => p.approved && !p.deletedAt);
+     const approved = db.pins.filter(p => !p.deletedAt);
       res.json({ success: true, destinations: approved });
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
   });
