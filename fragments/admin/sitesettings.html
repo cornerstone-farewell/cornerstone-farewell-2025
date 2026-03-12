@@ -308,25 +308,28 @@ function renderSettingsPanelHtml() {
   </div>`;
 }
 
-// ── Initialize Settings Panel ───────────────────────────────────────────────
+// ── Initialize Settings Panel Content ───────────────────────────────────────
 
-function initSettingsPanel() {
+function initSettingsPanelContent() {
+  console.log('initSettingsPanelContent called');
+  
   const panel = document.getElementById('panelSettings');
   if (!panel) {
-    console.warn('panelSettings element not found');
+    console.error('panelSettings element not found');
     return;
   }
   
-  // Render the HTML into the panel
-  panel.innerHTML = renderSettingsPanelHtml();
+  // Check if panel already has content (and it's not just whitespace)
+  const hasContent = panel.innerHTML.trim().length > 100;
   
-  // Wire up the editors
-  wireSettingsPanel();
-}
-
-function wireSettingsPanel() {
-  // Small delay to ensure DOM is ready
+  if (!hasContent) {
+    console.log('Rendering settings panel HTML...');
+    panel.innerHTML = renderSettingsPanelHtml();
+  }
+  
+  // Always sync the values after a short delay to ensure DOM is ready
   setTimeout(() => {
+    console.log('Syncing settings editor...');
     renderTeachersEditor();
     renderTimelineEditor();
     syncSettingsEditor();
@@ -335,6 +338,8 @@ function wireSettingsPanel() {
 
 function syncSettingsEditor() {
   const s = state.settings || {};
+  
+  console.log('syncSettingsEditor - settings:', s);
   
   setVal('setSchoolName',         s.schoolName || '');
   setVal('setEventName',          s.eventName || '');
@@ -362,9 +367,6 @@ function syncSettingsEditor() {
   setVal('setFooterMadeBy',       s.footerMadeBy || '');
   setVal('setFooterCopyright',    s.footerCopyright || '');
   setVal('setIntroHideSkip',      String(!!s.introHideSkip));
-  
-  renderTeachersEditor();
-  renderTimelineEditor();
   
   const statusEl = document.getElementById('currentIntroVideoStatus');
   if (statusEl) statusEl.textContent = s.introVideoPath ? '✅ Video uploaded' : '❌ No video';
@@ -452,6 +454,9 @@ async function reloadSettingsAdmin() {
     await loadSettings();
     applySettingsToUI();
     applyThemeToCSS();
+    
+    renderTeachersEditor();
+    renderTimelineEditor();
     syncSettingsEditor();
     
     if (typeof syncThemeEditor === 'function') syncThemeEditor();
@@ -536,62 +541,25 @@ async function removeIntroVideo() {
   }
 }
 
-// ── Hook into admin panel switching ─────────────────────────────────────────
+// ── Expose functions globally ───────────────────────────────────────────────
 
-// Store original switchAdminTab if it exists
-const _originalSwitchAdminTab = window.switchAdminTab;
-
-window.switchAdminTab = function(tab) {
-  // Call original if exists
-  if (typeof _originalSwitchAdminTab === 'function') {
-    _originalSwitchAdminTab(tab);
-  } else {
-    // Default tab switching logic
-    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
-    
-    const tabEl = document.getElementById('tab' + capitalize(tab));
-    const panelEl = document.getElementById('panel' + capitalize(tab));
-    
-    if (tabEl) tabEl.classList.add('active');
-    if (panelEl) panelEl.classList.add('active');
-  }
-  
-  // Initialize settings panel when switching to it
-  if (tab === 'settings') {
-    const panel = document.getElementById('panelSettings');
-    if (panel && !panel.innerHTML.trim()) {
-      initSettingsPanel();
-    } else if (panel && panel.innerHTML.trim()) {
-      // Panel already has content, just sync
-      syncSettingsEditor();
-    }
-  }
-};
-
-// Helper function
-function capitalize(s) {
-  if (!s) return '';
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-// Expose functions globally
-window.initSettingsPanel = initSettingsPanel;
+window.initSettingsPanelContent = initSettingsPanelContent;
+window.renderSettingsPanelHtml = renderSettingsPanelHtml;
+window.syncSettingsEditor = syncSettingsEditor;
 window.saveSettingsFromEditor = saveSettingsFromEditor;
 window.reloadSettingsAdmin = reloadSettingsAdmin;
 window.addTeacherRow = addTeacherRow;
 window.removeTeacherRow = removeTeacherRow;
 window.addTimelineRow = addTimelineRow;
 window.removeTimelineRow = removeTimelineRow;
+window.renderTeachersEditor = renderTeachersEditor;
+window.renderTimelineEditor = renderTimelineEditor;
 window.uploadIntroVideoFile = uploadIntroVideoFile;
 window.handleIntroVideoUpload = handleIntroVideoUpload;
 window.removeIntroVideo = removeIntroVideo;
 window.downloadStudentDirectoryTemplate = downloadStudentDirectoryTemplate;
 window.uploadStudentDirectoryCsv = uploadStudentDirectoryCsv;
 window.bulkApplyStudentsToSuperlatives = bulkApplyStudentsToSuperlatives;
-window.syncSettingsEditor = syncSettingsEditor;
-window.wireSettingsPanel = wireSettingsPanel;
-window.renderSettingsPanelHtml = renderSettingsPanelHtml;
 
 console.log('✅ Admin Site Settings loaded');
 </script>

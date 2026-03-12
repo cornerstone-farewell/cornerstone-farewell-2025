@@ -79,40 +79,25 @@
   display: block; 
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   ADMIN HEADER - STICKY WITH SOLID BACKGROUND (NO TRANSPARENCY!)
-   ══════════════════════════════════════════════════════════════════════════════ */
 .admin-header {
-  /* SOLID BACKGROUND - NOT TRANSPARENT */
   background: #16213e !important;
   background-color: #16213e !important;
-  
-  /* Remove any transparency/blur effects */
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   opacity: 1 !important;
-  
-  /* Layout */
   padding: 20px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 15px;
   flex-wrap: wrap;
-  
-  /* Sticky positioning */
   position: sticky;
   top: 0;
   z-index: 1000;
-  
-  /* Border */
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  
-  /* Ensure it's above content */
   isolation: isolate;
 }
 
-/* Extra insurance - before pseudo-element for solid background */
 .admin-header::before {
   content: "";
   position: absolute;
@@ -466,7 +451,9 @@
       </div>
     </div>
     
-    <div class="admin-panel" id="panelSettings"></div>
+    <div class="admin-panel" id="panelSettings">
+      <!-- Settings panel content will be injected by JavaScript -->
+    </div>
     <div class="admin-panel" id="panelTheme"></div>
     <div class="admin-panel" id="panelUsers"></div>
     <div class="admin-panel" id="panelCompilations"></div>
@@ -475,6 +462,143 @@
 </div>
 
 <script data-fragment-script="admin_nav_top">
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN TAB SWITCHING - CORE FUNCTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function switchAdminTab(tab) {
+  console.log('switchAdminTab called with:', tab);
+  
+  // Remove active class from all tabs and panels
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  
+  // Capitalize first letter helper
+  const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
+  
+  // Add active class to selected tab and panel
+  const tabEl = document.getElementById('tab' + capitalize(tab));
+  const panelEl = document.getElementById('panel' + capitalize(tab));
+  
+  if (tabEl) {
+    tabEl.classList.add('active');
+    console.log('Activated tab:', tabEl.id);
+  } else {
+    console.warn('Tab element not found: tab' + capitalize(tab));
+  }
+  
+  if (panelEl) {
+    panelEl.classList.add('active');
+    console.log('Activated panel:', panelEl.id);
+  } else {
+    console.warn('Panel element not found: panel' + capitalize(tab));
+  }
+  
+  // Initialize panel content based on which tab is selected
+  switch(tab) {
+    case 'settings':
+      initSettingsPanelContent();
+      break;
+    case 'theme':
+      if (typeof initThemePanelContent === 'function') initThemePanelContent();
+      break;
+    case 'users':
+      if (typeof initUsersPanelContent === 'function') initUsersPanelContent();
+      break;
+    case 'compilations':
+      if (typeof initCompilationsPanelContent === 'function') initCompilationsPanelContent();
+      break;
+    case 'security':
+      if (typeof initSecurityPanelContent === 'function') initSecurityPanelContent();
+      break;
+    case 'moderation':
+      // Moderation panel is already in HTML, just refresh if needed
+      if (typeof loadAdminMemories === 'function') loadAdminMemories();
+      break;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN LOGIN/LOGOUT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function openAdminLogin() {
+  const overlay = document.getElementById('adminOverlay');
+  if (overlay) overlay.classList.add('active');
+}
+
+function closeAdminLogin() {
+  const overlay = document.getElementById('adminOverlay');
+  if (overlay) overlay.classList.remove('active');
+  const errorEl = document.getElementById('adminLoginError');
+  if (errorEl) errorEl.classList.remove('active');
+}
+
+async function adminLogin() {
+  const userId = document.getElementById('adminUserId')?.value?.trim();
+  const password = document.getElementById('adminPassword')?.value;
+  const errorEl = document.getElementById('adminLoginError');
+  
+  if (!userId || !password) {
+    if (errorEl) {
+      errorEl.textContent = 'Please enter both Admin ID and password.';
+      errorEl.classList.add('active');
+    }
+    return;
+  }
+  
+  try {
+    const res = await fetch(apiUrl('/api/admin/login'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, password })
+    });
+    
+    const data = await res.json();
+    
+    if (data.success && data.token) {
+      state.adminToken = data.token;
+      state.adminUser = data.user;
+      localStorage.setItem('adminToken', data.token);
+      
+      closeAdminLogin();
+      openAdminDashboard();
+      showNotification('success', 'Welcome!', `Logged in as ${data.user?.userId || userId}`);
+    } else {
+      if (errorEl) {
+        errorEl.textContent = data.error || 'Invalid credentials. Please try again.';
+        errorEl.classList.add('active');
+      }
+    }
+  } catch (e) {
+    console.error('Admin login error:', e);
+    if (errorEl) {
+      errorEl.textContent = 'Connection error. Please try again.';
+      errorEl.classList.add('active');
+    }
+  }
+}
+
+function openAdminDashboard() {
+  const dashboard = document.getElementById('adminDashboard');
+  if (dashboard) {
+    dashboard.classList.add('active');
+    // Initialize the default tab (moderation)
+    switchAdminTab('moderation');
+  }
+}
+
+function adminLogout() {
+  state.adminToken = null;
+  state.adminUser = null;
+  localStorage.removeItem('adminToken');
+  
+  const dashboard = document.getElementById('adminDashboard');
+  if (dashboard) dashboard.classList.remove('active');
+  
+  showNotification('info', 'Logged out', 'You have been logged out of the admin panel.');
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // INLINE EDITING
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -636,4 +760,30 @@ async function submitBatchUpload() {
   closeBatchUpload();
   if (typeof loadAdminMemories === 'function') loadAdminMemories(true);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PLACEHOLDER FUNCTIONS (to be defined in other fragments)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// These will be overwritten by the actual implementations in their respective fragments
+function approveAllPending() { console.log('approveAllPending not implemented'); }
+function downloadAllApproved() { console.log('downloadAllApproved not implemented'); }
+function exportCSV() { console.log('exportCSV not implemented'); }
+function toggleBulkSelect() { console.log('toggleBulkSelect not implemented'); }
+function bulkActionPrompt(action) { console.log('bulkActionPrompt not implemented:', action); }
+function adminLoadMore() { console.log('adminLoadMore not implemented'); }
+function loadAdminMemories() { console.log('loadAdminMemories not implemented'); }
+
+// Expose functions globally
+window.switchAdminTab = switchAdminTab;
+window.openAdminLogin = openAdminLogin;
+window.closeAdminLogin = closeAdminLogin;
+window.adminLogin = adminLogin;
+window.openAdminDashboard = openAdminDashboard;
+window.adminLogout = adminLogout;
+window.openBatchUpload = openBatchUpload;
+window.closeBatchUpload = closeBatchUpload;
+window.submitBatchUpload = submitBatchUpload;
+
+console.log('✅ Admin Nav Top loaded - switchAdminTab is:', typeof switchAdminTab);
 </script>
