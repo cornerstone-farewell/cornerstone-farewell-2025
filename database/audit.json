@@ -7731,7 +7731,14 @@
       "action": "login",
       "meta": {},
       "createdAt": "2026-03-12T05:02:08.536Z"
+    },
+    {
+      "id": 925,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-12T06:47:17.559Z"
     }
   ],
-  "nextId": 925
+  "nextId": 926
 }

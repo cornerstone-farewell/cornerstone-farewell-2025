@@ -890,466 +890,108 @@ document.addEventListener('DOMContentLoaded', async () => {
     <!-- FRAGMENT: navbar -->
   <style data-fragment-style="navbar">
   .navbar {
-    position: fixed;
-    top: 0; 
-    left: 0; 
-    right: 0;
-    z-index: 1000;
-    padding: 20px 50px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  
-    /* START: Fully transparent */
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
-  }
-
-  /* SCROLLED: Solid background with blur */
-  .navbar.scrolled {
-    background: rgba(26, 26, 46, 0.97) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    padding: 15px 50px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-  }
-
-  /* Extra solid layer for scrolled state */
-  .navbar.scrolled::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(26, 26, 46, 0.95);
-    z-index: -1;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .logo-icon {
-    width: 50px; 
-    height: 50px;
-    background: var(--gradient-gold);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    box-shadow: var(--shadow-gold);
-    transition: var(--transition-smooth);
-  }
-
-  .logo:hover .logo-icon { 
-    transform: rotate(360deg); 
-  }
-
-  .logo-text { 
-    display: flex; 
-    flex-direction: column; 
-  }
-
-  .logo-text .school-name {
-    font-family: var(--font-display);
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--primary-gold);
-  }
-
-  .logo-text .event-name {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  .nav-links { 
-    display: flex; 
-    gap: 40px; 
-    list-style: none; 
-  }
-
-  .nav-links a {
-    color: var(--text-light);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.95rem;
-    position: relative;
-    padding: 5px 0;
-    transition: var(--transition-smooth);
-  }
-
-  .nav-links a::after {
-    content: "";
-    position: absolute;
-    bottom: 0; 
-    left: 0;
-    width: 0; 
-    height: 2px;
-    background: var(--primary-gold);
-    transition: var(--transition-smooth);
-  }
-
-  .nav-links a:hover { 
-    color: var(--primary-gold); 
-  }
-
-  .nav-links a:hover::after { 
-    width: 100%; 
-  }
-
-  .nav-cta {
-    background: var(--gradient-gold);
-    color: var(--navy-dark) !important;
-    padding: 12px 28px !important;
-    border-radius: 30px;
-    font-weight: 600 !important;
-    box-shadow: var(--shadow-gold);
-    transition: var(--transition-smooth) !important;
-  }
-
-  .nav-cta::after { 
-    display: none !important; 
-  }
-
-  .nav-cta:hover { 
-    transform: translateY(-3px); 
-    box-shadow: 0 6px 30px rgba(212, 175, 55, 0.5); 
-  }
-
-  .mobile-menu-btn { 
-    display: none; 
-    flex-direction: column; 
-    gap: 5px; 
-    cursor: pointer; 
-    padding: 10px; 
-  }
-
-  .mobile-menu-btn span { 
-    width: 25px; 
-    height: 3px; 
-    background: var(--primary-gold); 
-    border-radius: 2px; 
-    transition: var(--transition-smooth); 
-  }
-
-  @media (max-width: 768px) {
-    .navbar { 
-      padding: 15px 20px; 
-    }
-  
-    .navbar.scrolled {
-      padding: 12px 20px;
-    }
-  
-    .nav-links {
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      right: 0; 
-      bottom: 0;
-      background: rgba(26, 26, 46, 0.98);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 30px;
-      transform: translateX(-100%);
-      transition: var(--transition-smooth);
-      z-index: 999;
-    }
-  
-    .nav-links.active { 
-      transform: translateX(0); 
-    }
-  
-    .mobile-menu-btn { 
-      display: flex; 
-      z-index: 1001; 
-    }
-  
-    .mobile-menu-btn.active span:nth-child(1) { 
-      transform: rotate(45deg) translate(5px, 5px); 
-    }
-  
-    .mobile-menu-btn.active span:nth-child(2) { 
-      opacity: 0; 
-    }
-  
-    .mobile-menu-btn.active span:nth-child(3) { 
-      transform: rotate(-45deg) translate(7px, -6px); 
-    }
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 1000;
+        padding: 20px 50px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: var(--transition-smooth);
+        background: transparent;
+      }.navbar.scrolled {
+        background: rgba(26, 26, 46, 0.95);
+        backdrop-filter: blur(20px);
+        padding: 15px 50px;
+        box-shadow: var(--shadow-soft);
+      }.logo {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        cursor: pointer;
+        user-select: none;
+      }.logo-icon {
+        width: 50px; height: 50px;
+        background: var(--gradient-gold);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        box-shadow: var(--shadow-gold);
+        transition: var(--transition-smooth);
+      }.logo:hover .logo-icon { transform: rotate(360deg); }.logo-text { display: flex; flex-direction: column; }.logo-text .school-name {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--primary-gold);
+      }.logo-text .event-name {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }.nav-links { display: flex; gap: 40px; list-style: none; }.nav-links a {
+        color: var(--text-light);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        position: relative;
+        padding: 5px 0;
+        transition: var(--transition-smooth);
+      }.nav-links a::after {
+        content: "";
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 0; height: 2px;
+        background: var(--primary-gold);
+        transition: var(--transition-smooth);
+      }.nav-links a:hover { color: var(--primary-gold); }.nav-links a:hover::after { width: 100%; }.nav-cta {
+        background: var(--gradient-gold);
+        color: var(--navy-dark) !important;
+        padding: 12px 28px !important;
+        border-radius: 30px;
+        font-weight: 600 !important;
+        box-shadow: var(--shadow-gold);
+        transition: var(--transition-smooth) !important;
+      }.nav-cta::after { display: none !important; }.nav-cta:hover { transform: translateY(-3px); box-shadow: 0 6px 30px rgba(212, 175, 55, 0.5); }.mobile-menu-btn { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 10px; }.mobile-menu-btn span { width: 25px; height: 3px; background: var(--primary-gold); border-radius: 2px; transition: var(--transition-smooth); }@media (max-width: 768px) {
+  .navbar { padding: 15px 20px; }
+  .nav-links {
+          position: fixed; top:0; left:0; right:0; bottom:0;
+          background: var(--navy-dark);
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          gap: 30px;
+          transform: translateX(-100%);
+          transition: var(--transition-smooth);
+        }
+  .nav-links.active { transform: translateX(0); }
+  .mobile-menu-btn { display: flex; z-index: 1001; }
+  .mobile-menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .mobile-menu-btn.active span:nth-child(2) { opacity: 0; }
+  .mobile-menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -6px); }
   }
   </style>
-
   <nav class="navbar" id="navbar">
-    <div class="logo" id="logo" title="Click 5 times for Admin login">
-      <div class="logo-icon" id="uiLogoIcon">🎓</div>
-      <div class="logo-text">
-        <span class="school-name" id="uiSchoolName">Cornerstone</span>
-        <span class="event-name" id="uiEventName">Farewell 2025</span>
-      </div>
-    </div>
-  
-    <ul class="nav-links" id="navLinks">
-      <li><a href="#home">Home</a></li>
-      <li><a href="#countdown">Countdown</a></li>
-      <li><a href="#memories">Memories</a></li>
-      <li><a href="#teachers">Teachers</a></li>
-      <li><a href="#adviceWall">Senior Advice</a></li>
-      <li><a href="#timeline">Journey</a></li>
-      <li><a href="#compilations">Compilations</a></li>
-      <li><a class="nav-cta" href="#upload">Upload Memory</a></li>
-    </ul>
-  
-    <div class="mobile-menu-btn" id="mobileMenuBtn">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
+  <div class="logo" id="logo" title="Click 5 times for Admin login">
+  <div class="logo-icon" id="uiLogoIcon">🎓</div>
+  <div class="logo-text">
+  <span class="school-name" id="uiSchoolName">Cornerstone</span>
+  <span class="event-name" id="uiEventName">Farewell 2025</span>
+  </div>
+  </div>
+  <ul class="nav-links" id="navLinks">
+  <li><a href="#home">Home</a></li>
+  <li><a href="#countdown">Countdown</a></li>
+  <li><a href="#memories">Memories</a></li>
+  <li><a href="#teachers">Teachers</a></li>
+  <li><a href="#adviceWall">Senior Advice</a></li>
+  <li><a href="#timeline">Journey</a></li>
+  <li><a href="#compilations">Compilations</a></li>
+  <li><a class="nav-cta" href="#upload">Upload Memory</a></li>
+  </ul>
+  <div class="mobile-menu-btn" id="mobileMenuBtn"><span></span><span></span><span></span></div>
   </nav>
-
-  <script data-fragment-script="navbar">
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // NAVBAR - SCROLL EFFECT + MOBILE MENU + ADMIN ACCESS
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  (function() {
-    let logoClickCount = 0;
-    let logoClickTimer = null;
-
-    function initNavbar() {
-      const navbar = document.getElementById('navbar');
-      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-      const navLinks = document.getElementById('navLinks');
-      const logo = document.getElementById('logo');
-
-      if (!navbar) return;
-
-      // ═══════════════════════════════════════════════════════════════════════
-      // SCROLL EFFECT - Transparent → Solid
-      // ═══════════════════════════════════════════════════════════════════════
-      function handleScroll() {
-        const scrollY = window.scrollY || window.pageYOffset;
-      
-        if (scrollY > 50) {
-          navbar.classList.add('scrolled');
-        } else {
-          navbar.classList.remove('scrolled');
-        }
-      }
-
-      // Initial check
-      handleScroll();
-
-      // Listen for scroll
-      window.addEventListener('scroll', handleScroll, { passive: true });
-
-      // ═══════════════════════════════════════════════════════════════════════
-      // MOBILE MENU TOGGLE
-      // ═══════════════════════════════════════════════════════════════════════
-      if (mobileMenuBtn && navLinks) {
-        mobileMenuBtn.addEventListener('click', () => {
-          mobileMenuBtn.classList.toggle('active');
-          navLinks.classList.toggle('active');
-        });
-
-        // Close mobile menu when clicking a link
-        navLinks.querySelectorAll('a').forEach(link => {
-          link.addEventListener('click', () => {
-            mobileMenuBtn.classList.remove('active');
-            navLinks.classList.remove('active');
-          });
-        });
-      }
-
-      // ═══════════════════════════════════════════════════════════════════════
-      // ADMIN ACCESS - 5 CLICKS ON LOGO
-      // ═══════════════════════════════════════════════════════════════════════
-      if (logo) {
-        logo.addEventListener('click', () => {
-          logoClickCount++;
-        
-          // Reset after 2 seconds of no clicks
-          clearTimeout(logoClickTimer);
-          logoClickTimer = setTimeout(() => {
-            logoClickCount = 0;
-          }, 2000);
-
-          // Open admin login after 5 clicks
-          if (logoClickCount >= 5) {
-            logoClickCount = 0;
-            clearTimeout(logoClickTimer);
-          
-            if (typeof openAdminLogin === 'function') {
-              openAdminLogin();
-            } else {
-              // Fallback: directly show admin overlay
-              const adminOverlay = document.getElementById('adminOverlay');
-              if (adminOverlay) {
-                adminOverlay.classList.add('active');
-              }
-            }
-          }
-        });
-      }
-
-      // ═══════════════════════════════════════════════════════════════════════
-      // SMOOTH SCROLL FOR ANCHOR LINKS
-      // ═══════════════════════════════════════════════════════════════════════
-      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-          const targetId = this.getAttribute('href');
-          if (targetId === '#') return;
-        
-          const targetElement = document.querySelector(targetId);
-          if (targetElement) {
-            e.preventDefault();
-          
-            const navbarHeight = navbar.offsetHeight;
-            const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight - 20;
-          
-            window.scrollTo({
-              top: targetPosition,
-              behavior: 'smooth'
-            });
-          }
-        });
-      });
-    }
-
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initNavbar);
-    } else {
-      initNavbar();
-    }
-
-    // Expose for external use
-    window.initNavbar = initNavbar;
-  })();
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // ADMIN LOGIN FUNCTIONS
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  function openAdminLogin() {
-    const overlay = document.getElementById('adminOverlay');
-    if (overlay) {
-      overlay.classList.add('active');
-      const userIdInput = document.getElementById('adminUserId');
-      if (userIdInput) userIdInput.focus();
-    }
-  }
-
-  function closeAdminLogin() {
-    const overlay = document.getElementById('adminOverlay');
-    if (overlay) {
-      overlay.classList.remove('active');
-    }
-    const errorEl = document.getElementById('adminLoginError');
-    if (errorEl) errorEl.classList.remove('active');
-  }
-
-  async function adminLogin() {
-    const userId = document.getElementById('adminUserId')?.value?.trim() || 'super';
-    const password = document.getElementById('adminPassword')?.value?.trim();
-    const errorEl = document.getElementById('adminLoginError');
-
-    if (!password) {
-      if (errorEl) {
-        errorEl.textContent = 'Please enter a password.';
-        errorEl.classList.add('active');
-      }
-      return;
-    }
-
-    try {
-      const res = await fetch(apiUrl('/api/admin/login'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, password })
-      });
-
-      const data = await res.json();
-
-      if (data.success && data.token) {
-        state.adminToken = data.token;
-        state.adminUser = data.user;
-        localStorage.setItem('adminToken', data.token);
-      
-        closeAdminLogin();
-        openAdminDashboard();
-      
-        if (typeof showNotification === 'function') {
-          showNotification('success', 'Welcome!', `Logged in as ${data.user?.name || userId}`);
-        }
-      } else {
-        if (errorEl) {
-          errorEl.textContent = data.error || 'Invalid credentials. Please try again.';
-          errorEl.classList.add('active');
-        }
-      }
-    } catch (e) {
-      console.error('Login error:', e);
-      if (errorEl) {
-        errorEl.textContent = 'Connection error. Please try again.';
-        errorEl.classList.add('active');
-      }
-    }
-  }
-
-  function openAdminDashboard() {
-    const dashboard = document.getElementById('adminDashboard');
-    if (dashboard) {
-      dashboard.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    
-      // Load admin data
-      if (typeof loadAdminMemories === 'function') {
-        loadAdminMemories(true);
-      }
-      if (typeof buildAdminPanels === 'function') {
-        buildAdminPanels();
-      }
-    }
-  }
-
-  function adminLogout() {
-    state.adminToken = null;
-    state.adminUser = null;
-    localStorage.removeItem('adminToken');
-  
-    const dashboard = document.getElementById('adminDashboard');
-    if (dashboard) {
-      dashboard.classList.remove('active');
-    }
-    document.body.style.overflow = '';
-  
-    if (typeof showNotification === 'function') {
-      showNotification('info', 'Logged Out', 'You have been logged out.');
-    }
-  }
-
-  // Check for existing session on load
-  (function checkExistingSession() {
-    const token = localStorage.getItem('adminToken');
-    if (token && state) {
-      state.adminToken = token;
-    }
-  })();
-  </script>
 
     <!-- FRAGMENT: hero -->
   <style data-fragment-style="hero">
@@ -6115,641 +5757,262 @@ document.addEventListener('DOMContentLoaded', async () => {
     <!-- FRAGMENT: admin_nav_top -->
   <style data-fragment-style="admin_nav_top">
   .admin-overlay {
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0;
-    background: rgba(0,0,0,0.9);
-    z-index: 3000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .admin-overlay.active { 
-    display: flex; 
-    animation: fadeIn 0.3s ease; 
-  }
-  .admin-login-card {
-    background: var(--navy-medium);
-    border: 1px solid var(--glass-border);
-    border-radius: 25px;
-    padding: 42px;
-    max-width: 440px;
-    width: 100%;
-    text-align: center;
-  }
-  .admin-login-card h2 { 
-    font-family: var(--font-display); 
-    font-size: 2rem; 
-    margin-bottom: 10px; 
-    color: var(--primary-gold); 
-  }
-  .admin-login-card p { 
-    color: var(--text-muted); 
-    margin-bottom: 22px; 
-  }
-  .admin-login-card .form-group { 
-    text-align: left; 
-  }
-  .admin-login-error {
-    background: rgba(244, 67, 54, 0.1);
-    border: 1px solid var(--error-red);
-    color: var(--error-red);
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 16px;
-    display: none;
-  }
-  .admin-login-error.active { 
-    display: block; 
-  }
-  .admin-close { 
-    position: absolute; 
-    top: 20px; 
-    right: 20px; 
-    background: none; 
-    border: none; 
-    color: white; 
-    font-size: 2rem; 
-    cursor: pointer; 
-  }
-
-  /* Admin Dashboard */
-  .admin-dashboard {
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0;
-    background-color: #1a1a2e;
-    background: var(--navy-dark);
-    z-index: 3000;
-    display: none;
-    overflow-y: auto;
-  }
-  .admin-dashboard.active { 
-    display: block; 
-  }
-
-  /* ══════════════════════════════════════════════════════════════════════════════
-     ADMIN HEADER - STICKY WITH SOLID BACKGROUND (NO TRANSPARENCY!)
-     ══════════════════════════════════════════════════════════════════════════════ */
-  .admin-header {
-    /* SOLID BACKGROUND - NOT TRANSPARENT */
-    background: #16213e !important;
-    background-color: #16213e !important;
-  
-    /* Remove any transparency/blur effects */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    opacity: 1 !important;
-  
-    /* Layout */
-    padding: 20px 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-  
-    /* Sticky positioning */
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-  
-    /* Border */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  
-    /* Ensure it's above content */
-    isolation: isolate;
-  }
-
-  /* Extra insurance - before pseudo-element for solid background */
-  .admin-header::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: #16213e;
-    z-index: -1;
-  }
-
-  .admin-title { 
-    font-family: var(--font-display); 
-    font-size: 1.5rem; 
-    color: var(--primary-gold); 
-  }
-  .admin-actions { 
-    display: flex; 
-    gap: 12px; 
-    flex-wrap: wrap; 
-  }
-  .admin-btn {
-    padding: 10px 16px;
-    border-radius: 25px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition-smooth);
-    font-family: var(--font-body);
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    border: none;
-  }
-  .admin-btn-primary { 
-    background: var(--gradient-gold); 
-    color: var(--navy-dark); 
-  }
-  .admin-btn-secondary { 
-    background: #2a2a4a;
-    color: #ffffff; 
-    border: 1px solid rgba(255, 255, 255, 0.2); 
-  }
-  .admin-btn-danger { 
-    background: rgba(244, 67, 54, 0.3); 
-    color: #ffb3ad; 
-    border: 1px solid rgba(244, 67, 54, 0.5); 
-  }
-  .admin-btn:hover { 
-    transform: translateY(-2px); 
-  }
-
-  .admin-content { 
-    padding: 40px; 
-    background: #1a1a2e;
-    background-color: var(--navy-dark);
-    min-height: calc(100vh - 100px);
-  }
-
-  .admin-tabs { 
-    display: flex; 
-    gap: 10px; 
-    flex-wrap: wrap; 
-    margin-bottom: 20px; 
-  }
-  .admin-tab {
-    padding: 10px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: #2a2a4a;
-    color: #ffffff;
-    transition: var(--transition-smooth);
-    user-select: none;
-  }
-  .admin-tab.active { 
-    background: var(--primary-gold); 
-    color: var(--navy-dark); 
-    border-color: var(--primary-gold); 
-  }
-  .admin-tab:hover:not(.active) {
-    background: #3a3a5a;
-    border-color: var(--primary-gold);
-  }
-
-  .admin-panel { 
-    display: none; 
-  }
-  .admin-panel.active { 
-    display: block; 
-  }
-
-  .admin-stats { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-    gap: 20px; 
-    margin-bottom: 30px; 
-  }
-
-  .admin-filters { 
-    display: flex; 
-    gap: 15px; 
-    margin-bottom: 20px; 
-    flex-wrap: wrap; 
-    align-items: center; 
-  }
-  .admin-search { 
-    flex: 1; 
-    min-width: 250px; 
-  }
-  .admin-search input {
-    width: 100%;
-    padding: 12px 20px;
-    background: #2a2a4a;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 25px;
-    color: #ffffff;
-    font-size: 0.95rem;
-  }
-  .admin-search input:focus { 
-    outline: none; 
-    border-color: var(--primary-gold); 
-  }
-  .admin-search input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-  }
-
-  .admin-filter-group { 
-    display: flex; 
-    gap: 10px; 
-    flex-wrap: wrap; 
-  }
-
-  .admin-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-    gap: 18px; 
-  }
-
-  .admin-memory-card { 
-    background: #2a2a4a; 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    border-radius: 15px; 
-    overflow: hidden; 
-    transition: var(--transition-smooth); 
-  }
-  .admin-memory-card:hover { 
-    border-color: var(--primary-gold); 
-  }
-
-  .admin-memory-media { 
-    position: relative; 
-    aspect-ratio: 16/10; 
-    overflow: hidden; 
-    background: #1a1a2e; 
-  }
-  .admin-memory-media img, 
-  .admin-memory-media video { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover; 
-  }
-
-  .admin-memory-status { 
-    position: absolute; 
-    top: 10px; 
-    right: 10px; 
-    padding: 5px 12px; 
-    border-radius: 15px; 
-    font-size: 0.75rem; 
-    font-weight: 800; 
-    text-transform: uppercase; 
-  }
-
-  .admin-memory-info { 
-    padding: 15px; 
-  }
-  .admin-memory-name { 
-    font-weight: 800; 
-    margin-bottom: 5px; 
-    color: #ffffff;
-  }
-  .admin-memory-caption { 
-    font-size: 0.85rem; 
-    color: rgba(255, 255, 255, 0.7); 
-    margin-bottom: 10px; 
-    display: -webkit-box; 
-    line-clamp: 2;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .admin-memory-meta { 
-    display: flex; 
-    justify-content: space-between; 
-    font-size: 0.8rem; 
-    color: rgba(255, 255, 255, 0.6); 
-    margin-bottom: 10px; 
-    gap: 10px; 
-  }
-  .admin-memory-actions { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; 
-    gap: 10px; 
-    margin-top: 10px; 
-  }
-  .admin-memory-actions button {
-    padding: 9px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: var(--transition-smooth);
-    border: none;
-    font-family: var(--font-body);
-    font-weight: 700;
-  }
-
-  /* Stat cards */
-  .stat-card {
-    background: #2a2a4a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 25px;
-    text-align: center;
-  }
-  .stat-number {
-    font-family: var(--font-display);
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: var(--primary-gold);
-  }
-  .stat-label {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-    margin-top: 5px;
-  }
-
-  @media (max-width: 768px) {
-    .admin-header { 
-      padding: 15px 20px; 
-    }
-    .admin-content { 
-      padding: 20px; 
-    }
-    .admin-filters { 
-      flex-direction: column; 
-    }
-    .admin-search { 
-      width: 100%; 
-    }
+        position: fixed; top:0; left:0; right:0; bottom:0;
+        background: rgba(0,0,0,0.9);
+        z-index: 3000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }.admin-overlay.active { display: flex; animation: fadeIn 0.3s ease; }.admin-login-card {
+        background: var(--navy-medium);
+        border: 1px solid var(--glass-border);
+        border-radius: 25px;
+        padding: 42px;
+        max-width: 440px;
+        width: 100%;
+        text-align: center;
+      }.admin-login-card h2 { font-family: var(--font-display); font-size: 2rem; margin-bottom: 10px; color: var(--primary-gold); }.admin-login-card p { color: var(--text-muted); margin-bottom: 22px; }.admin-login-card .form-group { text-align: left; }.admin-login-error {
+        background: rgba(244, 67, 54, 0.1);
+        border: 1px solid var(--error-red);
+        color: var(--error-red);
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        display: none;
+      }.admin-login-error.active { display: block; }.admin-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }/* Admin dashboard base (full UI + theme editor + users panel in Part 3) */.admin-dashboard {
+        position: fixed; top:0; left:0; right:0; bottom:0;
+        background: var(--navy-dark);
+        z-index: 3000;
+        display: none;
+        overflow-y: auto;
+      }.admin-dashboard.active { display: block; }.admin-header {
+        background: var(--navy-medium);
+        padding: 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--glass-border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        gap: 15px;
+        flex-wrap: wrap;
+      }.admin-title { font-family: var(--font-display); font-size: 1.5rem; color: var(--primary-gold); }.admin-actions { display: flex; gap: 12px; flex-wrap: wrap; }.admin-btn {
+        padding: 10px 16px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        font-family: var(--font-body);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+      }.admin-btn-primary { background: var(--gradient-gold); color: var(--navy-dark); }.admin-btn-secondary { background: var(--glass-bg); color: var(--text-light); border: 1px solid var(--glass-border); }.admin-btn-danger { background: rgba(244, 67, 54, 0.2); color: #ffb3ad; border: 1px solid rgba(244,67,54,0.5); }.admin-btn:hover { transform: translateY(-2px); }.admin-content { padding: 40px; }.admin-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }.admin-tab {
+        padding: 10px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        border: 1px solid var(--glass-border);
+        background: var(--glass-bg);
+        color: var(--text-light);
+        transition: var(--transition-smooth);
+        user-select: none;
+      }.admin-tab.active { background: var(--primary-gold); color: var(--navy-dark); border-color: var(--primary-gold); }.admin-panel { display: none; }.admin-panel.active { display: block; }.admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }.admin-filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }.admin-search { flex: 1; min-width: 250px; }.admin-search input {
+        width: 100%;
+        padding: 12px 20px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 25px;
+        color: var(--text-light);
+        font-size: 0.95rem;
+      }.admin-search input:focus { outline: none; border-color: var(--primary-gold); }.admin-filter-group { display: flex; gap: 10px; flex-wrap: wrap; }.admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }.admin-memory-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 15px; overflow: hidden; transition: var(--transition-smooth); }.admin-memory-card:hover { border-color: var(--primary-gold); }.admin-memory-media { position: relative; aspect-ratio: 16/10; overflow: hidden; background: var(--navy-dark); }.admin-memory-media img, .admin-memory-media video { width: 100%; height: 100%; object-fit: cover; }.admin-memory-status { position: absolute; top: 10px; right: 10px; padding: 5px 12px; border-radius: 15px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }.admin-memory-info { padding: 15px; }.admin-memory-name { font-weight: 800; margin-bottom: 5px; }.admin-memory-caption { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; display: -webkit-box; line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  }.admin-memory-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; gap: 10px; }.admin-memory-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }.admin-memory-actions button {
+        padding: 9px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        border: none;
+        font-family: var(--font-body);
+        font-weight: 700;
+      }@media (max-width: 768px) {
+  .admin-header { padding: 15px 20px; }
+  .admin-content { padding: 20px; }
+  .admin-filters { flex-direction: column; }
+  .admin-search { width: 100%; }
   }
   </style>
-
   <div class="admin-overlay" id="adminOverlay">
-    <button class="admin-close" onclick="closeAdminLogin()">✕</button>
-    <div class="admin-login-card">
-      <h2>Admin Access</h2>
-      <p>Login with your Admin ID + password</p>
-      <div class="admin-login-error" id="adminLoginError">Invalid credentials. Please try again.</div>
-      <div class="form-group">
-        <label>Admin ID</label>
-        <input class="form-input" id="adminUserId" placeholder="super" type="text"/>
-        <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">Tip: Super Admin ID is <strong>super</strong>.</p>
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input class="form-input" id="adminPassword" placeholder="Enter password" type="password"/>
-      </div>
-      <button class="btn btn-primary" onclick="adminLogin()" style="width: 100%;">Login</button>
-    </div>
+  <button class="admin-close" onclick="closeAdminLogin()">✕</button>
+  <div class="admin-login-card">
+  <h2>Admin Access</h2>
+  <p>Login with your Admin ID + password</p>
+  <div class="admin-login-error" id="adminLoginError">Invalid credentials. Please try again.</div>
+  <div class="form-group">
+  <label>Admin ID</label>
+  <input class="form-input" id="adminUserId" placeholder="super" type="text"/>
+  <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">Tip: Super Admin ID is <strong>super</strong>.</p>
   </div>
-
+  <div class="form-group">
+  <label>Password</label>
+  <input class="form-input" id="adminPassword" placeholder="Enter password" type="password"/>
+  </div>
+  <button class="btn btn-primary" onclick="adminLogin()" style="width: 100%;">Login</button>
+  </div>
+  </div>
   <div class="admin-dashboard" id="adminDashboard">
-    <div class="admin-header">
-      <h1 class="admin-title">🎓 Admin Dashboard</h1>
-      <div class="admin-actions">
-        <button class="admin-btn admin-btn-primary" id="btnApproveAll" onclick="approveAllPending()">✓ Approve All</button>
-        <button class="admin-btn admin-btn-secondary" id="btnDownloadZip" onclick="downloadAllApproved()">📦 Download ZIP</button>
-        <button class="admin-btn" onclick="openBatchUpload()" style="background:#7B2D8E; color:white; border:none;">📤 Batch Upload</button>
-        <button class="admin-btn admin-btn-secondary" id="btnExportCsv" onclick="exportCSV()">📊 Export CSV</button>
-        <button class="admin-btn admin-btn-danger" onclick="adminLogout()">🚪 Logout</button>
-      </div>
-    </div>
-  
-    <div class="admin-content">
-      <div class="admin-tabs" id="adminTabs">
-        <div class="admin-tab active" id="tabModeration" onclick="switchAdminTab('moderation')">📋 Moderation</div>
-        <div class="admin-tab" id="tabSettings" onclick="switchAdminTab('settings')">⚙️ Site Settings</div>
-        <div class="admin-tab" id="tabTheme" onclick="switchAdminTab('theme')">🎨 Theme</div>
-        <div class="admin-tab" id="tabUsers" onclick="switchAdminTab('users')">👥 Users</div>
-        <div class="admin-tab" id="tabCompilations" onclick="switchAdminTab('compilations')">🎬 Compilations</div>
-        <div class="admin-tab" id="tabSecurity" onclick="switchAdminTab('security')">🔒 Security</div>
-      </div>
-    
-      <div class="admin-panel active" id="panelModeration">
-        <div class="admin-stats" id="adminStats">
-          <div class="stat-card">
-            <div class="stat-number" id="statTotal">0</div>
-            <div class="stat-label">Total Uploads</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="statApproved">0</div>
-            <div class="stat-label">Approved</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="statPending">0</div>
-            <div class="stat-label">Pending</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="statStorage">0 MB</div>
-            <div class="stat-label">Storage</div>
-          </div>
-        </div>
-      
-        <div class="admin-filters">
-          <div class="admin-search">
-            <input id="adminSearch" placeholder="Search by name/caption/type..." type="text"/>
-          </div>
-          <div class="admin-filter-group">
-            <button class="filter-btn active" data-admin-filter="all">All</button>
-            <button class="filter-btn" data-admin-filter="approved">Approved</button>
-            <button class="filter-btn" data-admin-filter="pending">Pending</button>
-            <button class="filter-btn" data-admin-filter="featured">Featured</button>
-            <button class="filter-btn" data-admin-filter="trash">Trash</button>
-          </div>
-          <select class="form-select" id="adminSort" style="width: auto; padding: 10px 40px 10px 15px; background: #2a2a4a; color: #fff;">
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="likes">Most Liked</option>
-          </select>
-          <select class="form-select" id="adminPageSize" style="width:auto; padding: 10px 40px 10px 15px; background: #2a2a4a; color: #fff;">
-            <option value="30">30/page</option>
-            <option value="60">60/page</option>
-          </select>
-        </div>
-      
-        <div style="display:flex; gap: 10px; flex-wrap:wrap; margin-bottom: 14px;">
-          <button class="admin-btn admin-btn-secondary" id="bulkSelectToggle" onclick="toggleBulkSelect()">☐ Bulk Select: OFF</button>
-          <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('approve')">✓ Bulk Approve</button>
-          <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('trash')">🗑 Bulk Trash</button>
-          <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('restore')">↩ Bulk Restore</button>
-          <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('setType')">📁 Change Category</button>
-          <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('feature')">⭐ Feature</button>
-          <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('unfeature')">☆ Unfeature</button>
-        </div>
-      
-        <div class="admin-grid" id="adminGrid"></div>
-      
-        <div class="load-more-wrap" style="margin-top: 25px;">
-          <button class="btn btn-secondary load-more-btn" id="adminLoadMoreBtn" onclick="adminLoadMore()" type="button">Load More</button>
-        </div>
-      </div>
-    
-      <div class="admin-panel" id="panelSettings"></div>
-      <div class="admin-panel" id="panelTheme"></div>
-      <div class="admin-panel" id="panelUsers"></div>
-      <div class="admin-panel" id="panelCompilations"></div>
-      <div class="admin-panel" id="panelSecurity"></div>
-    </div>
+  <div class="admin-header">
+  <h1 class="admin-title">Admin Dashboard</h1>
+  <div class="admin-actions">
+  <button class="admin-btn admin-btn-primary" id="btnApproveAll" onclick="approveAllPending()">Approve All</button>
+  <button class="admin-btn admin-btn-secondary" id="btnDownloadZip" onclick="downloadAllApproved()">Download ZIP</button>
+  <button class="admin-btn" onclick="openBatchUpload()" style="background:var(--accent-purple); color:white; border:none; box-shadow:0 4px 15px rgba(123, 45, 142, 0.4);">Batch Upload</button>
+  <button class="admin-btn admin-btn-secondary" id="btnExportCsv" onclick="exportCSV()">Export CSV</button>
+  <button class="admin-btn admin-btn-danger" onclick="adminLogout()">Logout</button>
   </div>
-
+  </div>
+  <div class="admin-content">
+  <div class="admin-tabs" id="adminTabs">
+  <div class="admin-tab active" id="tabModeration" onclick="switchAdminTab('moderation')">Moderation</div>
+  <div class="admin-tab" id="tabSettings" onclick="switchAdminTab('settings')">Site Settings</div>
+  <div class="admin-tab" id="tabTheme" onclick="switchAdminTab('theme')">Theme</div>
+  <div class="admin-tab" id="tabUsers" onclick="switchAdminTab('users')">Users</div>
+  <div class="admin-tab" id="tabCompilations" onclick="switchAdminTab('compilations')">Compilations</div>
+  <div class="admin-tab" id="tabSecurity" onclick="switchAdminTab('security')">Security</div>
+  </div>
+  <!-- Panels: content is completed in Part 3 -->
+  <div class="admin-panel active" id="panelModeration">
+  <div class="admin-stats" id="adminStats">
+  <div class="stat-card"><div class="stat-number" id="statTotal">0</div><div class="stat-label">Total Uploads</div></div>
+  <div class="stat-card"><div class="stat-number" id="statApproved">0</div><div class="stat-label">Approved</div></div>
+  <div class="stat-card"><div class="stat-number" id="statPending">0</div><div class="stat-label">Pending</div></div>
+  <div class="stat-card"><div class="stat-number" id="statStorage">0 MB</div><div class="stat-label">Storage</div></div>
+  </div>
+  <div class="admin-filters">
+  <div class="admin-search"><input id="adminSearch" placeholder="Search by name/caption/type..." type="text"/></div>
+  <div class="admin-filter-group">
+  <button class="filter-btn active" data-admin-filter="all">All</button>
+  <button class="filter-btn" data-admin-filter="approved">Approved</button>
+  <button class="filter-btn" data-admin-filter="pending">Pending</button>
+  <button class="filter-btn" data-admin-filter="featured">Featured</button>
+  <button class="filter-btn" data-admin-filter="trash">Trash</button>
+  </div>
+  <select class="form-select" id="adminSort" style="width: auto; padding: 10px 40px 10px 15px;">
+  <option value="newest">Newest First</option>
+  <option value="oldest">Oldest First</option>
+  <option value="likes">Most Liked</option>
+  </select>
+  <select class="form-select" id="adminPageSize" style="width:auto; padding: 10px 40px 10px 15px;">
+  <option value="30">30/page</option>
+  <option value="60">60/page</option>
+  </select>
+  </div>
+  <div style="display:flex; gap: 10px; flex-wrap:wrap; margin-bottom: 14px;">
+  <button class="admin-btn admin-btn-secondary" id="bulkSelectToggle" onclick="toggleBulkSelect()">Bulk Select: OFF</button>
+  <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('approve')">Bulk Approve</button>
+  <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('trash')">Bulk Trash</button>
+  <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('restore')">Bulk Restore</button>
+  <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('setType')">Bulk Change Category</button>
+  <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('feature')">Bulk Feature</button>
+  <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('unfeature')">Bulk Unfeature</button>
+  </div>
+  <div class="admin-grid" id="adminGrid"></div>
+  <div class="load-more-wrap" style="margin-top: 25px;">
+  <button class="btn btn-secondary load-more-btn" id="adminLoadMoreBtn" onclick="adminLoadMore()" type="button">Load More</button>
+  </div>
+  </div>
+  <div class="admin-panel" id="panelSettings"></div>
+  <div class="admin-panel" id="panelTheme"></div>
+  <div class="admin-panel" id="panelUsers"></div>
+  <div class="admin-panel" id="panelCompilations"></div>
+  <div class="admin-panel" id="panelSecurity"></div>
+  </div>
+  </div>
   <script data-fragment-script="admin_nav_top">
-  // ═══════════════════════════════════════════════════════════════════════════════
   // INLINE EDITING
-  // ═══════════════════════════════════════════════════════════════════════════════
-  function makeInlineEditable(element, memoryId, field) {
-    if (!element || (typeof can === 'function' && !can('editMemory'))) return;
-    element.classList.add('inline-editable');
-    element.setAttribute('data-memory-id', memoryId);
-    element.setAttribute('data-field', field);
-    element.addEventListener('dblclick', function(e) {
-      e.stopPropagation();
-      startInlineEdit(this);
-    });
-  }
-
-  function startInlineEdit(element) {
-    if (element.classList.contains('editing')) return;
-    const originalText = element.textContent;
-    element.classList.add('editing');
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'inline-edit-input';
-    input.value = originalText;
-    element.textContent = '';
-    element.appendChild(input);
-    input.focus();
-    input.select();
+    // ═══════════════════════════════════════════════════════════════════════════════
+    function makeInlineEditable(element, memoryId, field) {
+      if (!element || !can('editMemory')) return;
+      element.classList.add('inline-editable'); element.setAttribute('data-memory-id', memoryId); element.setAttribute('data-field', field);
+      element.addEventListener('dblclick', function(e) { e.stopPropagation(); startInlineEdit(this); });
+    }
   
-    const save = async () => {
-      const newValue = input.value.trim();
-      element.classList.remove('editing');
-      element.textContent = newValue || originalText;
-      if (newValue && newValue !== originalText) {
-        try {
-          const res = await fetch(apiUrl('/api/admin/memory/edit/' + element.getAttribute('data-memory-id')), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + state.adminToken
-            },
-            body: JSON.stringify({ [element.getAttribute('data-field')]: newValue })
-          });
-          const data = await res.json();
-          if (data.success) {
-            showNotification('success', 'Saved', 'Updated ' + element.getAttribute('data-field'));
-          } else {
-            element.textContent = originalText;
-            showNotification('error', 'Failed', data.error);
-          }
-        } catch (e) {
-          element.textContent = originalText;
-          showNotification('error', 'Error', e.message);
-        }
-      }
-    };
-  
-    input.addEventListener('blur', save);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') save();
-      if (e.key === 'Escape') {
+    function startInlineEdit(element) {
+      if (element.classList.contains('editing')) return;
+      const originalText = element.textContent;
+      element.classList.add('editing');
+      const input = document.createElement('input');
+      input.type = 'text'; input.className = 'inline-edit-input'; input.value = originalText;
+      element.textContent = ''; element.appendChild(input); input.focus(); input.select();
+    
+      const save = async () => {
+        const newValue = input.value.trim();
         element.classList.remove('editing');
-        element.textContent = originalText;
-      }
-    });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // BATCH UPLOAD (ADMIN)
-  // ═══════════════════════════════════════════════════════════════════════════════
-  function openBatchUpload() {
-    const modal = document.getElementById('batchUploadModal');
-    if (modal) {
-      modal.classList.add('active');
-      const batchName = document.getElementById('batchName');
-      const batchCaption = document.getElementById('batchCaption');
-      const batchType = document.getElementById('batchType');
-      const batchFiles = document.getElementById('batchFiles');
-      const batchFileLabel = document.getElementById('batchFileLabel');
-      const batchProgress = document.getElementById('batchProgress');
-      const btnStartBatch = document.getElementById('btnStartBatch');
-    
-      if (batchName) batchName.value = '';
-      if (batchCaption) batchCaption.value = '';
-      if (batchType) batchType.value = 'Friends';
-      if (batchFiles) batchFiles.value = '';
-      if (batchFileLabel) batchFileLabel.textContent = 'Click to select files';
-      if (batchProgress) batchProgress.style.display = 'none';
-      if (btnStartBatch) btnStartBatch.disabled = false;
-    }
-  }
-
-  function closeBatchUpload() {
-    const modal = document.getElementById('batchUploadModal');
-    if (modal) modal.classList.remove('active');
-  }
-
-  function updateBatchFileCount(input) {
-    const label = document.getElementById('batchFileLabel');
-    if (label) {
-      label.textContent = input.files && input.files.length > 0 
-        ? `${input.files.length} file(s) selected` 
-        : 'Click to select files';
-    }
-  }
-
-  async function submitBatchUpload() {
-    const name = document.getElementById('batchName')?.value?.trim();
-    const caption = document.getElementById('batchCaption')?.value?.trim();
-    const type = document.getElementById('batchType')?.value;
-    const fileInput = document.getElementById('batchFiles');
-    const autoApproveEl = document.getElementById('batchAutoApprove');
-    const autoApprove = autoApproveEl ? autoApproveEl.checked : true;
-  
-    if (!name || !caption || !fileInput?.files?.length) {
-      return showNotification('error', 'Missing fields', 'Fill all fields and select files.');
-    }
-  
-    const btnStartBatch = document.getElementById('btnStartBatch');
-    if (btnStartBatch) btnStartBatch.disabled = true;
-  
-    const progressDiv = document.getElementById('batchProgress');
-    const fill = document.getElementById('batchProgressFill');
-    const text = document.getElementById('batchProgressText');
-    if (progressDiv) progressDiv.style.display = 'block';
-  
-    const files = Array.from(fileInput.files);
-    const total = files.length;
-    let successCount = 0;
-    const CHUNK_SIZE = 5;
-  
-    for (let i = 0; i < total; i += CHUNK_SIZE) {
-      const chunk = files.slice(i, i + CHUNK_SIZE);
-      const fd = new FormData();
-      fd.append('name', name);
-      fd.append('caption', caption);
-      fd.append('type', type);
-      fd.append('autoApprove', autoApprove ? 'true' : 'false');
-      chunk.forEach(f => fd.append('files', f));
-    
-      try {
-        if (text) text.textContent = `Uploading batch ${Math.ceil((i+1)/CHUNK_SIZE)} of ${Math.ceil(total/CHUNK_SIZE)}...`;
-        const res = await fetch(apiUrl('/api/admin/upload-batch'), {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${state.adminToken}` },
-          body: fd
-        });
-        const data = await res.json();
-        if (data.success) {
-          successCount += (data.count || 0);
-        } else {
-          showNotification('error', 'Error in chunk', data.error);
+        element.textContent = newValue || originalText;
+        if (newValue && newValue !== originalText) {
+          try {
+            const res = await fetch(apiUrl('/api/admin/memory/edit/' + element.getAttribute('data-memory-id')), {
+              method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.adminToken },
+              body: JSON.stringify({ [element.getAttribute('data-field')]: newValue })
+            });
+            const data = await res.json();
+            if (data.success) showNotification('success', 'Saved', 'Updated ' + element.getAttribute('data-field'));
+            else { element.textContent = originalText; showNotification('error', 'Failed', data.error); }
+          } catch (e) { element.textContent = originalText; showNotification('error', 'Error', e.message); }
         }
-        if (fill) fill.style.width = Math.min(100, Math.round(((i + chunk.length) / total) * 100)) + '%';
-      } catch (e) {
-        console.error(e);
-      }
+      };
+      input.addEventListener('blur', save);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') { element.classList.remove('editing'); element.textContent = originalText; } });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+  </script>
+  <script data-fragment-script="admin_nav_top">
+  // BATCH UPLOAD (ADMIN)
+    // ═══════════════════════════════════════════════════════════════════════════════
+    function openBatchUpload() {
+      document.getElementById('batchUploadModal').classList.add('active');
+      document.getElementById('batchName').value = ''; document.getElementById('batchCaption').value = ''; document.getElementById('batchType').value = 'Friends';
+      document.getElementById('batchFiles').value = ''; document.getElementById('batchFileLabel').textContent = 'Click to select files';
+      document.getElementById('batchProgress').style.display = 'none'; document.getElementById('btnStartBatch').disabled = false;
     }
   
-    showNotification('success', 'Batch Complete', `${successCount} uploaded successfully.`);
-    closeBatchUpload();
-    if (typeof loadAdminMemories === 'function') loadAdminMemories(true);
-  }
+    function closeBatchUpload() { document.getElementById('batchUploadModal').classList.remove('active'); }
+    function updateBatchFileCount(input) { document.getElementById('batchFileLabel').textContent = input.files && input.files.length > 0 ? `${input.files.length} file(s) selected` : 'Click to select files'; }
+  
+    async function submitBatchUpload() {
+      const name = document.getElementById('batchName').value.trim(); const caption = document.getElementById('batchCaption').value.trim();
+      const type = document.getElementById('batchType').value; const fileInput = document.getElementById('batchFiles');
+      const autoApprove = document.getElementById('batchAutoApprove').checked;
+      if (!name || !caption || !fileInput.files.length) return showNotification('error', 'Missing fields', 'Fill all fields and select files.');
+    
+      document.getElementById('btnStartBatch').disabled = true;
+      const progressDiv = document.getElementById('batchProgress'); const fill = document.getElementById('batchProgressFill'); const text = document.getElementById('batchProgressText');
+      progressDiv.style.display = 'block';
+    
+      const files = Array.from(fileInput.files); const total = files.length; let successCount = 0; const CHUNK_SIZE = 5;
+      for (let i = 0; i < total; i += CHUNK_SIZE) {
+          const chunk = files.slice(i, i + CHUNK_SIZE);
+          const fd = new FormData(); fd.append('name', name); fd.append('caption', caption); fd.append('type', type); fd.append('autoApprove', autoApprove ? 'true' : 'false');
+          chunk.forEach(f => fd.append('files', f));
+          try {
+              text.textContent = `Uploading batch ${Math.ceil((i+1)/CHUNK_SIZE)} of ${Math.ceil(total/CHUNK_SIZE)}...`;
+              const res = await fetch(apiUrl('/api/admin/upload-batch'), { method: 'POST', headers: { 'Authorization': `Bearer ${state.adminToken}` }, body: fd });
+              const data = await res.json();
+              if (data.success) successCount += (data.count || 0); else showNotification('error', 'Error in chunk', data.error);
+              fill.style.width = Math.min(100, Math.round(((i + chunk.length) / total) * 100)) + '%';
+          } catch (e) { console.error(e); }
+      }
+      showNotification('success', 'Batch Complete', `${successCount} uploaded successfully.`);
+      closeBatchUpload(); loadAdminMemories(true);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
   </script>
 
     <!-- FRAGMENT: admin_moderation -->

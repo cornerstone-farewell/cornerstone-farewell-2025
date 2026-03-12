@@ -6,7 +6,14 @@
       "category": "funny",
       "text": "monkey banana",
       "createdAt": "2026-03-11T09:12:00.166Z"
+    },
+    {
+      "id": 2,
+      "name": "anonymous",
+      "category": "dream",
+      "text": "hi people",
+      "createdAt": "2026-03-12T06:57:06.400Z"
     }
   ],
-  "nextId": 2
+  "nextId": 3
 }

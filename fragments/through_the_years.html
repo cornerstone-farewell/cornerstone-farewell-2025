@@ -1,22 +1,264 @@
 <!-- FRAGMENT: timeline -->
 <style data-fragment-style="timeline">
-#timeline { background: var(--navy-medium); }.timeline { position: relative; max-width: 800px; margin: 0 auto; }.timeline::before { content: ""; position: absolute; left: 50%; transform: translateX(-50%); width: 4px; height: 100%; background: var(--gradient-gold); border-radius: 2px; }.timeline-item { display: flex; justify-content: flex-end; padding-right: 50%; position: relative; margin-bottom: 50px; }.timeline-item:nth-child(even) { justify-content: flex-start; padding-right: 0; padding-left: 50%; }.timeline-content { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; max-width: 350px; position: relative; margin-right: 30px; }.timeline-item:nth-child(even) .timeline-content { margin-right: 0; margin-left: 30px; }.timeline-dot { position: absolute; right: -38px; top: 25px; width: 20px; height: 20px; background: var(--primary-gold); border-radius: 50%; border: 4px solid var(--navy-medium); }.timeline-item:nth-child(even) .timeline-dot { right: auto; left: -38px; }.timeline-year { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 10px; }.timeline-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 10px; }.timeline-description { color: var(--text-muted); font-size: 0.9rem; }@media (max-width: 1024px) {
-.timeline::before { left: 20px; }
-.timeline-item { padding-right: 0; padding-left: 50px; justify-content: flex-start; }
-.timeline-item:nth-child(even) { padding-left: 50px; }
-.timeline-content { margin-right: 0; margin-left: 0; }
-.timeline-item:nth-child(even) .timeline-content { margin-left: 0; }
-.timeline-dot { left: 12px; right: auto; }
-.timeline-item:nth-child(even) .timeline-dot { left: 12px; }
+#timeline { 
+  background: var(--navy-medium); 
+}
+
+.timeline { 
+  position: relative; 
+  max-width: 800px; 
+  margin: 0 auto; 
+}
+
+.timeline::before { 
+  content: ""; 
+  position: absolute; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  width: 4px; 
+  height: 100%; 
+  background: var(--gradient-gold); 
+  border-radius: 2px; 
+}
+
+.timeline-item { 
+  display: flex; 
+  justify-content: flex-end; 
+  padding-right: 50%; 
+  position: relative; 
+  margin-bottom: 50px; 
+}
+
+.timeline-item:nth-child(even) { 
+  justify-content: flex-start; 
+  padding-right: 0; 
+  padding-left: 50%; 
+}
+
+.timeline-content { 
+  background: var(--glass-bg); 
+  border: 1px solid var(--glass-border); 
+  border-radius: 20px; 
+  padding: 25px; 
+  max-width: 350px; 
+  position: relative; 
+  margin-right: 30px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.timeline-content:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.timeline-item:nth-child(even) .timeline-content { 
+  margin-right: 0; 
+  margin-left: 30px; 
+}
+
+.timeline-dot { 
+  position: absolute; 
+  right: -38px; 
+  top: 25px; 
+  width: 20px; 
+  height: 20px; 
+  background: var(--primary-gold); 
+  border-radius: 50%; 
+  border: 4px solid var(--navy-medium);
+  box-shadow: 0 0 15px rgba(212,175,55,0.4);
+}
+
+.timeline-item:nth-child(even) .timeline-dot { 
+  right: auto; 
+  left: -38px; 
+}
+
+.timeline-year { 
+  font-family: var(--font-display); 
+  font-size: 1.5rem; 
+  font-weight: 700; 
+  color: var(--primary-gold); 
+  margin-bottom: 10px; 
+}
+
+.timeline-title { 
+  font-size: 1.1rem; 
+  font-weight: 600; 
+  margin-bottom: 10px;
+  color: var(--text-light);
+}
+
+.timeline-description { 
+  color: var(--text-muted); 
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.timeline-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.timeline-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.timeline-empty-text {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 1024px) {
+  .timeline::before { left: 20px; }
+  .timeline-item { padding-right: 0; padding-left: 50px; justify-content: flex-start; }
+  .timeline-item:nth-child(even) { padding-left: 50px; }
+  .timeline-content { margin-right: 0; margin-left: 0; max-width: 100%; }
+  .timeline-item:nth-child(even) .timeline-content { margin-left: 0; }
+  .timeline-dot { left: 12px; right: auto; }
+  .timeline-item:nth-child(even) .timeline-dot { left: 12px; }
 }
 </style>
+
 <section id="timeline">
-<div class="container">
-<div class="section-header">
-<span class="section-badge" id="uiTimelineBadge">Our Journey</span>
-<h2 class="section-title" id="uiTimelineTitle">Through The <span class="highlight">Years</span></h2>
-<p class="section-description" id="uiTimelineDesc">Key milestones of our school journey</p>
-</div>
-<div class="timeline" id="timelineList"></div>
-</div>
+  <div class="container">
+    <div class="section-header">
+      <span class="section-badge" id="uiTimelineBadge">Our Journey</span>
+      <h2 class="section-title" id="uiTimelineTitle">Through The <span class="highlight">Years</span></h2>
+      <p class="section-description" id="uiTimelineDesc">Key milestones of our school journey</p>
+    </div>
+    <div class="timeline" id="timelineList">
+      <!-- Timeline items will be rendered here -->
+    </div>
+  </div>
 </section>
+
+<script data-fragment-script="timeline">
+(function() {
+  'use strict';
+
+  // Default timeline data (fallback if no settings)
+  const DEFAULT_TIMELINE = [
+    {
+      year: '2015',
+      title: 'The Beginning',
+      description: 'Our journey started as bright-eyed students entering the school gates for the first time.'
+    },
+    {
+      year: '2017',
+      title: 'Growing Together',
+      description: 'Friendships formed, memories made, and lessons learned as we navigated middle school together.'
+    },
+    {
+      year: '2019',
+      title: 'High School Adventures',
+      description: 'New challenges, deeper bonds, and the realization that these years would shape us forever.'
+    },
+    {
+      year: '2021',
+      title: 'Through the Pandemic',
+      description: 'We adapted, stayed connected virtually, and proved that nothing could break our spirit.'
+    },
+    {
+      year: '2023',
+      title: 'Final Chapter Begins',
+      description: 'Senior year arrived, bringing bittersweet moments and anticipation for what lies ahead.'
+    },
+    {
+      year: '2025',
+      title: 'Farewell & New Beginnings',
+      description: 'As we say goodbye, we carry with us the memories, friendships, and lessons that will last a lifetime.'
+    }
+  ];
+
+  function init() {
+    console.log('[Timeline] Initializing...');
+    renderTimeline();
+    console.log('[Timeline] Ready');
+  }
+
+  function renderTimeline() {
+    const container = document.getElementById('timelineList');
+    if (!container) {
+      console.warn('[Timeline] Container not found');
+      return;
+    }
+
+    // Get timeline from settings or use default
+    let timeline = DEFAULT_TIMELINE;
+
+    // Try to get from global state
+    if (typeof state !== 'undefined' && state.settings && Array.isArray(state.settings.timeline) && state.settings.timeline.length > 0) {
+      timeline = state.settings.timeline;
+      console.log('[Timeline] Using settings timeline:', timeline.length, 'items');
+    } else {
+      console.log('[Timeline] Using default timeline:', timeline.length, 'items');
+    }
+
+    // Filter out empty items
+    timeline = timeline.filter(item => item && item.year && item.title);
+
+    if (timeline.length === 0) {
+      container.innerHTML = `
+        <div class="timeline-empty">
+          <div class="timeline-empty-icon">📅</div>
+          <div class="timeline-empty-text">No timeline events yet</div>
+        </div>
+      `;
+      return;
+    }
+
+    // Sort by year
+    timeline.sort((a, b) => {
+      const yearA = parseInt(a.year) || 0;
+      const yearB = parseInt(b.year) || 0;
+      return yearA - yearB;
+    });
+
+    // Render items
+    container.innerHTML = timeline.map((item, index) => `
+      <div class="timeline-item" style="animation: fadeInUp 0.6s ease ${index * 0.1}s both;">
+        <div class="timeline-content">
+          <div class="timeline-year">${escapeHtml(item.year)}</div>
+          <div class="timeline-title">${escapeHtml(item.title)}</div>
+          <div class="timeline-description">${escapeHtml(item.description || '')}</div>
+        </div>
+        <div class="timeline-dot"></div>
+      </div>
+    `).join('');
+
+    console.log('[Timeline] Rendered', timeline.length, 'items');
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Listen for settings updates
+  function onSettingsLoaded() {
+    console.log('[Timeline] Settings loaded, re-rendering...');
+    renderTimeline();
+  }
+
+  // Initialize
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wait a bit for settings to load
+      setTimeout(init, 800);
+    });
+  } else {
+    setTimeout(init, 800);
+  }
+
+  // Also re-render when settings are updated
+  window.addEventListener('settingsUpdated', onSettingsLoaded);
+
+  // Expose for external calls
+  window.renderTimeline = renderTimeline;
+
+})();
+</script>

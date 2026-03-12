@@ -1,31 +1,268 @@
 <!-- FRAGMENT: teachers -->
 <style data-fragment-style="teachers">
-#teachers { background: var(--navy-dark); }.teachers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }.teacher-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 25px; padding: 30px; text-align: center; transition: var(--transition-smooth); }.teacher-card:hover { transform: translateY(-10px); border-color: var(--primary-gold); box-shadow: var(--shadow-gold); }.teacher-image {
-      width: 120px; height: 120px;
-      border-radius: 50%;
-      margin: 0 auto 20px;
-      background: var(--gradient-gold);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 3rem;
-      overflow: hidden;
-      color: var(--navy-dark);
-      font-weight: 800;
-    }.teacher-image img { width: 100%; height: 100%; object-fit: cover; }.teacher-name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; margin-bottom: 5px; }.teacher-subject { color: var(--primary-gold); font-size: 0.95rem; margin-bottom: 15px; }.teacher-quote { font-style: italic; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; }@media (max-width: 480px) {
-.teachers-grid { grid-template-columns: 1fr; }
+#teachers { 
+  background: var(--navy-dark); 
 }
-
-.teacher-card{position:relative}.teacher-audio-badge{
-  position:absolute; top:12px; right:12px; z-index:3; padding:6px 10px; border-radius:999px;
-  background:rgba(0,0,0,.55); color:var(--primary-gold); font-size:.75rem; border:1px solid rgba(255,255,255,.12);
+.teachers-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+  gap: 30px; 
+}
+.teacher-card { 
+  background: var(--glass-bg); 
+  border: 1px solid var(--glass-border); 
+  border-radius: 25px; 
+  padding: 30px; 
+  text-align: center; 
+  transition: var(--transition-smooth);
+  position: relative;
+}
+.teacher-card:hover { 
+  transform: translateY(-10px); 
+  border-color: var(--primary-gold); 
+  box-shadow: var(--shadow-gold); 
+}
+.teacher-image {
+  width: 120px; 
+  height: 120px;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  background: var(--gradient-gold);
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  font-size: 3rem;
+  overflow: hidden;
+  color: var(--navy-dark);
+  font-weight: 800;
+}
+.teacher-image img { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+}
+.teacher-name { 
+  font-family: var(--font-display); 
+  font-size: 1.4rem; 
+  font-weight: 600; 
+  margin-bottom: 5px; 
+}
+.teacher-subject { 
+  color: var(--primary-gold); 
+  font-size: 0.95rem; 
+  margin-bottom: 15px; 
+}
+.teacher-quote { 
+  font-style: italic; 
+  color: var(--text-muted); 
+  font-size: 0.9rem; 
+  line-height: 1.6; 
+}
+.teacher-audio-badge {
+  position: absolute; 
+  top: 12px; 
+  right: 12px; 
+  z-index: 3; 
+  padding: 6px 10px; 
+  border-radius: 999px;
+  background: rgba(0,0,0,.55); 
+  color: var(--primary-gold); 
+  font-size: .75rem; 
+  border: 1px solid rgba(255,255,255,.12);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+.teacher-audio-badge:hover {
+  background: var(--primary-gold);
+  color: var(--navy-dark);
+}
+.teachers-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+.teachers-empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+@media (max-width: 480px) {
+  .teachers-grid { grid-template-columns: 1fr; }
 }
 </style>
+
 <section id="teachers">
-<div class="container">
-<div class="section-header">
-<span class="section-badge" id="uiTeachersBadge">Our Guides</span>
-<h2 class="section-title" id="uiTeachersTitle">Beloved <span class="highlight">Teachers</span></h2>
-<p class="section-description" id="uiTeachersDesc">The mentors who shaped our minds and hearts</p>
-</div>
-<div class="teachers-grid" id="teachersGrid"></div>
-</div>
+  <div class="container">
+    <div class="section-header">
+      <span class="section-badge" id="uiTeachersBadge">Our Guides</span>
+      <h2 class="section-title" id="uiTeachersTitle">Beloved <span class="highlight">Teachers</span></h2>
+      <p class="section-description" id="uiTeachersDesc">The mentors who shaped our minds and hearts</p>
+    </div>
+    <div class="teachers-grid" id="teachersGrid">
+      <!-- Teachers will be rendered here by JavaScript -->
+    </div>
+  </div>
 </section>
+
+<script data-fragment-script="teachers">
+// ═══════════════════════════════════════════════════════════════════════════════
+// TEACHERS SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+(function() {
+  let teacherAudioTracks = [];
+
+  // Fetch teacher audio messages from the API
+  async function loadTeacherAudio() {
+    try {
+      const res = await fetch(apiUrl('/api/teacher-audio'));
+      const data = await res.json();
+      if (data?.success && Array.isArray(data.tracks)) {
+        teacherAudioTracks = data.tracks;
+      }
+    } catch (e) {
+      console.warn('Could not load teacher audio:', e);
+    }
+  }
+
+  // Get audio track for a specific teacher
+  function getTeacherAudio(teacherName) {
+    if (!teacherName) return null;
+    const name = teacherName.toLowerCase().trim();
+    return teacherAudioTracks.find(t => 
+      t.teacherName && t.teacherName.toLowerCase().trim() === name
+    );
+  }
+
+  // Play teacher audio message
+  function playTeacherAudio(track) {
+    if (!track || !track.file_url) {
+      showNotification('info', 'No Audio', 'No audio message available for this teacher.');
+      return;
+    }
+    
+    let audioPlayer = document.getElementById('teacherAudioPlayer');
+    if (!audioPlayer) {
+      audioPlayer = document.createElement('audio');
+      audioPlayer.id = 'teacherAudioPlayer';
+      audioPlayer.controls = true;
+      audioPlayer.style.display = 'none';
+      document.body.appendChild(audioPlayer);
+    }
+    
+    audioPlayer.src = mediaUrl(track.file_url);
+    audioPlayer.play().catch(e => {
+      console.warn('Audio playback failed:', e);
+      showNotification('error', 'Playback Error', 'Could not play audio message.');
+    });
+    
+    showNotification('info', track.teacherName, track.message || 'Playing audio message...');
+  }
+
+  // Get the image URL - handles both full URLs and relative paths
+  function getTeacherImageUrl(imageUrl) {
+    if (!imageUrl) return null;
+    
+    // If it's already a full URL (http:// or https://), use it directly
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    
+    // If it starts with //, it's a protocol-relative URL
+    if (imageUrl.startsWith('//')) {
+      return imageUrl;
+    }
+    
+    // Otherwise, treat it as a relative path and use mediaUrl
+    return mediaUrl(imageUrl);
+  }
+
+  // Render teachers grid
+  function renderTeachers() {
+    const grid = document.getElementById('teachersGrid');
+    if (!grid) return;
+
+    const teachers = state.settings?.teachers || [];
+
+    if (!teachers.length) {
+      grid.innerHTML = `
+        <div class="teachers-empty" style="grid-column: 1 / -1;">
+          <div class="teachers-empty-icon">👨‍🏫</div>
+          <p>Teachers information will be added soon.</p>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = teachers.map(teacher => {
+      const audioTrack = getTeacherAudio(teacher.name);
+      const hasAudio = !!audioTrack;
+      const initials = getInitials(teacher.name || 'T');
+      
+      // Use imageUrl field (not photo)
+      const imageUrl = getTeacherImageUrl(teacher.imageUrl);
+      
+      return `
+        <div class="teacher-card" data-teacher="${escapeAttr(teacher.name || '')}">
+          ${hasAudio ? `
+            <button class="teacher-audio-badge" onclick="window._playTeacherAudio('${escapeAttr(teacher.name)}')" title="Play audio message">
+              🎧 Listen
+            </button>
+          ` : ''}
+          <div class="teacher-image">
+            ${imageUrl 
+              ? `<img src="${escapeAttr(imageUrl)}" alt="${escapeAttr(teacher.name || '')}" onerror="this.style.display='none'; this.parentElement.innerHTML='${initials}';">`
+              : initials
+            }
+          </div>
+          <h3 class="teacher-name">${escapeHtml(teacher.name || 'Unknown Teacher')}</h3>
+          <p class="teacher-subject">${escapeHtml(teacher.subject || '')}</p>
+          ${teacher.quote ? `<p class="teacher-quote">"${escapeHtml(teacher.quote)}"</p>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Expose play function globally
+  window._playTeacherAudio = function(teacherName) {
+    const track = getTeacherAudio(teacherName);
+    if (track) {
+      playTeacherAudio(track);
+    } else {
+      showNotification('info', 'No Audio', 'No audio message found for this teacher.');
+    }
+  };
+
+  // Initialize teachers section
+  async function initTeachers() {
+    // Wait a bit for settings to be loaded
+    if (!state.settings || !state.settings.teachers) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    await loadTeacherAudio();
+    renderTeachers();
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(initTeachers, 150);
+    });
+  } else {
+    setTimeout(initTeachers, 150);
+  }
+
+  // Hook into applySettingsToUI to re-render when settings update
+  const _originalApplySettingsToUI = window.applySettingsToUI;
+  window.applySettingsToUI = function() {
+    if (typeof _originalApplySettingsToUI === 'function') {
+      _originalApplySettingsToUI.apply(this, arguments);
+    }
+    setTimeout(renderTeachers, 50);
+  };
+
+  // Expose for external use
+  window.renderTeachers = renderTeachers;
+  window.initTeachers = initTeachers;
+})();
+</script>

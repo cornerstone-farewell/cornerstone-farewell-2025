@@ -1,851 +1,1083 @@
 <!-- FRAGMENT: globe -->
 <style data-fragment-style="globe">
-#distanceMapWrap{ display:block !important; position:relative !important; max-width:1200px !important; margin:0 auto !important; }#distanceGlobeCanvas{ width:100% !important; height:650px !important; position:relative !important; }#distanceMapSection #distanceGlobeUi{
- position:relative !important;
- max-width:1200px !important;
- margin:0 auto 14px !important;
- }#distanceMapSection #distanceGlobeCanvas canvas,
- #distanceMapSection #distanceGlobeCanvas > div{
- margin:0 auto !important;
- }
-
-#distanceMapWrap{
-  display:block !important; position:relative !important; max-width:1200px !important; margin:0 auto !important;
- }#distanceGlobeCanvas{
-  width:100% !important; height:650px !important; position:relative !important;
- }#distanceMapSection #distanceGlobeUi{
-  position:relative !important; max-width:1200px !important; margin:0 auto 14px !important;
- }#distanceMapSection #distanceGlobeCanvas canvas,
- #distanceMapSection #distanceGlobeCanvas > div{
-  margin:0 auto !important;
- }
-
-#distanceMapSection{background:linear-gradient(180deg,#090b13,#11182a)}#distanceMapWrap{
-  min-height:560px; border-radius:24px; position:relative; overflow:hidden; background:radial-gradient(circle at center,#182440 0,#090b13 70%);
-  border:1px solid rgba(255,255,255,.08);
-}#distanceGlobe{
-  position:absolute; width:min(520px,70vw); aspect-ratio:1; border-radius:50%;
-  left:50%; top:50%; transform:translate(-50%,-50%);
-  background:
-    radial-gradient(circle at 30% 30%,rgba(255,255,255,.18),transparent 18%),
-    radial-gradient(circle at 35% 48%,rgba(212,175,55,.14),transparent 25%),
-    radial-gradient(circle at 50% 50%,#15325e 0,#0e1d39 58%,#05070c 100%);
-  box-shadow:0 0 0 1px rgba(255,255,255,.08), inset -40px -30px 80px rgba(0,0,0,.38), 0 20px 80px rgba(0,0,0,.45);
-}#distanceGlobe::after{
-  content:""; position:absolute; inset:10%; border-radius:50%;
-  border:1px dashed rgba(255,255,255,.12);
-}.distance-school-dot{
-  position:absolute; width:12px; height:12px; border-radius:50%; background:gold; box-shadow:0 0 14px gold, 0 0 32px gold;
-  left:50%; top:50%; transform:translate(-50%,-50%);
-}.distance-arc{
-  position:absolute; left:50%; top:50%; width:2px; transform-origin:bottom center;
-  background:linear-gradient(180deg,rgba(212,175,55,.95),rgba(212,175,55,0));
-  opacity:.92; filter:drop-shadow(0 0 8px rgba(212,175,55,.45));
-}#distanceControls{
-  position:relative; z-index:2; max-width:900px; margin:0 auto; padding:30px;
-  display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
+#distanceMapSection {
+  background: linear-gradient(180deg, #060a14 0%, #0d1730 60%, #081120 100%);
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
 }
 
-#distanceMapSection{
-  position:relative;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(212,175,55,.10), transparent 35%),
-    linear-gradient(180deg, #090b13 0%, #0f1730 55%, #0a1020 100%) !important;
-}#distanceMapSection .section-header{
-  margin-bottom:30px !important;
-}#distanceBriefCard{
-  max-width:950px;
-  margin:0 auto 24px;
-  padding:18px 20px;
-  border-radius:20px;
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.10);
-  color:var(--text-muted);
-  text-align:center;
-  box-shadow:0 12px 34px rgba(0,0,0,.22);
-}#distanceBriefCard strong{
-  color:var(--text-light);
-}#distanceControls{
-  display:grid !important;
-  grid-template-columns:repeat(2,minmax(240px,1fr));
-  gap:12px !important;
-  align-items:end;
-  max-width:980px !important;
-  margin:0 auto 18px !important;
-  padding:0 0 10px !important;
-}#distanceControls .form-group{
-  margin-bottom:0 !important;
-  text-align:left;
-}#distanceControls .form-group label{
-  margin-bottom:8px;
-}#distanceLaunchWrap{
-  grid-column:1 / -1;
-  display:flex;
-  gap:10px;
-  justify-content:center;
-  flex-wrap:wrap;
-  margin-top:4px;
-}#distanceMapWrap{
-  min-height:720px !important;
-  max-width:1200px;
-  margin:0 auto;
-  overflow:hidden;
-  border-radius:24px;
-  border:1px solid rgba(255,255,255,.10);
-  background:#08111f !important;
-  box-shadow:0 24px 80px rgba(0,0,0,.35);
-}#distanceGlobe{
-  display:none !important;
-}#distanceRealMapFrame{
-  width:100%;
-  height:720px;
-  border:0;
-  display:block;
-  background:#07101c;
-}#distanceOverlayStats{
-  position:absolute;
-  left:50%;
-  top:20px;
-  transform:translateX(-50%);
-  z-index:5;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:center;
-}.distance-stat-pill{
-  background:rgba(0,0,0,.45);
-  color:#fff;
-  border:1px solid rgba(255,255,255,.12);
-  backdrop-filter:blur(10px);
-  padding:8px 12px;
-  border-radius:999px;
-  font-size:.82rem;
-}@media (max-width: 900px) {
-#distanceControls{
-    grid-template-columns:1fr !important;
-  }
-#distanceMapWrap{
-    min-height:620px !important;
-  }
-#distanceRealMapFrame{
-    height:620px;
-  }
+.distance-intro {
+  max-width: 900px;
+  margin: 0 auto 30px;
+  text-align: center;
+  color: var(--text-muted);
 }
 
-#distanceMapSection{
-  background:
-    radial-gradient(circle at 50% 0%, rgba(212,175,55,.12), transparent 32%),
-    linear-gradient(180deg, #060a14 0%, #0d1730 60%, #081120 100%) !important;
-}#distanceMapWrap{
-  min-height:760px !important;
-  height:760px !important;
-  position:relative !important;
-  background:radial-gradient(circle at center, rgba(16,35,68,.45), rgba(3,7,15,.95)) !important;
-}#distanceRealMapFrame{
-  display:none !important;
-}#distanceGlobeCanvas{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-}#distanceGlobeUi{
-  position:absolute;
-  left:18px;
-  right:18px;
-  top:18px;
-  z-index:8;
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  flex-wrap:wrap;
-  pointer-events:none;
-}#distanceGlobeUi > *{
-  pointer-events:auto;
-}.distance-globe-card{
-  background:rgba(0,0,0,.45);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:18px;
-  backdrop-filter:blur(10px);
-  color:#fff;
-  padding:12px 14px;
-}#distancePickerCard{
-  max-width:420px;
-}#distancePickerCard h4{
-  margin:0 0 8px;
-  font-family:var(--font-display);
-  color:var(--primary-gold);
-}#distancePickerCard p{
-  margin:0 0 10px;
-  color:rgba(255,255,255,.82);
-  font-size:.92rem;
-  line-height:1.6;
-}.distance-mode-btns{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-bottom:10px;
-}.distance-mode-btn{
-  border:1px solid rgba(255,255,255,.16);
-  background:rgba(255,255,255,.08);
-  color:#fff;
-  border-radius:999px;
-  padding:8px 12px;
-  cursor:pointer;
-  font-size:.84rem;
-}.distance-mode-btn.active{
-  background:var(--primary-gold);
-  color:var(--navy-dark);
-  border-color:var(--primary-gold);
-  font-weight:700;
-}#distanceSelectedInfo{
-  display:grid;
-  gap:8px;
-}.distance-selected-row{
-  font-size:.88rem;
-  color:rgba(255,255,255,.88);
-}.distance-selected-row strong{
-  color:var(--primary-gold-light);
-}#distanceNameInline{
-  width:220px;
-  max-width:100%;
-}#distanceMiniLegend{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  align-items:center;
-}#distanceOverlayStats{
-  position:static !important;
-  transform:none !important;
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}.distance-stat-pill{
-  background:rgba(255,255,255,.07) !important;
-  border:1px solid rgba(255,255,255,.12) !important;
-}#distanceMapWrap .globe-tooltip{
-  color:#fff !important;
-}#distanceBottomActions{
-  position:absolute;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:8;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}@media (max-width: 900px) {
-#distanceMapWrap{
-    min-height:640px !important;
-    height:640px !important;
-  }
-#distanceGlobeUi{
-    top:12px;
-    left:12px;
-    right:12px;
-  }
-#distanceBottomActions{
-    width:calc(100% - 24px);
-    left:12px;
-    right:12px;
-    transform:none;
-    justify-content:center;
-  }
+.distance-intro strong {
+  color: var(--primary-gold);
 }
 
-#distanceMapWrap{
-  margin-top:18px !important;
-}#distanceGlobeUi{
-  position:relative !important;
-  left:auto !important;
-  right:auto !important;
-  top:auto !important;
-  transform:none !important;
-  display:grid !important;
-  grid-template-columns:minmax(280px, 430px) minmax(260px, 1fr);
-  gap:12px !important;
-  margin:0 auto 14px !important;
-  max-width:1200px !important;
-  pointer-events:auto !important;
-  z-index:2 !important;
-}#distanceGlobeUi > *{
-  min-width:0;
-}#distanceMapWrap .distance-globe-card{
-  box-shadow:0 14px 30px rgba(0,0,0,.20);
-}#distanceMapWrap #distanceBottomActions{
-  position:relative !important;
-  left:auto !important;
-  right:auto !important;
-  bottom:auto !important;
-  transform:none !important;
-  margin:14px auto 0 !important;
-  justify-content:center !important;
-  z-index:2 !important;
-}#distanceMapWrap #distanceGlobeCanvas{
-  position:relative !important;
-  inset:auto !important;
-  width:100% !important;
-  height:650px !important;
-  border-radius:24px;
-  overflow:hidden;
-}#distanceMapWrap{
-  display:flex !important;
-  flex-direction:column !important;
-  min-height:unset !important;
-  height:auto !important;
-  padding:0 0 16px !important;
-}#distanceOverlayStats{
-  position:static !important;
-  display:flex !important;
-  flex-wrap:wrap !important;
-  gap:8px !important;
-}#distanceMiniLegend{
-  margin-top:10px !important;
-}@media (max-width: 980px) {
-#distanceGlobeUi{
-    grid-template-columns:1fr !important;
-  }
-#distanceMapWrap #distanceGlobeCanvas{
-    height:560px !important;
-  }
+.globe-container {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: radial-gradient(circle at center, rgba(16,35,68,0.5), rgba(3,7,15,0.95));
 }
 
-#distanceMapsFlowCard{
-  max-width:980px;
-  margin:0 auto 16px;
-  padding:16px 18px;
-  border-radius:20px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.05);
-  color:var(--text-muted);
-  text-align:center;
-}#distanceMapsFlowCard strong{
-  color:var(--text-light);
-}#distanceConfirmPanel{
-  max-width:980px;
-  margin:0 auto 16px;
-  padding:18px;
-  border-radius:20px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(8,12,20,.78);
-  display:none;
-}#distanceConfirmPanel.active{
-  display:block;
-  animation:fadeInUp .5s ease;
-}#distanceConfirmPanel .row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}#distanceConfirmPanel .row + .row{
-  margin-top:12px;
-}#distanceConfirmPanel .hint{
-  margin-top:10px;
-  color:var(--text-muted);
-  font-size:.9rem;
-  text-align:center;
-}#distanceSelectedReview{
-  display:grid;
-  gap:8px;
-  margin-top:10px;
-}.distance-review-pill{
-  padding:10px 12px;
-  border-radius:14px;
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.10);
-  color:#fff;
-}#distanceGlobeCanvas{
-  cursor:grab;
-}#distanceGlobeCanvas.sniper-pick-armed{
-  outline:2px solid rgba(212,175,55,.38);
-  outline-offset:-2px;
-}@media (max-width: 900px) {
-#distanceConfirmPanel .row{
-    grid-template-columns:1fr;
-  }
+#distanceGlobeCanvas {
+  width: 100%;
+  height: 70vh;
+  min-height: 500px;
 }
+
+.globe-stats-overlay {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.globe-stat {
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+.globe-stat strong { color: var(--primary-gold); }
+
+.globe-legend {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 10;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.8);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.origin { background: #ffd700; box-shadow: 0 0 8px #ffd700; }
+.legend-dot.school { background: #55b9ff; box-shadow: 0 0 8px #55b9ff; }
+.legend-dot.university { background: #ff7aa8; box-shadow: 0 0 8px #ff7aa8; }
+
+.add-path-fab {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10;
+  padding: 16px 28px;
+  background: var(--gradient-gold);
+  color: var(--navy-dark);
+  border: none;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 30px rgba(212,175,55,0.4);
+  transition: all 0.3s ease;
+}
+
+.add-path-fab:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(212,175,55,0.5);
+}
+
+.globe-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.8);
+  z-index: 20;
+}
+
+.globe-loading.hidden { display: none; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MULTI-STEP MODAL
+   ═══════════════════════════════════════════════════════════════════════════ */
+.globe-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 10000;
+  display: none;
+}
+
+.globe-modal.active { display: block; }
+
+/* Steps */
+.globe-steps {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1002;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  padding: 8px 16px;
+  border-radius: 30px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+}
+
+.globe-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #9aa0a6;
+}
+
+.globe-step.active { background: #e8f0fe; color: #1a73e8; }
+.globe-step.done { background: #e6f4ea; color: #34a853; }
+
+.globe-step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e8eaed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.globe-step.active .globe-step-num { background: #1a73e8; color: #fff; }
+.globe-step.done .globe-step-num { background: #34a853; color: #fff; }
+
+.globe-step-div { width: 20px; height: 2px; background: #e8eaed; }
+
+/* Current Label */
+.globe-label-banner {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.globe-label-banner.school { background: linear-gradient(135deg, #1a73e8, #4285f4); color: #fff; }
+.globe-label-banner.university { background: linear-gradient(135deg, #ea4335, #ff6b6b); color: #fff; }
+
+/* Search */
+.globe-search-bar {
+  position: absolute;
+  top: 120px;
+  left: 16px;
+  right: 16px;
+  z-index: 1001;
+  display: flex;
+  gap: 12px;
+}
+
+.globe-back-btn {
+  width: 48px;
+  height: 48px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  color: #333;
+  font-size: 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+
+.globe-back-btn:hover { background: #f5f5f5; }
+
+.globe-search-box {
+  flex: 1;
+  max-width: 550px;
+  position: relative;
+}
+
+.globe-search-wrap {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.globe-search-wrap:focus-within { box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+
+.globe-search-icon { color: #5f6368; font-size: 1.1rem; margin-right: 10px; }
+
+.globe-search-input {
+  flex: 1;
+  border: none;
+  padding: 14px 0;
+  font-size: 1rem;
+  background: transparent;
+  color: #202124;
+  outline: none;
+}
+
+.globe-search-input::placeholder { color: #9aa0a6; }
+
+.globe-search-clear {
+  background: none;
+  border: none;
+  color: #5f6368;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 8px;
+  display: none;
+}
+
+.globe-search-clear.show { display: block; }
+
+.globe-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+}
+
+.globe-results.active { display: block; }
+
+.globe-result {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.globe-result:hover { background: #f8f9fa; }
+.globe-result:last-child { border-bottom: none; }
+
+.globe-result-icon {
+  width: 36px;
+  height: 36px;
+  background: #e8f0fe;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.globe-result-text { flex: 1; }
+.globe-result-main { color: #202124; font-weight: 500; font-size: 0.9rem; }
+.globe-result-sub { color: #5f6368; font-size: 0.8rem; }
+
+.globe-results-msg { padding: 20px; text-align: center; color: #5f6368; }
+
+.globe-results-msg .spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #e8eaed;
+  border-top-color: #1a73e8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 10px;
+}
+
+/* Map */
+.globe-map-wrap {
+  position: absolute;
+  inset: 0;
+  background: #1d2c4d;
+}
+
+#globeMap { width: 100%; height: 100%; }
+
+/* Center Pin */
+.globe-pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  z-index: 1000;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+.globe-pin svg { width: 42px; height: 58px; }
+.globe-pin.school .pin-fill { fill: #1a73e8; }
+.globe-pin.university .pin-fill { fill: #ea4335; }
+
+/* Map Controls */
+.globe-map-ctrls {
+  position: absolute;
+  right: 16px;
+  bottom: 230px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.globe-ctrl-btn {
+  width: 42px;
+  height: 42px;
+  background: #fff;
+  border: none;
+  border-radius: 8px;
+  color: #5f6368;
+  font-size: 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.globe-ctrl-btn:hover { background: #f8f9fa; color: #202124; }
+
+.globe-zoom-wrap {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.globe-zoom-wrap .globe-ctrl-btn { box-shadow: none; border-radius: 0; }
+.globe-zoom-wrap .globe-ctrl-btn:first-child { border-bottom: 1px solid #e8eaed; }
+
+/* Bottom Panel */
+.globe-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 25px rgba(0,0,0,0.15);
+  z-index: 1000;
+  padding: 20px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+/* Location Card */
+.globe-loc-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.globe-loc-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.globe-loc-icon.school { background: #e8f0fe; }
+.globe-loc-icon.university { background: #fce8e6; }
+
+.globe-loc-info { flex: 1; }
+.globe-loc-type { font-size: 0.7rem; color: #5f6368; text-transform: uppercase; letter-spacing: 0.5px; }
+.globe-loc-name { font-size: 1rem; font-weight: 600; color: #202124; margin: 2px 0; }
+.globe-loc-addr { font-size: 0.85rem; color: #5f6368; }
+.globe-loc-coords { font-size: 0.75rem; color: #9aa0a6; font-family: monospace; margin-top: 4px; }
+
+/* Summary Rows */
+.globe-summary { margin-bottom: 14px; }
+
+.globe-sum-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  border-left: 4px solid #e8eaed;
+}
+
+.globe-sum-row.school.has { border-color: #1a73e8; background: #e8f0fe; }
+.globe-sum-row.university.has { border-color: #ea4335; background: #fce8e6; }
+
+.globe-sum-row .icon { font-size: 1.2rem; }
+.globe-sum-row .info { flex: 1; }
+.globe-sum-row .type { font-size: 0.7rem; color: #5f6368; text-transform: uppercase; }
+.globe-sum-row .name { font-weight: 600; color: #202124; }
+.globe-sum-row .empty { color: #9aa0a6; font-style: italic; }
+
+.globe-sum-row .edit-btn {
+  background: none;
+  border: none;
+  color: #1a73e8;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
+
+.globe-sum-row .edit-btn:hover { text-decoration: underline; }
+
+/* Form */
+.globe-form-grp { margin-bottom: 14px; }
+
+.globe-lbl {
+  display: block;
+  font-size: 0.75rem;
+  color: #5f6368;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.globe-inp {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e8eaed;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #202124;
+  background: #fff;
+}
+
+.globe-inp:focus { outline: none; border-color: #1a73e8; }
+.globe-inp::placeholder { color: #9aa0a6; }
+
+/* Buttons */
+.globe-btns { display: flex; gap: 10px; }
+
+.globe-btn {
+  flex: 1;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.globe-btn-primary { background: #1a73e8; color: #fff; border: none; }
+.globe-btn-primary:hover { background: #1557b0; }
+.globe-btn-primary:disabled { background: #dadce0; color: #9aa0a6; cursor: not-allowed; }
+
+.globe-btn-secondary { background: #fff; color: #5f6368; border: 2px solid #e8eaed; }
+.globe-btn-secondary:hover { background: #f8f9fa; }
+
+.globe-btn-success { background: #34a853; color: #fff; border: none; }
+.globe-btn-success:hover { background: #2d9249; }
+
+.globe-skip {
+  background: none;
+  border: none;
+  color: #5f6368;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 8px;
+  margin-top: 6px;
+  width: 100%;
+  text-align: center;
+}
+
+.globe-skip:hover { color: #202124; text-decoration: underline; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .globe-steps { padding: 6px 10px; font-size: 0.75rem; }
+  .globe-step-text { display: none; }
+  .globe-search-bar { top: 110px; left: 10px; right: 10px; }
+  .globe-back-btn { width: 42px; height: 42px; }
+  .globe-label-banner { top: 60px; font-size: 0.8rem; padding: 8px 14px; }
+  .globe-panel { padding: 16px; }
+  .globe-btns { flex-direction: column; }
+  .add-path-fab { bottom: 16px; right: 16px; padding: 12px 18px; font-size: 0.9rem; }
+}
+
+.leaflet-container { background: #1d2c4d !important; }
+.leaflet-control-zoom { display: none !important; }
+.leaflet-control-attribution { background: rgba(255,255,255,0.8) !important; font-size: 10px !important; }
 </style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-<script src="https://unpkg.com/globe.gl"></script>
+<script src="https://unpkg.com/globe.gl@2.27.0/dist/globe.gl.min.js"></script>
+
 <section id="distanceMapSection">
-<div class="container">
-<div class="section-header">
-<span class="section-badge">Erase the Distance</span>
-<h2 class="section-title">One <span class="highlight">Starting Point</span>, Many Destinations</h2>
-<p class="section-description">No matter where everyone goes next, it all began here.</p>
-</div>
-<div id="distanceControls">
-<select class="form-select" id="destinationSelect" style="max-width:320px;">
-<option value="">Choose your future destination</option>
-</select>
-<button class="btn btn-primary" id="destinationLaunchBtn" type="button">Show the Globe</button>
-</div>
-<div id="distanceMapWrap">
-<div id="distanceGlobe">
-<div class="distance-school-dot"></div>
-</div>
-</div>
-</div>
+  <div class="container">
+    <div class="section-header">
+      <span class="section-badge">Erase the Distance</span>
+      <h2 class="section-title">One <span class="highlight">Starting Point</span>, Many Destinations</h2>
+      <p class="section-description">No matter where everyone goes next, it all began here.</p>
+    </div>
+
+    <p class="distance-intro">
+      Click below to <strong>pin your destinations</strong> — your 11th/12th school AND your dream university!
+    </p>
+
+    <div class="globe-container">
+      <div class="globe-loading" id="globeLoading"><div class="loading-spinner"></div></div>
+      <div id="distanceGlobeCanvas"></div>
+      <div class="globe-stats-overlay" id="globeStats"><div class="globe-stat">Loading...</div></div>
+      <div class="globe-legend">
+        <div class="legend-item"><div class="legend-dot origin"></div><span>Cornerstone School</span></div>
+        <div class="legend-item"><div class="legend-dot school"></div><span>11th / 12th Paths</span></div>
+        <div class="legend-item"><div class="legend-dot university"></div><span>University Dreams</span></div>
+      </div>
+      <button class="add-path-fab" id="openGlobeBtn" type="button"><span>📍</span> Add Your Paths</button>
+    </div>
+  </div>
 </section>
+
+<!-- Modal -->
+<div class="globe-modal" id="globeModal">
+  <div class="globe-map-wrap">
+    <div id="globeMap"></div>
+    <div class="globe-pin school" id="globePin">
+      <svg viewBox="0 0 42 58" fill="none">
+        <path class="pin-fill" d="M21 0C9.4 0 0 9.4 0 21c0 15.75 21 37 21 37s21-21.25 21-37C42 9.4 32.6 0 21 0z"/>
+        <circle cx="21" cy="21" r="8" fill="#fff"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="globe-steps" id="globeSteps">
+    <div class="globe-step active" data-s="1"><span class="globe-step-num">1</span><span class="globe-step-text">School</span></div>
+    <div class="globe-step-div"></div>
+    <div class="globe-step" data-s="2"><span class="globe-step-num">2</span><span class="globe-step-text">University</span></div>
+    <div class="globe-step-div"></div>
+    <div class="globe-step" data-s="3"><span class="globe-step-num">3</span><span class="globe-step-text">Save</span></div>
+  </div>
+
+  <div class="globe-label-banner school" id="globeBanner"><span>🏫</span> Select your 11th/12th location</div>
+
+  <div class="globe-search-bar">
+    <button class="globe-back-btn" id="globeBackBtn" type="button">←</button>
+    <div class="globe-search-box">
+      <div class="globe-search-wrap">
+        <span class="globe-search-icon">🔍</span>
+        <input type="text" class="globe-search-input" id="globeSearch" placeholder="Search any place..." autocomplete="off" />
+        <button class="globe-search-clear" id="globeClear" type="button">✕</button>
+      </div>
+      <div class="globe-results" id="globeResults"></div>
+    </div>
+  </div>
+
+  <div class="globe-map-ctrls">
+    <button class="globe-ctrl-btn" id="globeLocBtn" title="My location">📍</button>
+    <div class="globe-zoom-wrap">
+      <button class="globe-ctrl-btn" id="globeZoomIn">+</button>
+      <button class="globe-ctrl-btn" id="globeZoomOut">−</button>
+    </div>
+  </div>
+
+  <div class="globe-panel" id="globePanel">
+    <!-- Steps 1 & 2 -->
+    <div id="panelLoc">
+      <div class="globe-loc-card">
+        <div class="globe-loc-icon school" id="locIcon">🏫</div>
+        <div class="globe-loc-info">
+          <div class="globe-loc-type" id="locType">11th / 12th Location</div>
+          <div class="globe-loc-name" id="locName">Drag map or search</div>
+          <div class="globe-loc-addr" id="locAddr">Position the pin</div>
+          <div class="globe-loc-coords" id="locCoords"></div>
+        </div>
+      </div>
+      <div class="globe-btns">
+        <button class="globe-btn globe-btn-primary" id="confirmLocBtn" type="button">✓ Confirm Location</button>
+      </div>
+      <button class="globe-skip" id="skipLocBtn" type="button">Skip this step →</button>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="panelSave" style="display:none;">
+      <div class="globe-form-grp">
+        <label class="globe-lbl">Your Name *</label>
+        <input type="text" class="globe-inp" id="globeName" placeholder="Enter your full name" maxlength="80" />
+      </div>
+
+      <div class="globe-summary">
+        <div class="globe-sum-row school" id="sumSchool">
+          <span class="icon">🏫</span>
+          <div class="info">
+            <div class="type">11th / 12th</div>
+            <div class="name empty" id="sumSchoolName">Not selected</div>
+          </div>
+          <button class="edit-btn" id="editSchool" type="button">Edit</button>
+        </div>
+        <div class="globe-sum-row university" id="sumUni">
+          <span class="icon">🎓</span>
+          <div class="info">
+            <div class="type">University</div>
+            <div class="name empty" id="sumUniName">Not selected</div>
+          </div>
+          <button class="edit-btn" id="editUni" type="button">Edit</button>
+        </div>
+      </div>
+
+      <div class="globe-btns">
+        <button class="globe-btn globe-btn-secondary" id="backBtn" type="button">← Back</button>
+        <button class="globe-btn globe-btn-success" id="saveBtn" type="button">🚀 Save Paths</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script data-fragment-script="globe">
-/* === SNIPER_PATCH_V5_START === */
-(function(){
-  if (window.__SNIPER_PATCH_V5__) return;
-  window.__SNIPER_PATCH_V5__ = true;
+(function() {
+  'use strict';
 
-  const SCHOOL_ORIGIN = { lat: 12.9716, lng: 77.5946, label: 'Cornerstone International School' };
+  const ORIGIN = { lat: 12.9716, lng: 77.5946, label: 'Cornerstone International School', city: 'Bangalore, India' };
+  const SEARCH_API = 'https://nominatim.openstreetmap.org/search';
+  const REVERSE_API = 'https://nominatim.openstreetmap.org/reverse';
 
-  const v5 = {
+  const S = {
     globe: null,
-    globeReady: false,
-    pickingMode: 'school',
-    pendingSchoolPoint: null,
-    pendingUniversityPoint: null,
-    popupShown: false,
-    popupTimer: null
+    map: null,
+    step: 1,
+    schoolLoc: null,
+    uniLoc: null,
+    currLoc: null,
+    searchTO: null,
+    data: [],
+    open: false
   };
 
-  function bootV5(){
-    patchPopupTimingV5();
-    buildGlobeUi();
-    patchDistanceSectionV5();
-    patchAdminPlacesHelpTextV5();
+  // ══════════════════════════════════════════════════════════════════════════
+  // INIT
+  // ══════════════════════════════════════════════════════════════════════════
+  function init() {
+    if (typeof Globe === 'undefined' || typeof L === 'undefined') { setTimeout(init, 500); return; }
+    initGlobe();
+    initEvents();
+    loadData();
+    console.log('[Globe] Ready');
   }
 
-  function introActuallyVisible(){
-    const overlay = document.getElementById('introVideoOverlay');
-    if (!overlay) return false;
-    const style = getComputedStyle(overlay);
-    if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity || '1') === 0) return false;
-    return !overlay.classList.contains('hidden');
-  }
-
-  function patchPopupTimingV5(){
-    const oldInstall = window.installScrollTriggeredPopups;
-    if (typeof oldInstall === 'function' && !oldInstall.__v5Wrapped){
-      window.installScrollTriggeredPopups = function(){
-        const openMaybe = () => {
-          if (v5.popupShown) return;
-          if (introActuallyVisible()) return;
-          const countdown = document.getElementById('countdown');
-          if (!countdown) return;
-          const rect = countdown.getBoundingClientRect();
-          const crossed = rect.bottom < (window.innerHeight * 0.35);
-          if (!crossed) return;
-          v5.popupShown = true;
-          setTimeout(() => {
-            if (!introActuallyVisible()) document.getElementById('ghostCursorPopup')?.classList.add('active');
-          }, 600);
-          setTimeout(() => {
-            if (!introActuallyVisible()) document.getElementById('paperTutorial')?.classList.add('active');
-          }, 1900);
-          window.removeEventListener('scroll', openMaybe);
-        };
-        window.addEventListener('scroll', openMaybe, { passive: true });
-        v5.popupTimer = setInterval(() => {
-          if (v5.popupShown) {
-            clearInterval(v5.popupTimer);
-            return;
-          }
-          openMaybe();
-        }, 1200);
-      };
-      window.installScrollTriggeredPopups.__v5Wrapped = true;
-    }
-
-    const oldSkipIntro = window.skipIntro;
-    if (typeof oldSkipIntro === 'function' && !oldSkipIntro.__v5Wrapped){
-      window.skipIntro = function(){
-        const out = oldSkipIntro.apply(this, arguments);
-        setTimeout(() => {
-          if (typeof window.installScrollTriggeredPopups === 'function') {
-            try { window.installScrollTriggeredPopups(); } catch(_){}
-          }
-        }, 700);
-        return out;
-      };
-      window.skipIntro.__v5Wrapped = true;
-    }
-  }
-
-  function buildGlobeUi(){
-    const wrap = document.getElementById('distanceMapWrap');
-    if (!wrap || document.getElementById('distanceGlobeCanvas')) return;
-
-    wrap.innerHTML = `
-      <div id="distanceGlobeCanvas"></div>
-      <div id="distanceGlobeUi">
-        <div class="distance-globe-card" id="distancePickerCard">
-          <h4>Click the Globe to Place Your Future</h4>
-          <p>Type your name, pick which future point you are placing, then click anywhere on the globe to drop the pin exactly where you want it.</p>
-          <input class="form-input" id="distanceNameInline" placeholder="Your name" maxlength="80" />
-          <div class="distance-mode-btns" style="margin-top:10px;">
-            <button type="button" class="distance-mode-btn active" id="pickSchoolBtn">Place 11th / 12th point</button>
-            <button type="button" class="distance-mode-btn" id="pickUniversityBtn">Place university point</button>
-          </div>
-          <div id="distanceSelectedInfo">
-            <div class="distance-selected-row"><strong>11th / 12th:</strong> <span id="distanceSchoolSelectedText">Not placed yet</span></div>
-            <div class="distance-selected-row"><strong>University:</strong> <span id="distanceUniversitySelectedText">Not placed yet</span></div>
-          </div>
-        </div>
-        <div class="distance-globe-card">
-          <div id="distanceOverlayStats"></div>
-          <div id="distanceMiniLegend" style="margin-top:8px;">
-            <div class="legend-pill">Gold = School origin</div>
-            <div class="legend-pill">Blue = 11th / 12th</div>
-            <div class="legend-pill">Rose = University</div>
-          </div>
-        </div>
-      </div>
-      <div id="distanceBottomActions">
-        <button class="btn btn-primary" type="button" id="saveDistancePinsBtn">Save My Future Path</button>
-        <button class="btn btn-secondary" type="button" id="distanceRefreshBtnV5">Refresh Globe</button>
-        <button class="btn btn-secondary" type="button" id="distanceOpenMapsBtn">Open Last Pin in Google Maps</button>
-      </div>
-    `;
-
-    document.getElementById('pickSchoolBtn')?.addEventListener('click', () => setPickMode('school'));
-    document.getElementById('pickUniversityBtn')?.addEventListener('click', () => setPickMode('university'));
-    document.getElementById('saveDistancePinsBtn')?.addEventListener('click', savePickedPinsV5);
-    document.getElementById('distanceRefreshBtnV5')?.addEventListener('click', () => loadClassPathsGlobeV5(true));
-    document.getElementById('distanceOpenMapsBtn')?.addEventListener('click', openLastPinInMapsV5);
-
-    initRealGlobeV5();
-  }
-
-  function setPickMode(mode){
-    v5.pickingMode = mode;
-    document.getElementById('pickSchoolBtn')?.classList.toggle('active', mode === 'school');
-    document.getElementById('pickUniversityBtn')?.classList.toggle('active', mode === 'university');
-  }
-
-  function patchDistanceSectionV5(){
-    const oldMove = window.moveAndUpgradeDistanceSection;
-    if (typeof oldMove === 'function' && !oldMove.__v5Wrapped){
-      window.moveAndUpgradeDistanceSection = function(){
-        const out = oldMove.apply(this, arguments);
-        setTimeout(() => {
-          buildGlobeUi();
-          loadClassPathsGlobeV5(false);
-        }, 120);
-        return out;
-      };
-      window.moveAndUpgradeDistanceSection.__v5Wrapped = true;
-    }
-    setTimeout(() => {
-      buildGlobeUi();
-      loadClassPathsGlobeV5(false);
-    }, 400);
-  }
-
-  function patchAdminPlacesHelpTextV5(){
-    const old = window.renderSettingsPanelHtml;
-    if (typeof old !== 'function' || old.__v5Wrapped) return;
-    window.renderSettingsPanelHtml = function(){
-      let html = old.apply(this, arguments);
-      html = html.replace(
-        'One place per line. Use real place names only, like <strong>Delhi</strong>, <strong>Bangalore</strong>, <strongLondon</strong>, <strong>Toronto</strong>.',
-        'One place per line. These are just suggestion labels for the future map system. Students will still place exact pinpoints directly on the globe.'
-      );
-      return html;
-    };
-    window.renderSettingsPanelHtml.__v5Wrapped = true;
-  }
-
-  function initRealGlobeV5(){
+  function initGlobe() {
     const el = document.getElementById('distanceGlobeCanvas');
-    if (!el || v5.globe) return;
+    if (!el) return;
+    try {
+      S.globe = Globe()
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+        .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+        .atmosphereColor('#6b9fff')
+        .atmosphereAltitude(0.2)
+        .pointAltitude(d => d.alt || 0.02)
+        .pointRadius(d => d.r || 0.35)
+        .pointColor(d => d.c)
+        .pointLabel(d => `<div style="background:#1a1a2e;padding:10px;border-radius:8px;color:#fff;border:1px solid rgba(255,255,255,0.2);"><b style="color:#D4AF37;">${h(d.label)}</b><br><span style="opacity:0.7;font-size:12px;">${h(d.sub||'')}</span></div>`)
+        .arcColor(d => d.c)
+        .arcAltitude(d => d.arcAlt || 0.12)
+        .arcStroke(d => d.str || 0.6)
+        .arcDashLength(0.4)
+        .arcDashGap(0.1)
+        .arcDashAnimateTime(2000)
+        (el);
+      S.globe.pointOfView({ lat: ORIGIN.lat, lng: ORIGIN.lng, altitude: 2.5 }, 1000);
+      S.globe.controls().autoRotate = true;
+      S.globe.controls().autoRotateSpeed = 0.4;
+      document.getElementById('globeLoading')?.classList.add('hidden');
+    } catch (e) { console.error(e); }
+  }
 
-    const globe = Globe()
-      .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-      .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-      .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
-      .atmosphereColor('#9cc8ff')
-      .atmosphereAltitude(0.22)
-      .arcColor(d => d.color)
-      .arcStroke(0.9)
-      .arcDashLength(0.35)
-      .arcDashGap(0.18)
-      .arcDashAnimateTime(2400)
-      .pointAltitude(d => d.alt || 0.03)
-      .pointRadius(d => d.radius || 0.28)
-      .pointColor(d => d.color)
-      .labelText(d => d.label)
-      .labelLat(d => d.lat)
-      .labelLng(d => d.lng)
-      .labelSize(1.3)
-      .labelDotRadius(0.35)
-      .labelColor(() => '#ffffff')
-      .onGlobeClick((coords) => {
-        placePickedPoint(coords);
+  // ══════════════════════════════════════════════════════════════════════════
+  // EVENTS
+  // ══════════════════════════════════════════════════════════════════════════
+  function initEvents() {
+    $('openGlobeBtn')?.addEventListener('click', openModal);
+    $('globeBackBtn')?.addEventListener('click', goBack);
+    
+    const inp = $('globeSearch'), clr = $('globeClear'), res = $('globeResults');
+    inp?.addEventListener('input', e => {
+      const q = e.target.value.trim();
+      clr?.classList.toggle('show', q.length > 0);
+      clearTimeout(S.searchTO);
+      if (q.length < 2) { res?.classList.remove('active'); return; }
+      res.innerHTML = '<div class="globe-results-msg"><div class="spinner"></div>Searching...</div>';
+      res.classList.add('active');
+      S.searchTO = setTimeout(() => search(q), 400);
+    });
+    clr?.addEventListener('click', () => { inp.value = ''; clr.classList.remove('show'); res?.classList.remove('active'); inp.focus(); });
+    document.addEventListener('click', e => { if (!e.target.closest('.globe-search-box')) res?.classList.remove('active'); });
+
+    $('globeZoomIn')?.addEventListener('click', () => S.map?.zoomIn());
+    $('globeZoomOut')?.addEventListener('click', () => S.map?.zoomOut());
+    $('globeLocBtn')?.addEventListener('click', myLoc);
+
+    $('confirmLocBtn')?.addEventListener('click', confirmLoc);
+    $('skipLocBtn')?.addEventListener('click', skipLoc);
+    $('backBtn')?.addEventListener('click', () => goStep(2));
+    $('editSchool')?.addEventListener('click', () => goStep(1));
+    $('editUni')?.addEventListener('click', () => goStep(2));
+    $('saveBtn')?.addEventListener('click', saveAll);
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.open) closeModal(); });
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MODAL
+  // ══════════════════════════════════════════════════════════════════════════
+  function openModal() {
+    $('globeModal')?.classList.add('active');
+    S.open = true;
+    document.body.style.overflow = 'hidden';
+    S.step = 1; S.schoolLoc = null; S.uniLoc = null; S.currLoc = null;
+    updateUI();
+    setTimeout(() => { if (!S.map) initMap(); else S.map.invalidateSize(); }, 150);
+  }
+
+  function closeModal() {
+    $('globeModal')?.classList.remove('active');
+    S.open = false;
+    document.body.style.overflow = '';
+    $('globeSearch').value = '';
+    $('globeName').value = '';
+    $('globeResults')?.classList.remove('active');
+  }
+
+  function goBack() {
+    if (S.step === 1) closeModal();
+    else if (S.step === 2) goStep(1);
+    else if (S.step === 3) goStep(2);
+  }
+
+  function goStep(n) {
+    S.step = n;
+    S.currLoc = null;
+    $('globeSearch').value = '';
+    $('globeResults')?.classList.remove('active');
+    updateUI();
+  }
+
+  function updateUI() {
+    // Steps
+    document.querySelectorAll('.globe-step').forEach(el => {
+      const s = +el.dataset.s;
+      el.classList.remove('active', 'done');
+      if (s === S.step) el.classList.add('active');
+      else if (s < S.step) el.classList.add('done');
+    });
+
+    // Pin
+    const pin = $('globePin');
+    pin?.classList.remove('school', 'university');
+    if (S.step === 1) pin?.classList.add('school');
+    else if (S.step === 2) pin?.classList.add('university');
+
+    // Banner
+    const banner = $('globeBanner');
+    if (banner) {
+      banner.classList.remove('school', 'university');
+      if (S.step === 1) { banner.classList.add('school'); banner.innerHTML = '<span>🏫</span> Select your 11th/12th location'; }
+      else if (S.step === 2) { banner.classList.add('university'); banner.innerHTML = '<span>🎓</span> Select your university'; }
+      banner.style.display = S.step === 3 ? 'none' : 'flex';
+    }
+
+    // Panels
+    $('panelLoc').style.display = S.step === 3 ? 'none' : 'block';
+    $('panelSave').style.display = S.step === 3 ? 'block' : 'none';
+
+    // Loc card
+    const icon = $('locIcon');
+    if (icon) {
+      icon.classList.remove('school', 'university');
+      icon.classList.add(S.step === 1 ? 'school' : 'university');
+      icon.textContent = S.step === 1 ? '🏫' : '🎓';
+    }
+    $('locType').textContent = S.step === 1 ? '11th / 12th Location' : 'University';
+    updateLocCard();
+
+    // Summary
+    if (S.step === 3) updateSummary();
+  }
+
+  function updateLocCard() {
+    const loc = S.currLoc;
+    $('locName').textContent = loc ? (loc.name || 'Selected') : 'Drag map or search';
+    $('locAddr').textContent = loc ? (loc.addr || '') : 'Position the pin';
+    $('locCoords').textContent = loc ? `${loc.lat.toFixed(6)}, ${loc.lng.toFixed(6)}` : '';
+  }
+
+  function updateSummary() {
+    const sr = $('sumSchool'), sn = $('sumSchoolName');
+    if (S.schoolLoc) { sr.classList.add('has'); sn.classList.remove('empty'); sn.textContent = S.schoolLoc.name || 'Selected'; }
+    else { sr.classList.remove('has'); sn.classList.add('empty'); sn.textContent = 'Not selected'; }
+
+    const ur = $('sumUni'), un = $('sumUniName');
+    if (S.uniLoc) { ur.classList.add('has'); un.classList.remove('empty'); un.textContent = S.uniLoc.name || 'Selected'; }
+    else { ur.classList.remove('has'); un.classList.add('empty'); un.textContent = 'Not selected'; }
+  }
+
+  function confirmLoc() {
+    if (!S.currLoc) { msg('error', 'Select a location first'); return; }
+    if (S.step === 1) { S.schoolLoc = { ...S.currLoc }; goStep(2); }
+    else if (S.step === 2) { S.uniLoc = { ...S.currLoc }; goStep(3); }
+  }
+
+  function skipLoc() {
+    if (S.step === 1) { S.schoolLoc = null; goStep(2); }
+    else if (S.step === 2) { S.uniLoc = null; goStep(3); }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MAP
+  // ══════════════════════════════════════════════════════════════════════════
+  function initMap() {
+    const el = $('globeMap');
+    if (!el) return;
+    S.map = L.map(el, { center: [ORIGIN.lat, ORIGIN.lng], zoom: 4, zoomControl: false });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(S.map);
+    S.map.on('moveend', () => { const c = S.map.getCenter(); reverseGeo(c.lat, c.lng); });
+    S.map.on('move', () => { const c = S.map.getCenter(); $('locCoords').textContent = `${c.lat.toFixed(6)}, ${c.lng.toFixed(6)}`; });
+  }
+
+  function myLoc() {
+    if (!navigator.geolocation) { msg('error', 'Geolocation not supported'); return; }
+    navigator.geolocation.getCurrentPosition(p => S.map?.setView([p.coords.latitude, p.coords.longitude], 15), () => msg('error', 'Could not get location'));
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SEARCH
+  // ══════════════════════════════════════════════════════════════════════════
+  async function search(q) {
+    const res = $('globeResults');
+    try {
+      const r = await fetch(`${SEARCH_API}?q=${encodeURIComponent(q)}&format=json&limit=8&addressdetails=1`);
+      const d = await r.json();
+      if (!d.length) { res.innerHTML = '<div class="globe-results-msg">No results</div>'; return; }
+      res.innerHTML = d.map(p => {
+        const n = p.name || p.display_name.split(',')[0];
+        const a = p.display_name.split(',').slice(1, 4).join(',').trim();
+        return `<div class="globe-result" data-lat="${p.lat}" data-lng="${p.lon}" data-n="${ha(n)}" data-a="${ha(a)}"><div class="globe-result-icon">${icon(p.type)}</div><div class="globe-result-text"><div class="globe-result-main">${h(n)}</div><div class="globe-result-sub">${h(a)}</div></div></div>`;
+      }).join('');
+      res.querySelectorAll('.globe-result').forEach(el => {
+        el.addEventListener('click', () => {
+          const lat = +el.dataset.lat, lng = +el.dataset.lng;
+          S.map?.setView([lat, lng], 16);
+          S.currLoc = { lat, lng, name: el.dataset.n, addr: el.dataset.a };
+          updateLocCard();
+          res.classList.remove('active');
+          $('globeSearch').value = el.dataset.n;
+        });
       });
-
-    globe(el);
-    globe.pointOfView({ lat: 18, lng: 20, altitude: 2.05 }, 0);
-    globe.controls().autoRotate = true;
-    globe.controls().autoRotateSpeed = 0.55;
-
-    v5.globe = globe;
-    v5.globeReady = true;
+    } catch { res.innerHTML = '<div class="globe-results-msg">Search failed</div>'; }
   }
 
-  function placePickedPoint(coords){
-    const lat = Number(coords?.lat);
-    const lng = Number(coords?.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-
-    const pt = { lat, lng };
-    if (v5.pickingMode === 'school'){
-      v5.pendingSchoolPoint = pt;
-      const t = document.getElementById('distanceSchoolSelectedText');
-      if (t) t.textContent = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
-      setPickMode('university');
-    } else {
-      v5.pendingUniversityPoint = pt;
-      const t = document.getElementById('distanceUniversitySelectedText');
-      if (t) t.textContent = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
-    }
-
-    renderPendingPreviewV5();
+  function icon(t) {
+    t = (t || '').toLowerCase();
+    if (t.includes('university') || t.includes('college')) return '🎓';
+    if (t.includes('school')) return '🏫';
+    if (t === 'city' || t === 'town') return '🏙️';
+    if (t === 'country') return '🌍';
+    return '📍';
   }
 
-  function renderPendingPreviewV5(){
-    if (!v5.globeReady) return;
-    const points = [
-      { ...SCHOOL_ORIGIN, color: '#ffd84d', radius: 0.38, alt: 0.06, label: 'Cornerstone International School' }
-    ];
-    const arcs = [];
-
-    if (v5.pendingSchoolPoint){
-      points.push({ ...v5.pendingSchoolPoint, color: '#55b9ff', radius: 0.3, alt: 0.05, label: '11th / 12th future point' });
-      arcs.push({ startLat: SCHOOL_ORIGIN.lat, startLng: SCHOOL_ORIGIN.lng, endLat: v5.pendingSchoolPoint.lat, endLng: v5.pendingSchoolPoint.lng, color: ['#55b9ff'] });
-    }
-    if (v5.pendingUniversityPoint){
-      points.push({ ...v5.pendingUniversityPoint, color: '#ff7aa8', radius: 0.3, alt: 0.05, label: 'University dream point' });
-      arcs.push({ startLat: SCHOOL_ORIGIN.lat, startLng: SCHOOL_ORIGIN.lng, endLat: v5.pendingUniversityPoint.lat, endLng: v5.pendingUniversityPoint.lng, color: ['#ff7aa8'] });
-    }
-
-    v5.globe.pointsData(points);
-    v5.globe.arcsData(arcs);
-  }
-
-  async function savePickedPinsV5(){
-    const studentName = document.getElementById('distanceNameInline')?.value?.trim();
-    if (!studentName){
-      return window.showNotification?.('error', 'Name needed', 'Enter your name before saving your pins.');
-    }
-    if (!v5.pendingSchoolPoint && !v5.pendingUniversityPoint){
-      return window.showNotification?.('error', 'Place a pin', 'Click on the globe to place at least one future point.');
-    }
-
-    try{
-      const res = await fetch(apiUrl('/api/destinations/pin-submit'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentName,
-          schoolPoint: v5.pendingSchoolPoint,
-          universityPoint: v5.pendingUniversityPoint
-        })
-      });
-      const data = await res.json();
-      if (!data.success){
-        return window.showNotification?.('error', 'Could not save', data.error || 'Pin save failed.');
+  async function reverseGeo(lat, lng) {
+    try {
+      const r = await fetch(`${REVERSE_API}?lat=${lat}&lon=${lng}&format=json&addressdetails=1`);
+      const d = await r.json();
+      if (d?.display_name) {
+        S.currLoc = { lat, lng, name: d.name || d.display_name.split(',')[0], addr: d.display_name.split(',').slice(1, 4).join(',').trim() };
+      } else {
+        S.currLoc = { lat, lng, name: 'Selected Location', addr: '' };
       }
-      window.showNotification?.('success', 'Future pinned', 'Your path is now part of the class globe.');
-      await loadClassPathsGlobeV5(true);
-    }catch(e){
-      window.showNotification?.('error', 'Could not save', e.message);
-    }
+      updateLocCard();
+    } catch { S.currLoc = { lat, lng, name: 'Selected Location', addr: '' }; updateLocCard(); }
   }
 
-  function openLastPinInMapsV5(){
-    const target = v5.pendingUniversityPoint || v5.pendingSchoolPoint;
-    if (!target){
-      return window.showNotification?.('info', 'No pin yet', 'Place a point on the globe first.');
-    }
-    const q = encodeURIComponent(`${target.lat},${target.lng}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank');
-  }
+  // ══════════════════════════════════════════════════════════════════════════
+  // SAVE - Send TWO separate requests to match backend
+  // ══════════════════════════════════════════════════════════════════════════
+  async function saveAll() {
+    const name = $('globeName')?.value?.trim();
+    const btn = $('saveBtn');
 
-  async function loadClassPathsGlobeV5(excite){
-    try{
-      const res = await fetch(apiUrl('/api/destinations/pin-submissions'));
-      const data = await res.json();
-      if (!data.success) return;
-      renderSavedGlobeV5(data.submissions || []);
-      renderSavedStatsV5(data.submissions || []);
-      if (excite && window.showNotification){
-        showNotification('info', 'The future is unfolding', 'The class globe is lighting up with new paths.');
+    if (!name) { msg('error', 'Enter your name'); $('globeName')?.focus(); return; }
+    if (!S.schoolLoc && !S.uniLoc) { msg('error', 'Select at least one location'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Saving...';
+
+    const url = typeof apiUrl === 'function' ? apiUrl('/api/destinations/submit') : '/api/destinations/submit';
+    let success = true;
+    let errors = [];
+
+    try {
+      // Save school location
+      if (S.schoolLoc) {
+        const payload = {
+          name: name,
+          type: 'school',
+          lat: S.schoolLoc.lat,
+          lng: S.schoolLoc.lng,
+          placeName: S.schoolLoc.name || '',
+          address: S.schoolLoc.addr || ''
+        };
+        console.log('[Globe] Saving school:', payload);
+        const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const d = await r.json();
+        if (!r.ok || !d.success) { success = false; errors.push('School: ' + (d.error || 'Failed')); }
       }
-    }catch(_){}
+
+      // Save university location
+      if (S.uniLoc) {
+        const payload = {
+          name: name,
+          type: 'university',
+          lat: S.uniLoc.lat,
+          lng: S.uniLoc.lng,
+          placeName: S.uniLoc.name || '',
+          address: S.uniLoc.addr || ''
+        };
+        console.log('[Globe] Saving university:', payload);
+        const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const d = await r.json();
+        if (!r.ok || !d.success) { success = false; errors.push('University: ' + (d.error || 'Failed')); }
+      }
+
+      if (success) {
+        msg('success', 'Your paths are now on the globe! 🎉');
+        closeModal();
+        await loadData();
+      } else {
+        msg('error', errors.join(', '));
+      }
+
+    } catch (e) {
+      console.error('[Globe] Save error:', e);
+      msg('error', 'Save failed: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '🚀 Save Paths';
+    }
   }
 
-  function renderSavedStatsV5(rows){
-    const box = document.getElementById('distanceOverlayStats');
-    if (!box) return;
-    const students = rows.length;
-    const schoolPins = rows.filter(r => r.schoolPoint).length;
-    const uniPins = rows.filter(r => r.universityPoint).length;
-    box.innerHTML = `
-      <div class="distance-stat-pill">${students} students plotted</div>
-      <div class="distance-stat-pill">${schoolPins} school paths</div>
-      <div class="distance-stat-pill">${uniPins} university dreams</div>
-    `;
+  function msg(t, m) {
+    if (typeof showNotification === 'function') showNotification(t, t === 'success' ? 'Success' : 'Error', m);
+    else alert(m);
   }
 
-  function renderSavedGlobeV5(rows){
-    if (!v5.globeReady) return;
-    const points = [
-      { ...SCHOOL_ORIGIN, color: '#ffd84d', radius: 0.42, alt: 0.065, label: SCHOOL_ORIGIN.label }
-    ];
-    const arcs = [];
+  // ══════════════════════════════════════════════════════════════════════════
+  // LOAD & RENDER
+  // ══════════════════════════════════════════════════════════════════════════
+  async function loadData() {
+    try {
+      const url = typeof apiUrl === 'function' ? apiUrl('/api/destinations/list') : '/api/destinations/list';
+      const r = await fetch(url);
+      const d = await r.json();
+      if (d.success) S.data = d.destinations || d.submissions || d.data || [];
+      console.log('[Globe] Loaded', S.data.length, 'entries');
+      render();
+      stats();
+    } catch (e) { console.error(e); render(); stats(); }
+  }
 
-    rows.forEach(r => {
-      if (r.schoolPoint && Number.isFinite(r.schoolPoint.lat) && Number.isFinite(r.schoolPoint.lng)){
-        points.push({
-          lat: r.schoolPoint.lat,
-          lng: r.schoolPoint.lng,
-          color: '#55b9ff',
-          radius: 0.28,
-          alt: 0.05,
-          label: `${r.studentName} • 11th / 12th`
+  function render() {
+    if (!S.globe) return;
+    const pts = [], arcs = [];
+
+    // Origin
+    pts.push({ lat: ORIGIN.lat, lng: ORIGIN.lng, alt: 0.06, r: 0.7, c: '#ffd700', label: ORIGIN.label, sub: ORIGIN.city });
+
+    // Data
+    S.data.forEach(d => {
+      const n = d.name || 'Student';
+      const lat = d.lat;
+      const lng = d.lng;
+      const type = d.type;
+      const pn = d.placeName || d.locationName || '';
+
+      if (lat && lng) {
+        const isSchool = type === 'school';
+        pts.push({
+          lat, lng, alt: 0.03, r: 0.45,
+          c: isSchool ? '#55b9ff' : '#ff7aa8',
+          label: n, sub: pn || (isSchool ? '11th/12th' : 'University')
         });
         arcs.push({
-          startLat: SCHOOL_ORIGIN.lat,
-          startLng: SCHOOL_ORIGIN.lng,
-          endLat: r.schoolPoint.lat,
-          endLng: r.schoolPoint.lng,
-          color: ['#55b9ff']
-        });
-      }
-      if (r.universityPoint && Number.isFinite(r.universityPoint.lat) && Number.isFinite(r.universityPoint.lng)){
-        points.push({
-          lat: r.universityPoint.lat,
-          lng: r.universityPoint.lng,
-          color: '#ff7aa8',
-          radius: 0.28,
-          alt: 0.05,
-          label: `${r.studentName} • University`
-        });
-        arcs.push({
-          startLat: SCHOOL_ORIGIN.lat,
-          startLng: SCHOOL_ORIGIN.lng,
-          endLat: r.universityPoint.lat,
-          endLng: r.universityPoint.lng,
-          color: ['#ff7aa8']
+          startLat: ORIGIN.lat, startLng: ORIGIN.lng, endLat: lat, endLng: lng,
+          c: [isSchool ? '#55b9ff' : '#ff7aa8', isSchool ? '#55b9ff' : '#ff7aa8'],
+          arcAlt: arc(ORIGIN, { lat, lng }), str: 0.7
         });
       }
     });
 
-    if (v5.pendingSchoolPoint){
-      points.push({ ...v5.pendingSchoolPoint, color: '#8be1ff', radius: 0.33, alt: 0.055, label: 'Unsaved 11th / 12th point' });
-    }
-    if (v5.pendingUniversityPoint){
-      points.push({ ...v5.pendingUniversityPoint, color: '#ff9ebd', radius: 0.33, alt: 0.055, label: 'Unsaved university point' });
-    }
-
-    v5.globe.pointsData(points);
-    v5.globe.arcsData(arcs);
+    S.globe.pointsData(pts).arcsData(arcs);
   }
 
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', bootV5);
-  } else {
-    bootV5();
+  function arc(a, b) {
+    const R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
+    const x = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+    const d = 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+    return Math.min(0.45, Math.max(0.08, d / 12000));
   }
-})();
-</script>
-<script data-fragment-script="globe">
-(function(){
- if (window.__FIXER_STABLE_TOUR__) return;
- window.__FIXER_STABLE_TOUR__ = true;
- const TOUR_KEY = 'cornerstone_tour_seen_v2';
- function addTourFab(){
-  if (document.getElementById('featureTourFab')) return;
-  const btn = document.createElement('button');
-  btn.id = 'featureTourFab';
-  btn.className = 'feature-tour-fab';
-  btn.type = 'button';
-  btn.textContent = 'Tutorial';
-  btn.addEventListener('click', startSiteTour);
-  document.body.appendChild(btn);
- }
- function ensureTourNodes(){
-  if (!document.getElementById('featureTourOverlay')){
-   const overlay = document.createElement('div');
-   overlay.id = 'featureTourOverlay';
-   overlay.className = 'feature-tour-overlay';
-   overlay.innerHTML = '<div id="featureTourSpotlight" class="feature-tour-spotlight"></div><div id="featureTourCard" class="feature-tour-card"></div>';
-   document.body.appendChild(overlay);
+
+  function stats() {
+    const el = $('globeStats');
+    if (!el) return;
+    const schools = S.data.filter(d => d.type === 'school').length;
+    const unis = S.data.filter(d => d.type === 'university').length;
+    el.innerHTML = `<div class="globe-stat"><strong>${S.data.length}</strong> entries</div><div class="globe-stat"><strong>${schools}</strong> school paths</div><div class="globe-stat"><strong>${unis}</strong> university dreams</div>`;
   }
- }
- function buildSteps(){
-  return [
-   { selector:'#home .hero-buttons', title:'Welcome', text:'Use these buttons to upload a memory or explore the memory wall.' },
-   { selector:'#countdown', title:'Countdown', text:'This section shows the live countdown to the farewell event.' },
-   { selector:'#memories', title:'Memories Preview', text:'The homepage shows six selected memories only for faster loading.' },
-   { selector:'#viewAllMemoriesBtn', title:'View All', text:'Open the full dedicated memories page from here.' },
-   { selector:'#upload', title:'Upload', text:'Approved uploads appear after admin review only.' },
-   { selector:'#distanceMapSection', title:'Future Path Globe', text:'Select your name and future places, then save them to the globe.' },
-   { selector:'#compilations', title:'Compilations', text:'Curated slideshows appear here.' }
-  ];
- }
- function stopSiteTour(){
-  const overlay = document.getElementById('featureTourOverlay');
-  const spot = document.getElementById('featureTourSpotlight');
-  const card = document.getElementById('featureTourCard');
-  if (overlay) overlay.classList.remove('active');
-  if (spot) {
-   spot.style.left = '-9999px';
-   spot.style.top = '-9999px';
-   spot.style.width = '0px';
-   spot.style.height = '0px';
-  }
-  if (card) {
-   card.style.left = '-9999px';
-   card.style.top = '-9999px';
-  }
- }
- function startSiteTour(){
-  ensureTourNodes();
-  const steps = buildSteps();
-  let idx = 0;
-  const overlay = document.getElementById('featureTourOverlay');
-  const spot = document.getElementById('featureTourSpotlight');
-  const card = document.getElementById('featureTourCard');
-  function render(){
-   if (idx >= steps.length) return stopSiteTour();
-   const step = steps[idx];
-   const el = document.querySelector(step.selector);
-   if (!el) { idx += 1; return render(); }
-   el.scrollIntoView({ behavior:'smooth', block:'center' });
-   setTimeout(() => {
-    const r = el.getBoundingClientRect();
-    if (r.width <= 0 || r.height <= 0) { idx += 1; return render(); }
-    overlay.classList.add('active');
-    spot.style.left = Math.max(8, r.left - 8) + 'px';
-    spot.style.top = Math.max(8, r.top - 8) + 'px';
-    spot.style.width = Math.max(40, r.width + 16) + 'px';
-    spot.style.height = Math.max(40, r.height + 16) + 'px';
-    card.style.left = Math.min(window.innerWidth - 380, Math.max(12, r.left)) + 'px';
-    card.style.top = Math.min(window.innerHeight - 170, Math.max(12, r.bottom + 12)) + 'px';
-    card.innerHTML = `<h3>${step.title}</h3><p>${step.text}</p><div class="feature-tour-actions"><button class="btn btn-secondary" type="button" id="tourSkipBtn">Close</button><button class="btn btn-primary" type="button" id="tourNextBtn">${idx === steps.length - 1 ? 'Done' : 'Next'}</button></div>`;
-    document.getElementById('tourSkipBtn')?.addEventListener('click', stopSiteTour);
-    document.getElementById('tourNextBtn')?.addEventListener('click', () => { idx += 1; render(); });
-   }, 450);
-  }
-  render();
- }
- window.startSiteTour = startSiteTour;
- document.addEventListener('DOMContentLoaded', () => {
-  addTourFab();
-  ensureTourNodes();
-  if (!localStorage.getItem(TOUR_KEY)) {
-   setTimeout(() => {
-    startSiteTour();
-    localStorage.setItem(TOUR_KEY, '1');
-   }, 1200);
-  }
- });
+
+  // Helpers
+  function h(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function ha(s) { return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // Start
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(init, 500));
+  else setTimeout(init, 500);
 })();
 </script>

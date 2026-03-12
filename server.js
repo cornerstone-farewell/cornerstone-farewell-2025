@@ -1027,7 +1027,61 @@ app.delete('/api/admin/purge/:id', (req, res) => {
     res.json({ success: true, message: 'Purged permanently' });
   } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
+// ═══════════════════════════════════════════════════════════════════════════════
+// DESTINATIONS / GLOBE API
+// ═══════════════════════════════════════════════════════════════════════════════
 
+// Storage (use database in production)
+let destinations = [];
+
+// Submit destinations (school + university)
+app.post('/api/destinations/submit', (req, res) => {
+  try {
+    const { name, schoolLocation, universityLocation } = req.body;
+
+    // Validation
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'name is required' });
+    }
+
+    if (!schoolLocation && !universityLocation) {
+      return res.status(400).json({ success: false, error: 'At least one location is required' });
+    }
+
+    // Create entry
+    const entry = {
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 9),
+      name: name.trim(),
+      schoolLocation: schoolLocation || null,
+      universityLocation: universityLocation || null,
+      createdAt: new Date().toISOString()
+    };
+
+    destinations.push(entry);
+
+    console.log('[Destinations] New submission:', entry);
+
+    res.json({ success: true, destination: entry });
+
+  } catch (error) {
+    console.error('[Destinations] Submit error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get all destinations
+app.get('/api/destinations/list', (req, res) => {
+  try {
+    res.json({ 
+      success: true, 
+      destinations,
+      count: destinations.length
+    });
+  } catch (error) {
+    console.error('[Destinations] List error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 // Bulk category change (26) + bulk trash/restore/approve
 app.post('/api/admin/bulk', (req, res) => {
   try {
