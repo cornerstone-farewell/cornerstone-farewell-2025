@@ -1031,43 +1031,7 @@ app.delete('/api/admin/purge/:id', (req, res) => {
 // DESTINATIONS / GLOBE API
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Storage (use database in production)
-let destinations = [];
-
-// Submit destinations (school + university)
-app.post('/api/destinations/submit', (req, res) => {
-  try {
-    const { name, schoolLocation, universityLocation } = req.body;
-
-    // Validation
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return res.status(400).json({ success: false, error: 'name is required' });
-    }
-
-    if (!schoolLocation && !universityLocation) {
-      return res.status(400).json({ success: false, error: 'At least one location is required' });
-    }
-
-    // Create entry
-    const entry = {
-      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 9),
-      name: name.trim(),
-      schoolLocation: schoolLocation || null,
-      universityLocation: universityLocation || null,
-      createdAt: new Date().toISOString()
-    };
-
-    destinations.push(entry);
-
-    console.log('[Destinations] New submission:', entry);
-
-    res.json({ success: true, destination: entry });
-
-  } catch (error) {
-    console.error('[Destinations] Submit error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+// Destinations stub removed — handled by IIFE block below
 // ═══════════════════════════════════════════════════════════════════════════════
 // SENIOR ADVICE WALL API
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1212,19 +1176,7 @@ app.post('/api/destinations/submit', (req, res) => {
 
   console.log('✅ Senior Advice Wall API loaded.');
 })();
-// Get all destinations
-app.get('/api/destinations/list', (req, res) => {
-  try {
-    res.json({ 
-      success: true, 
-      destinations,
-      count: destinations.length
-    });
-  } catch (error) {
-    console.error('[Destinations] List error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+// List route handled in destinations IIFE below
 // Bulk category change (26) + bulk trash/restore/approve
 app.post('/api/admin/bulk', (req, res) => {
   try {
@@ -1960,6 +1912,15 @@ app.get('/api/admin/export/csv', (req, res) => {
       audit(auth.user.id, `destinations-v2-${action}`, { changed });
       broadcast('destinations:update', {});
       res.json({ success: true, changed });
+    } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+ // GET list alias used by globe component
+  app.get('/api/destinations/list', (req, res) => {
+    try {
+      const db = readDest();
+      const approved = db.pins.filter(p => p.approved && !p.deletedAt);
+      res.json({ success: true, destinations: approved, count: approved.length });
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
   });
 
@@ -2712,9 +2673,8 @@ app.use((err, req, res, next) => {
     res.setHeader('Content-Disposition', `attachment; filename="${feature}-export-${new Date().toISOString().slice(0,10)}.csv"`);
     res.send(lines.join('\n'));
   });
-
-  console.log('✅ Fun Features API loaded.');
-
+console.log('✅ Fun Features API loaded.');
+})();
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log('');
