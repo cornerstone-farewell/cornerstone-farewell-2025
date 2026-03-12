@@ -1,11 +1,6 @@
 {
   "sessions": [
     {
-      "token": "admin-1773161062208-jlxp4dfmxdk",
-      "expiresAt": "2026-03-11T16:44:22.208Z",
-      "userId": "techteam"
-    },
-    {
       "token": "admin-1773214789298-a176z5iuuph",
       "expiresAt": "2026-03-12T07:39:49.298Z",
       "userId": "techteam"
@@ -24,6 +19,16 @@
       "token": "admin-1773220364922-1myfa6k99bd",
       "expiresAt": "2026-03-12T09:12:44.922Z",
       "userId": "techteam"
+    },
+    {
+      "token": "admin-1773242059070-2dbf1xanh7n",
+      "expiresAt": "2026-03-12T15:14:19.070Z",
+      "userId": "super"
+    },
+    {
+      "token": "admin-1773286990368-wkme83hird",
+      "expiresAt": "2026-03-13T03:43:10.368Z",
+      "userId": "super"
     }
   ]
 }
