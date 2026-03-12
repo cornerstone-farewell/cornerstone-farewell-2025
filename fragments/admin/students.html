@@ -1,0 +1,490 @@
+<!-- FRAGMENT: admin_students -->
+
+<script data-fragment-script="admin_students">
+// ═══════════════════════════════════════════════════════════════════════════════
+// STUDENT DIRECTORY ADMIN PANEL
+// Supports manual edit + CSV/Excel bulk import + photo mapping
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let studentDirectoryData = [];
+
+function initStudentsPanelContent() {
+  const panel = document.getElementById('panelStudents');
+  if (!panel) return;
+
+  if (panel.dataset.initialized !== 'true') {
+    panel.innerHTML = renderStudentsPanelHtml();
+    panel.dataset.initialized = 'true';
+    wireStudentsPanel();
+  }
+
+  loadStudentDirectoryData();
+}
+
+function renderStudentsPanelHtml() {
+  return `
+    <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">🎓 Student Directory</h3>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="admin-btn admin-btn-secondary" onclick="loadStudentDirectoryData()">🔄 Refresh</button>
+          <button class="admin-btn admin-btn-secondary" onclick="exportStudentDirectoryCsv()">📥 Export CSV</button>
+          <button class="admin-btn admin-btn-primary" onclick="saveStudentDirectory()">💾 Save All</button>
+        </div>
+      </div>
+      <p style="color:var(--text-muted); margin-top:10px;">
+        Manage class members for sections 10A, 10B, 10C, 10D. Supports bulk import and image mapping.
+      </p>
+    </div>
+
+    <div class="admin-stats">
+      <div class="stat-card">
+        <div class="stat-number" id="studentsTotalCount">0</div>
+        <div class="stat-label">Total Students</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="students10ACount">0</div>
+        <div class="stat-label">Section 10A</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="students10BCount">0</div>
+        <div class="stat-label">Section 10B</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="students10CCount">0</div>
+        <div class="stat-label">Section 10C</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="students10DCount">0</div>
+        <div class="stat-label">Section 10D</div>
+      </div>
+    </div>
+
+    <div class="ff-admin-card">
+      <div class="ff-admin-card-header">
+        <div class="ff-admin-card-title">📦 Bulk Import</div>
+      </div>
+
+      <div class="callout" style="margin-bottom:14px;">
+        <strong>Expected CSV columns:</strong> name, section, photo, quote, destination
+        <br>
+        <strong>Valid sections:</strong> 10A, 10B, 10C, 10D
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div>
+          <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:.85rem;">Import CSV / Excel-exported CSV</label>
+          <input type="file" id="studentsCsvFile" class="form-input" accept=".csv,text/csv" style="padding:12px;">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:.85rem;">Bulk Upload Photos</label>
+          <input type="file" id="studentsPhotoFiles" class="form-input" accept="image/*" multiple style="padding:12px;">
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+        <button class="admin-btn admin-btn-primary" onclick="importStudentsCsv()">📥 Import CSV</button>
+        <button class="admin-btn admin-btn-secondary" onclick="uploadStudentPhotosBulk()">🖼️ Upload & Map Photos</button>
+        <button class="admin-btn admin-btn-danger" onclick="replaceStudentsFromImported()">⚠️ Replace All With Imported</button>
+      </div>
+
+      <div id="studentsImportStatus" style="margin-top:14px; color:var(--text-muted); font-size:.9rem;"></div>
+    </div>
+
+    <div class="ff-admin-card">
+      <div class="ff-admin-card-header">
+        <div class="ff-admin-card-title">➕ Manual Add / Edit</div>
+        <button class="admin-btn admin-btn-secondary" onclick="addStudentRow()">+ Add Row</button>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+        <input class="form-input" id="studentsSearch" placeholder="Search student..." style="max-width:260px;" oninput="renderStudentDirectoryEditor()">
+        <select class="form-select" id="studentsSectionFilter" style="max-width:180px;" onchange="renderStudentDirectoryEditor()">
+          <option value="all">All Sections</option>
+          <option value="10A">10A</option>
+          <option value="10B">10B</option>
+          <option value="10C">10C</option>
+          <option value="10D">10D</option>
+        </select>
+      </div>
+
+      <div id="studentDirectoryEditor" style="display:grid; gap:14px;">
+        <div class="ff-empty">Loading student directory...</div>
+      </div>
+    </div>
+  `;
+}
+
+function wireStudentsPanel() {
+  // no-op for now
+}
+
+async function loadStudentDirectoryData() {
+  try {
+    const res = await fetch(apiUrl('/api/student-directory'));
+    const data = await res.json();
+
+    if (!data.success) {
+      showNotification('error', 'Failed', data.error || 'Could not load student directory.');
+      return;
+    }
+
+    studentDirectoryData = (data.students || []).map(normalizeStudent);
+    renderStudentStats();
+    renderStudentDirectoryEditor();
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
+}
+
+function normalizeStudent(s) {
+  return {
+    name: String(s.name || '').trim(),
+    section: normalizeSection(s.section || ''),
+    photo: String(s.photo || '').trim(),
+    quote: String(s.quote || '').trim(),
+    destination: String(s.destination || '').trim()
+  };
+}
+
+function normalizeSection(section) {
+  const s = String(section || '').trim().toUpperCase().replace(/\s+/g, '');
+  if (['10A','10B','10C','10D'].includes(s)) return s;
+  return s || '';
+}
+
+function renderStudentStats() {
+  const counts = {
+    total: studentDirectoryData.length,
+    '10A': studentDirectoryData.filter(s => s.section === '10A').length,
+    '10B': studentDirectoryData.filter(s => s.section === '10B').length,
+    '10C': studentDirectoryData.filter(s => s.section === '10C').length,
+    '10D': studentDirectoryData.filter(s => s.section === '10D').length,
+  };
+
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(val);
+  };
+
+  set('studentsTotalCount', counts.total);
+  set('students10ACount', counts['10A']);
+  set('students10BCount', counts['10B']);
+  set('students10CCount', counts['10C']);
+  set('students10DCount', counts['10D']);
+}
+
+function renderStudentDirectoryEditor() {
+  const editor = document.getElementById('studentDirectoryEditor');
+  if (!editor) return;
+
+  const q = (document.getElementById('studentsSearch')?.value || '').trim().toLowerCase();
+  const sectionFilter = document.getElementById('studentsSectionFilter')?.value || 'all';
+
+  let filtered = studentDirectoryData.map((student, idx) => ({ student, idx }));
+
+  if (sectionFilter !== 'all') {
+    filtered = filtered.filter(x => x.student.section === sectionFilter);
+  }
+
+  if (q) {
+    filtered = filtered.filter(x =>
+      x.student.name.toLowerCase().includes(q) ||
+      x.student.section.toLowerCase().includes(q) ||
+      x.student.destination.toLowerCase().includes(q)
+    );
+  }
+
+  if (!filtered.length) {
+    editor.innerHTML = `<div class="ff-empty">No students match the current filter.</div>`;
+    return;
+  }
+
+  editor.innerHTML = filtered.map(({ student, idx }) => `
+    <div style="padding:16px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);">
+      <div style="display:grid; grid-template-columns:1fr 180px; gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Name</label>
+          <input class="form-input" value="${escapeAttr(student.name)}" onchange="updateStudentField(${idx}, 'name', this.value)">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Section</label>
+          <select class="form-select" onchange="updateStudentField(${idx}, 'section', this.value)">
+            <option value="">Select</option>
+            <option value="10A" ${student.section === '10A' ? 'selected' : ''}>10A</option>
+            <option value="10B" ${student.section === '10B' ? 'selected' : ''}>10B</option>
+            <option value="10C" ${student.section === '10C' ? 'selected' : ''}>10C</option>
+            <option value="10D" ${student.section === '10D' ? 'selected' : ''}>10D</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Photo URL</label>
+          <input class="form-input" value="${escapeAttr(student.photo)}" onchange="updateStudentField(${idx}, 'photo', this.value)">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Destination</label>
+          <input class="form-input" value="${escapeAttr(student.destination)}" onchange="updateStudentField(${idx}, 'destination', this.value)">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:12px;">
+        <label>Quote</label>
+        <textarea class="form-textarea" style="min-height:80px;" onchange="updateStudentField(${idx}, 'quote', this.value)">${escapeHtml(student.quote)}</textarea>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:10px;">
+        <div style="color:var(--text-muted); font-size:.82rem;">
+          ${student.photo ? '🖼️ Photo set' : 'No photo'} ${student.section ? `• Section ${escapeHtml(student.section)}` : ''}
+        </div>
+        <button class="admin-btn admin-btn-danger" onclick="removeStudentRow(${idx})">🗑️ Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addStudentRow() {
+  studentDirectoryData.push(normalizeStudent({
+    name: '',
+    section: '',
+    photo: '',
+    quote: '',
+    destination: ''
+  }));
+  renderStudentStats();
+  renderStudentDirectoryEditor();
+}
+
+function removeStudentRow(i) {
+  if (!confirm('Remove this student row?')) return;
+  studentDirectoryData.splice(i, 1);
+  renderStudentStats();
+  renderStudentDirectoryEditor();
+}
+
+function updateStudentField(i, field, value) {
+  if (!studentDirectoryData[i]) return;
+  studentDirectoryData[i][field] = field === 'section' ? normalizeSection(value) : String(value || '');
+  renderStudentStats();
+}
+
+async function saveStudentDirectory() {
+  try {
+    const cleaned = studentDirectoryData
+      .map(normalizeStudent)
+      .filter(s => s.name);
+
+    const res = await fetch(apiUrl('/api/admin/student-directory'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.adminToken}`
+      },
+      body: JSON.stringify({ students: cleaned })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      studentDirectoryData = cleaned;
+      renderStudentStats();
+      renderStudentDirectoryEditor();
+      showNotification('success', 'Saved', 'Student directory updated successfully.');
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not save student directory.');
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
+}
+
+function exportStudentDirectoryCsv() {
+  if (!studentDirectoryData.length) {
+    return showNotification('info', 'Empty', 'No student data to export.');
+  }
+
+  const header = ['name', 'section', 'photo', 'quote', 'destination'];
+  const lines = [
+    header.join(','),
+    ...studentDirectoryData.map(s => header.map(h => `"${String(s[h] || '').replaceAll('"', '""')}"`).join(','))
+  ];
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `student-directory-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function importStudentsCsv() {
+  const input = document.getElementById('studentsCsvFile');
+  const status = document.getElementById('studentsImportStatus');
+  const file = input?.files?.[0];
+
+  if (!file) {
+    return showNotification('error', 'Missing file', 'Please choose a CSV file.');
+  }
+
+  try {
+    const text = await file.text();
+    const rows = parseCsv(text);
+
+    if (!rows.length) {
+      return showNotification('error', 'Empty file', 'No rows found in CSV.');
+    }
+
+    const students = rows.map(row => normalizeStudent({
+      name: row.name || row.Name || '',
+      section: row.section || row.Section || '',
+      photo: row.photo || row.Photo || '',
+      quote: row.quote || row.Quote || '',
+      destination: row.destination || row.Destination || ''
+    })).filter(s => s.name);
+
+    if (!students.length) {
+      return showNotification('error', 'No valid students', 'CSV did not contain usable student rows.');
+    }
+
+    window.__importedStudentsBuffer = students;
+
+    if (status) {
+      status.innerHTML = `
+        <span style="color:#8ff09a;">Imported ${students.length} students into buffer.</span>
+        <br>
+        Use <strong>Replace All With Imported</strong> to overwrite current list.
+      `;
+    }
+
+    showNotification('success', 'Imported', `${students.length} students loaded into import buffer.`);
+  } catch (e) {
+    showNotification('error', 'Import failed', e.message);
+  }
+}
+
+function replaceStudentsFromImported() {
+  const imported = window.__importedStudentsBuffer || [];
+  if (!imported.length) {
+    return showNotification('error', 'No import buffer', 'Import a CSV first.');
+  }
+
+  if (!confirm(`Replace current student directory with ${imported.length} imported students?`)) return;
+
+  studentDirectoryData = imported.map(normalizeStudent);
+  renderStudentStats();
+  renderStudentDirectoryEditor();
+  showNotification('success', 'Replaced', 'Student directory replaced with imported data.');
+}
+
+async function uploadStudentPhotosBulk() {
+  const input = document.getElementById('studentsPhotoFiles');
+  const files = Array.from(input?.files || []);
+  if (!files.length) {
+    return showNotification('error', 'Missing files', 'Please choose one or more images.');
+  }
+
+  const formData = new FormData();
+  files.forEach(f => formData.append('photos', f));
+
+  try {
+    const res = await fetch(apiUrl('/api/admin/student-directory/photos-bulk'), {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${state.adminToken}`
+      },
+      body: formData
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      return showNotification('error', 'Upload failed', data.error || 'Could not upload photos.');
+    }
+
+    const mapped = data.mapped || [];
+    let applied = 0;
+
+    // apply returned mapping into current editor data by exact name match
+    mapped.forEach(m => {
+      const idx = studentDirectoryData.findIndex(s => normalizeNameKey(s.name) === normalizeNameKey(m.name));
+      if (idx >= 0) {
+        studentDirectoryData[idx].photo = m.photo;
+        applied++;
+      }
+    });
+
+    renderStudentDirectoryEditor();
+    showNotification('success', 'Photos mapped', `Mapped ${applied} student photos.`);
+  } catch (e) {
+    showNotification('error', 'Upload failed', e.message);
+  }
+}
+
+function normalizeNameKey(s) {
+  return String(s || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function parseCsv(csvText) {
+  const lines = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(Boolean);
+  if (!lines.length) return [];
+
+  const rows = lines.map(parseCsvLine);
+  const header = rows[0].map(h => String(h || '').trim());
+  const out = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const obj = {};
+    header.forEach((h, idx) => obj[h] = rows[i][idx] ?? '');
+    out.push(obj);
+  }
+
+  return out;
+}
+
+function parseCsvLine(line) {
+  const out = [];
+  let cur = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    const next = line[i + 1];
+
+    if (ch === '"' && inQuotes && next === '"') {
+      cur += '"';
+      i++;
+      continue;
+    }
+
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+      continue;
+    }
+
+    if (ch === ',' && !inQuotes) {
+      out.push(cur);
+      cur = '';
+      continue;
+    }
+
+    cur += ch;
+  }
+
+  out.push(cur);
+  return out;
+}
+
+window.initStudentsPanelContent = initStudentsPanelContent;
+window.loadStudentDirectoryData = loadStudentDirectoryData;
+window.addStudentRow = addStudentRow;
+window.removeStudentRow = removeStudentRow;
+window.updateStudentField = updateStudentField;
+window.saveStudentDirectory = saveStudentDirectory;
+window.importStudentsCsv = importStudentsCsv;
+window.replaceStudentsFromImported = replaceStudentsFromImported;
+window.uploadStudentPhotosBulk = uploadStudentPhotosBulk;
+window.exportStudentDirectoryCsv = exportStudentDirectoryCsv;
+window.renderStudentDirectoryEditor = renderStudentDirectoryEditor;
+
+console.log('✅ Admin Students loaded');
+</script>

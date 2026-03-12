@@ -7929,7 +7929,14 @@
       "action": "login",
       "meta": {},
       "createdAt": "2026-03-12T09:28:25.397Z"
+    },
+    {
+      "id": 953,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-12T09:32:15.161Z"
     }
   ],
-  "nextId": 953
+  "nextId": 954
 }

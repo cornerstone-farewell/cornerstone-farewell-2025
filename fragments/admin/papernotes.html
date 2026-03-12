@@ -1,0 +1,274 @@
+<!-- FRAGMENT: admin_papernotes -->
+
+<script data-fragment-script="admin_papernotes">
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAPER NOTES ADMIN PANEL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let paperNotesAdminData = [];
+
+function initPapernotesPanelContent() {
+  console.log('initPapernotesPanelContent called');
+
+  const panel = document.getElementById('panelPapernotes');
+  if (!panel) return;
+
+  if (panel.dataset.initialized !== 'true') {
+    panel.innerHTML = renderPapernotesPanelHtml();
+    panel.dataset.initialized = 'true';
+  }
+
+  loadPaperNotesAdminData();
+}
+
+function renderPapernotesPanelHtml() {
+  return `
+    <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">✈️ Paper Notes</h3>
+        <button class="admin-btn admin-btn-secondary" onclick="loadPaperNotesAdminData()">🔄 Refresh</button>
+      </div>
+      <p style="color:var(--text-muted); margin-top:10px;">Manage flying paper airplane notes stored in the backend.</p>
+    </div>
+
+    <div class="admin-stats" style="margin-bottom:20px;">
+      <div class="stat-card">
+        <div class="stat-number" id="paperNotesTotalCount">0</div>
+        <div class="stat-label">Total Notes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="paperNotesMemoryLinkedCount">0</div>
+        <div class="stat-label">From Memories</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="paperNotesStandaloneCount">0</div>
+        <div class="stat-label">Standalone Notes</div>
+      </div>
+    </div>
+
+    <div class="ff-admin-card">
+      <div class="ff-admin-card-header">
+        <div class="ff-admin-card-title">📝 Stored Paper Notes</div>
+        <div class="ff-admin-card-actions">
+          <button class="admin-btn admin-btn-danger" onclick="deleteAllPaperNotes()" id="deleteAllPaperNotesBtn">🗑️ Delete All</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px; display:flex; gap:10px; flex-wrap:wrap;">
+        <input class="form-input" id="paperNotesSearch" placeholder="Search by name or message..." style="max-width:320px;" oninput="renderPaperNotesAdminList()">
+        <select class="form-select" id="paperNotesFilter" style="max-width:220px;" onchange="renderPaperNotesAdminList()">
+          <option value="all">All Notes</option>
+          <option value="memory">From Memories</option>
+          <option value="standalone">Standalone Notes</option>
+        </select>
+      </div>
+
+      <div class="ff-admin-list" id="paperNotesAdminList" style="max-height:600px;">
+        <div class="ff-empty">Loading...</div>
+      </div>
+    </div>
+
+    <div class="ff-admin-card">
+      <div class="ff-admin-card-header">
+        <div class="ff-admin-card-title">ℹ️ Feature Notes</div>
+      </div>
+      <div style="color:var(--text-muted); line-height:1.8;">
+        <p>• <strong style="color:var(--text-light);">Standalone notes</strong> are created directly by users.</p>
+        <p>• <strong style="color:var(--text-light);">Memory-linked notes</strong> are generated from approved memories.</p>
+        <p>• Paper notes are used by the floating paper airplane feature for playful surprise moments.</p>
+        <p>• Deleting a paper note here only removes the note, not the original memory.</p>
+      </div>
+    </div>
+  `;
+}
+
+async function loadPaperNotesAdminData() {
+  const list = document.getElementById('paperNotesAdminList');
+  if (list) list.innerHTML = '<div class="ff-empty">Loading paper notes...</div>';
+
+  try {
+    const res = await fetch(apiUrl('/api/admin/paper-notes'), {
+      headers: {
+        'Authorization': `Bearer ${state.adminToken}`
+      }
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      if (list) list.innerHTML = `<div class="ff-empty">Failed to load notes: ${escapeHtml(data.error || 'Unknown error')}</div>`;
+      return;
+    }
+
+    paperNotesAdminData = data.notes || [];
+    renderPaperNotesStats();
+    renderPaperNotesAdminList();
+  } catch (e) {
+    console.error('Load paper notes error:', e);
+    if (list) list.innerHTML = `<div class="ff-empty">Error loading paper notes</div>`;
+    showNotification('error', 'Failed', e.message);
+  }
+}
+
+function renderPaperNotesStats() {
+  const total = paperNotesAdminData.length;
+  const memoryLinked = paperNotesAdminData.filter(n => !!n.memoryId).length;
+  const standalone = total - memoryLinked;
+
+  const totalEl = document.getElementById('paperNotesTotalCount');
+  const memEl = document.getElementById('paperNotesMemoryLinkedCount');
+  const standEl = document.getElementById('paperNotesStandaloneCount');
+  const delBtn = document.getElementById('deleteAllPaperNotesBtn');
+
+  if (totalEl) totalEl.textContent = total;
+  if (memEl) memEl.textContent = memoryLinked;
+  if (standEl) standEl.textContent = standalone;
+  if (delBtn) delBtn.disabled = total === 0;
+}
+
+function renderPaperNotesAdminList() {
+  const list = document.getElementById('paperNotesAdminList');
+  if (!list) return;
+
+  const search = (document.getElementById('paperNotesSearch')?.value || '').trim().toLowerCase();
+  const filter = document.getElementById('paperNotesFilter')?.value || 'all';
+
+  let items = [...paperNotesAdminData];
+
+  if (filter === 'memory') items = items.filter(n => !!n.memoryId);
+  if (filter === 'standalone') items = items.filter(n => !n.memoryId);
+
+  if (search) {
+    items = items.filter(n =>
+      String(n.name || '').toLowerCase().includes(search) ||
+      String(n.message || '').toLowerCase().includes(search)
+    );
+  }
+
+  items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  if (!items.length) {
+    list.innerHTML = '<div class="ff-empty">No paper notes match the current filters.</div>';
+    return;
+  }
+
+  list.innerHTML = items.map(note => `
+    <div class="ff-admin-item">
+      <div class="ff-admin-item-content">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <strong>${escapeHtml(note.name || 'Anonymous')}</strong>
+          ${note.memoryId
+            ? `<span class="mini-pill" style="background:rgba(76,175,80,0.2); color:#8ff09a; border:1px solid rgba(76,175,80,0.35);">From Memory #${note.memoryId}</span>`
+            : `<span class="mini-pill">Standalone</span>`
+          }
+          ${note.color ? `<span class="mini-pill" style="background:${escapeAttr(note.color)}; color:#111; border:none;">Color</span>` : ''}
+        </div>
+
+        <div style="margin-top:8px; color:var(--text-light); line-height:1.6;">
+          "${escapeHtml(note.message || '')}"
+        </div>
+
+        ${note.file_url ? `
+          <div style="margin-top:10px;">
+            ${note.file_type === 'image'
+              ? `<img src="${mediaUrl(note.file_url)}" alt="" style="max-width:180px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);">`
+              : note.file_type === 'video'
+                ? `<video src="${mediaUrl(note.file_url)}" controls style="max-width:220px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);"></video>`
+                : ''
+            }
+          </div>
+        ` : ''}
+
+        <div class="ff-admin-item-meta">
+          Created ${timeAgo(note.createdAt)} • ID: ${note.id}
+        </div>
+      </div>
+
+      <div class="ff-admin-item-actions" style="flex-direction:column; gap:8px;">
+        <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deletePaperNote(${note.id})">🗑️ Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deletePaperNote(id) {
+  if (!confirm(`Delete paper note #${id}?`)) return;
+
+  try {
+    const res = await fetch(apiUrl(`/api/admin/paper-notes/${id}`), {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${state.adminToken}`
+      }
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      showNotification('success', 'Deleted', `Paper note #${id} removed.`);
+      paperNotesAdminData = paperNotesAdminData.filter(n => n.id !== id);
+      renderPaperNotesStats();
+      renderPaperNotesAdminList();
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not delete note.');
+    }
+  } catch (e) {
+    showNotification('error', 'Failed', e.message);
+  }
+}
+
+async function deleteAllPaperNotes() {
+  if (!paperNotesAdminData.length) {
+    return showNotification('info', 'Nothing to delete', 'There are no paper notes.');
+  }
+
+  if (!confirm(`Delete ALL ${paperNotesAdminData.length} paper notes? This cannot be undone.`)) return;
+  if (!confirm('Final confirmation: permanently remove all paper notes?')) return;
+
+  const ids = paperNotesAdminData.map(n => n.id);
+  let deleted = 0;
+  let failed = 0;
+
+  for (const id of ids) {
+    try {
+      const res = await fetch(apiUrl(`/api/admin/paper-notes/${id}`), {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${state.adminToken}`
+        }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) deleted++;
+      else failed++;
+    } catch {
+      failed++;
+    }
+  }
+
+  if (deleted > 0) {
+    showNotification(
+      failed ? 'info' : 'success',
+      failed ? 'Partial delete' : 'Deleted',
+      failed
+        ? `Deleted ${deleted} notes, failed ${failed}.`
+        : `Deleted ${deleted} paper notes.`
+    );
+  } else {
+    showNotification('error', 'Failed', 'Could not delete paper notes.');
+  }
+
+  loadPaperNotesAdminData();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPOSE GLOBALLY
+// ═══════════════════════════════════════════════════════════════════════════════
+
+window.initPapernotesPanelContent = initPapernotesPanelContent;
+window.loadPaperNotesAdminData = loadPaperNotesAdminData;
+window.renderPaperNotesAdminList = renderPaperNotesAdminList;
+window.deletePaperNote = deletePaperNote;
+window.deleteAllPaperNotes = deleteAllPaperNotes;
+
+console.log('✅ Admin Paper Notes loaded');
+</script>

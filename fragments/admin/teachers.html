@@ -1,0 +1,162 @@
+<!-- FRAGMENT: admin_students -->
+
+<script data-fragment-script="admin_students">
+// ═══════════════════════════════════════════════════════════════════════════════
+// STUDENT DIRECTORY ADMIN PANEL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let studentDirectoryData = [];
+
+function initStudentsPanelContent() {
+  console.log('initStudentsPanelContent called');
+
+  const panel = document.getElementById('panelStudents');
+  if (!panel) return;
+
+  if (panel.dataset.initialized !== 'true') {
+    panel.innerHTML = renderStudentsPanelHtml();
+    panel.dataset.initialized = 'true';
+  }
+
+  loadStudentDirectoryData();
+}
+
+function renderStudentsPanelHtml() {
+  return `
+    <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">🎓 Student Directory</h3>
+        <div style="display:flex; gap:10px;">
+          <button class="admin-btn admin-btn-secondary" onclick="loadStudentDirectoryData()">🔄 Refresh</button>
+          <button class="admin-btn admin-btn-primary" onclick="saveStudentDirectory()">💾 Save All</button>
+        </div>
+      </div>
+      <p style="color:var(--text-muted); margin-top:10px;">Manage student directory entries shown publicly.</p>
+    </div>
+
+    <div class="ff-admin-card">
+      <div class="ff-admin-card-header">
+        <div class="ff-admin-card-title">➕ Add Student</div>
+        <button class="admin-btn admin-btn-secondary" onclick="addStudentRow()">+ Add Row</button>
+      </div>
+      <div id="studentDirectoryEditor" style="display:grid; gap:14px;">
+        <div class="ff-empty">Loading student directory...</div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadStudentDirectoryData() {
+  try {
+    const res = await fetch(apiUrl('/api/student-directory'));
+    const data = await res.json();
+
+    if (!data.success) {
+      showNotification('error', 'Failed', data.error || 'Could not load student directory.');
+      return;
+    }
+
+    studentDirectoryData = data.students || [];
+    renderStudentDirectoryEditor();
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
+}
+
+function renderStudentDirectoryEditor() {
+  const editor = document.getElementById('studentDirectoryEditor');
+  if (!editor) return;
+
+  if (!studentDirectoryData.length) {
+    editor.innerHTML = `
+      <div class="ff-empty">No students added yet.</div>
+    `;
+    return;
+  }
+
+  editor.innerHTML = studentDirectoryData.map((s, i) => `
+    <div style="padding:16px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Name</label>
+          <input class="form-input" value="${escapeAttr(s.name || '')}" onchange="updateStudentField(${i}, 'name', this.value)">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Section</label>
+          <input class="form-input" value="${escapeAttr(s.section || '')}" onchange="updateStudentField(${i}, 'section', this.value)">
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Photo URL</label>
+          <input class="form-input" value="${escapeAttr(s.photo || '')}" onchange="updateStudentField(${i}, 'photo', this.value)">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Destination</label>
+          <input class="form-input" value="${escapeAttr(s.destination || '')}" onchange="updateStudentField(${i}, 'destination', this.value)">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:12px;">
+        <label>Quote</label>
+        <textarea class="form-textarea" style="min-height:80px;" onchange="updateStudentField(${i}, 'quote', this.value)">${escapeHtml(s.quote || '')}</textarea>
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+        <button class="admin-btn admin-btn-danger" onclick="removeStudentRow(${i})">🗑️ Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addStudentRow() {
+  studentDirectoryData.push({
+    name: '',
+    section: '',
+    photo: '',
+    quote: '',
+    destination: ''
+  });
+  renderStudentDirectoryEditor();
+}
+
+function removeStudentRow(i) {
+  if (!confirm('Remove this student row?')) return;
+  studentDirectoryData.splice(i, 1);
+  renderStudentDirectoryEditor();
+}
+
+function updateStudentField(i, field, value) {
+  if (!studentDirectoryData[i]) return;
+  studentDirectoryData[i][field] = value;
+}
+
+async function saveStudentDirectory() {
+  try {
+    const res = await fetch(apiUrl('/api/admin/student-directory'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.adminToken}`
+      },
+      body: JSON.stringify({ students: studentDirectoryData })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showNotification('success', 'Saved', 'Student directory updated successfully.');
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not save student directory.');
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
+}
+
+window.initStudentsPanelContent = initStudentsPanelContent;
+window.loadStudentDirectoryData = loadStudentDirectoryData;
+window.addStudentRow = addStudentRow;
+window.removeStudentRow = removeStudentRow;
+window.updateStudentField = updateStudentField;
+window.saveStudentDirectory = saveStudentDirectory;
+
+console.log('✅ Admin Students loaded');
+</script>

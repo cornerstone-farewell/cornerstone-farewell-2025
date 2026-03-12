@@ -1467,6 +1467,16 @@ app.delete('/api/admin/settings/intro-video', (req, res) => {
   } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
+// Export CSV (49)
+app.get('/api/admin/export/csv', (req, res) => {
+  try {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
+    const data = readSettings();
+    res.json({ success: true, settings: data.settings || {} });
+  } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+});
+
 // Settings save (includes theme + toggles) (64,57,58)
 app.post('/api/admin/settings', (req, res) => {
   try {
@@ -2017,44 +2027,6 @@ app.get('/api/admin/export/csv', (req, res) => {
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
   });
 
-
-  // GET all paper notes (admin only)
-  app.get('/api/admin/paper-notes', (req, res) => {
-    try {
-      const auth = requireAdmin(req, res); if (!auth) return;
-      const db = readNotes();
-      res.json({
-        success: true,
-        notes: (db.notes || []).filter(n => !n.deletedAt)
-      });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  // DELETE paper note (admin only)
-  app.delete('/api/admin/paper-notes/:id', (req, res) => {
-    try {
-      const auth = requireAdmin(req, res); if (!auth) return;
-      const db = readNotes();
-      const note = db.notes.find(n => n.id === Number(req.params.id) && !n.deletedAt);
-
-      if (!note) {
-        return res.status(404).json({ success: false, error: 'Note not found' });
-      }
-
-      note.deletedAt = nowIso();
-      writeNotes(db);
-
-      audit(auth.user.id, 'delete-paper-note', { id: note.id });
-      broadcast('paper:note:delete', { id: note.id });
-
-      res.json({ success: true });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
   console.log('✅ Paper Notes API loaded.');
 })();
 
@@ -2104,38 +2076,6 @@ app.get('/api/admin/export/csv', (req, res) => {
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
   });
 
-
-  // DELETE teacher audio track (admin only)
-  app.delete('/api/admin/teacher-audio/:id', (req, res) => {
-    try {
-      const auth = requireAdmin(req, res); if (!auth) return;
-
-      const db = readAudio();
-      const track = db.tracks.find(t => t.id === Number(req.params.id) && !t.deletedAt);
-
-      if (!track) {
-        return res.status(404).json({ success: false, error: 'Track not found' });
-      }
-
-      track.deletedAt = nowIso();
-
-      if (track.file_path) {
-        const fp = path.join(uploadsDir, track.file_path);
-        if (fs.existsSync(fp)) {
-          try { fs.unlinkSync(fp); } catch {}
-        }
-      }
-
-      writeAudio(db);
-      audit(auth.user.id, 'delete-teacher-audio', { id: track.id });
-      broadcast('teacher-audio:update', { id: track.id });
-
-      res.json({ success: true });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
   console.log('✅ Teacher Audio API loaded.');
 })();
 
@@ -2156,84 +2096,7 @@ app.get('/api/admin/export/csv', (req, res) => {
       res.json({ success: true, students: db.students });
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
   });
-    // Bulk replace student directory from CSV/JSON-style array
-  app.post('/api/admin/student-directory/import', (req, res) => {
-    try {
-      const auth = requireAdmin(req, res); if (!auth) return;
-      if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
 
-      const { students } = req.body || {};
-      if (!Array.isArray(students)) {
-        return res.status(400).json({ success: false, error: 'students array required' });
-      }
-
-      const allowedSections = new Set(['10A', '10B', '10C', '10D']);
-
-      const normalized = students.map(s => ({
-        name: String(s.name || '').trim().substring(0, 80),
-        section: String(s.section || '').trim().toUpperCase(),
-        photo: String(s.photo || '').trim(),
-        quote: String(s.quote || '').trim().substring(0, 200),
-        destination: String(s.destination || '').trim().substring(0, 120)
-      })).filter(s => s.name).map(s => ({
-        ...s,
-        section: allowedSections.has(s.section) ? s.section : ''
-      }));
-
-      writeDir({ students: normalized });
-      audit(auth.user.id, 'import-student-directory', { count: normalized.length });
-      res.json({ success: true, count: normalized.length, students: normalized });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-    function normalizeNameKey(s) {
-    return String(s || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-  }
-
-  app.post('/api/admin/student-directory/photos-bulk', upload.array('photos', 500), (req, res) => {
-    try {
-      const auth = requireAdmin(req, res); if (!auth) return;
-      if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
-
-      const files = req.files || [];
-      if (!files.length) {
-        return res.status(400).json({ success: false, error: 'No photo files uploaded' });
-      }
-
-      const db = readDir();
-      const students = db.students || [];
-
-      const mapped = [];
-
-      for (const file of files) {
-        const basename = path.parse(file.originalname).name;
-        const fileKey = normalizeNameKey(basename);
-
-        const student = students.find(s => normalizeNameKey(s.name) === fileKey);
-        if (student) {
-          student.photo = `/uploads/${file.filename}`;
-          mapped.push({
-            name: student.name,
-            photo: student.photo,
-            original: file.originalname
-          });
-        }
-      }
-
-      writeDir({ students });
-      audit(auth.user.id, 'bulk-student-photo-map', { mapped: mapped.length, uploaded: files.length });
-
-      res.json({
-        success: true,
-        mapped,
-        uploaded: files.length,
-        mappedCount: mapped.length
-      });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
   // POST update student directory (admin only — accepts full array replacement)
   app.post('/api/admin/student-directory', (req, res) => {
     try {
@@ -2288,7 +2151,6 @@ app.use((err, req, res, next) => {
 // START SERVER
 // ═══════════════════════════════════════════════════════════════════════════════
 
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // FUN FEATURES API
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -2298,39 +2160,7 @@ app.use((err, req, res, next) => {
 
   const funDir = path.join(databaseDir, 'fun');
   if (!fs.existsSync(funDir)) fs.mkdirSync(funDir, { recursive: true });
-    app.post('/api/admin/superlatives/map-images-from-students', (req, res) => {
-    try {
-      const auth = requireAdmin(req, res); if (!auth) return;
 
-      const studentDirPath = path.join(databaseDir, 'student_directory.json');
-      const studentDb = safeReadJson(studentDirPath, { students: [] });
-      const students = studentDb.students || [];
-
-      function normalizeNameKey(s) {
-        return String(s || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-      }
-
-      const db = ffRead('superlatives');
-      let mapped = 0;
-
-      db.categories.forEach(cat => {
-        (cat.nominees || []).forEach(n => {
-          const st = students.find(s => normalizeNameKey(s.name) === normalizeNameKey(n.name));
-          if (st && st.photo) {
-            n.imageUrl = st.photo;
-            mapped++;
-          }
-        });
-      });
-
-      ffWrite('superlatives', db);
-      audit(auth.user.id, 'map-superlative-images-from-students', { mapped });
-
-      res.json({ success: true, mapped, categories: db.categories });
-    } catch (e) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
   const ffPaths = {
     gratitude:    path.join(funDir, 'gratitude.json'),
     superlatives: path.join(funDir, 'superlatives.json'),
@@ -2355,14 +2185,13 @@ app.use((err, req, res, next) => {
     if (!fs.existsSync(p)) safeWriteJson(p, ffDefaults[k]);
   });
 
-  function ffRead(key) { return safeReadJson(ffPaths[key], ffDefaults[key]); }
-  function ffWrite(key, d) { safeWriteJson(ffPaths[key], d); }
+  function ffRead(key)      { return safeReadJson(ffPaths[key], ffDefaults[key]); }
+  function ffWrite(key, d)  { safeWriteJson(ffPaths[key], d); }
 
-  // Settings
+  // ── Settings ────────────────────────────────────────────────────────────────
   app.get('/api/fun/settings', (req, res) => {
     res.json({ success: true, settings: ffRead('settings') });
   });
-
   app.post('/api/fun/settings', (req, res) => {
     const auth = requireAdmin(req, res); if (!auth) return;
     const s = ffRead('settings');
@@ -2374,31 +2203,22 @@ app.use((err, req, res, next) => {
     res.json({ success: true, settings: s });
   });
 
-  // Gratitude
+  // ── Gratitude Wall ───────────────────────────────────────────────────────────
   app.get('/api/fun/gratitude', (req, res) => {
     const db = ffRead('gratitude');
     res.json({ success: true, entries: db.entries });
   });
-
   app.post('/api/fun/gratitude', (req, res) => {
     const { from, to, message } = req.body || {};
-    if (!from?.trim() || !to?.trim() || !message?.trim()) {
+    if (!from?.trim() || !to?.trim() || !message?.trim())
       return res.status(400).json({ success: false, error: 'from, to, and message are required' });
-    }
     const db = ffRead('gratitude');
-    const entry = {
-      id: db.nextId++,
-      from: from.trim().substring(0,60),
-      to: to.trim().substring(0,60),
-      message: message.trim().substring(0,400),
-      createdAt: nowIso()
-    };
+    const entry = { id: db.nextId++, from: from.trim().substring(0,60), to: to.trim().substring(0,60), message: message.trim().substring(0,400), createdAt: nowIso() };
     db.entries.push(entry);
     ffWrite('gratitude', db);
     broadcast('ff:gratitude:new', { id: entry.id });
     res.json({ success: true, entry });
   });
-
   app.delete('/api/fun/gratitude/:id', (req, res) => {
     const auth = requireAdmin(req, res); if (!auth) return;
     const db = ffRead('gratitude');
@@ -2409,48 +2229,36 @@ app.use((err, req, res, next) => {
     res.json({ success: true });
   });
 
-  // Superlatives
+  // ── Superlatives ─────────────────────────────────────────────────────────────
   app.get('/api/fun/superlatives', (req, res) => {
     res.json({ success: true, categories: ffRead('superlatives').categories });
   });
-
   app.post('/api/fun/superlatives', (req, res) => {
     const auth = requireAdmin(req, res); if (!auth) return;
     const { categories } = req.body || {};
-    if (!Array.isArray(categories)) {
-      return res.status(400).json({ success: false, error: 'categories array required' });
-    }
+    if (!Array.isArray(categories)) return res.status(400).json({ success: false, error: 'categories array required' });
     const db = ffRead('superlatives');
     db.categories = categories.map(c => ({
       id: c.id || db.nextId++,
-      title: String(c.title || '').trim().substring(0,100),
-      nominees: Array.isArray(c.nominees)
-        ? c.nominees.map(n => ({
-            name: String(n.name || '').trim().substring(0,60),
-            votes: Number(n.votes) || 0,
-            imageUrl: n.imageUrl || null
-          }))
-        : [],
+      title: String(c.title||'').trim().substring(0,100),
+      nominees: Array.isArray(c.nominees) ? c.nominees.map(n=>({ name: String(n.name||'').trim().substring(0,60), votes: Number(n.votes)||0, imageUrl: n.imageUrl||null })) : [],
       imageUrl: c.imageUrl || null
     }));
     ffWrite('superlatives', db);
     res.json({ success: true, categories: db.categories });
   });
-
   app.post('/api/fun/superlatives/nominee', (req, res) => {
     const { categoryId, name } = req.body || {};
     if (!name?.trim()) return res.status(400).json({ success: false, error: 'name required' });
     const db = ffRead('superlatives');
     const cat = db.categories.find(c => c.id === Number(categoryId));
     if (!cat) return res.status(404).json({ success: false, error: 'Category not found' });
-
     if (!cat.nominees.find(n => n.name.toLowerCase() === name.trim().toLowerCase())) {
       cat.nominees.push({ name: name.trim().substring(0,60), votes: 0, imageUrl: null });
       ffWrite('superlatives', db);
     }
     res.json({ success: true, categories: db.categories });
   });
-
   app.post('/api/fun/superlatives/vote', (req, res) => {
     const { categoryId, nomineeName } = req.body || {};
     const db = ffRead('superlatives');
@@ -2458,24 +2266,20 @@ app.use((err, req, res, next) => {
     if (!cat) return res.status(404).json({ success: false, error: 'Category not found' });
     const nom = cat.nominees.find(n => n.name === nomineeName);
     if (!nom) return res.status(404).json({ success: false, error: 'Nominee not found' });
-
     nom.votes++;
     ffWrite('superlatives', db);
     broadcast('ff:superlatives:vote', { categoryId, nomineeName });
     res.json({ success: true });
   });
-
   app.post('/api/fun/superlatives/upload-image', upload.single('image'), (req, res) => {
     try {
       const auth = requireAdmin(req, res); if (!auth) return;
       const file = req.file;
       if (!file) return res.status(400).json({ success: false, error: 'No image file' });
-
       const { categoryId, nomineeName } = req.body || {};
       const db = ffRead('superlatives');
       const cat = db.categories.find(c => c.id === Number(categoryId));
       if (!cat) return res.status(404).json({ success: false, error: 'Category not found' });
-
       const imageUrl = `/uploads/${file.filename}`;
       if (nomineeName) {
         const nom = cat.nominees.find(n => n.name === nomineeName);
@@ -2483,7 +2287,6 @@ app.use((err, req, res, next) => {
       } else {
         cat.imageUrl = imageUrl;
       }
-
       ffWrite('superlatives', db);
       res.json({ success: true, imageUrl });
     } catch (e) {
@@ -2491,30 +2294,20 @@ app.use((err, req, res, next) => {
     }
   });
 
-  // Wishes
+  // ── Wish Jar ─────────────────────────────────────────────────────────────────
   app.get('/api/fun/wishes', (req, res) => {
     res.json({ success: true, entries: ffRead('wishes').entries });
   });
-
   app.post('/api/fun/wishes', (req, res) => {
     const { name, category, text } = req.body || {};
-    if (!name?.trim() || !text?.trim()) {
-      return res.status(400).json({ success: false, error: 'name and text required' });
-    }
+    if (!name?.trim() || !text?.trim()) return res.status(400).json({ success: false, error: 'name and text required' });
     const db = ffRead('wishes');
-    const entry = {
-      id: db.nextId++,
-      name: name.trim().substring(0,60),
-      category: String(category || 'General').trim().substring(0,40),
-      text: text.trim().substring(0,500),
-      createdAt: nowIso()
-    };
+    const entry = { id: db.nextId++, name: name.trim().substring(0,60), category: String(category||'General').trim().substring(0,40), text: text.trim().substring(0,500), createdAt: nowIso() };
     db.entries.push(entry);
     ffWrite('wishes', db);
     broadcast('ff:wish:new', { id: entry.id });
     res.json({ success: true, entry });
   });
-
   app.delete('/api/fun/wishes/:id', (req, res) => {
     const auth = requireAdmin(req, res); if (!auth) return;
     const db = ffRead('wishes');
@@ -2525,31 +2318,20 @@ app.use((err, req, res, next) => {
     res.json({ success: true });
   });
 
-  // Dedications
+  // ── Song Dedications ──────────────────────────────────────────────────────────
   app.get('/api/fun/dedications', (req, res) => {
     res.json({ success: true, entries: ffRead('dedications').entries });
   });
-
   app.post('/api/fun/dedications', (req, res) => {
     const { from, to, song, message } = req.body || {};
-    if (!from?.trim() || !to?.trim() || !song?.trim()) {
-      return res.status(400).json({ success: false, error: 'from, to, and song required' });
-    }
+    if (!from?.trim() || !to?.trim() || !song?.trim()) return res.status(400).json({ success: false, error: 'from, to, and song required' });
     const db = ffRead('dedications');
-    const entry = {
-      id: db.nextId++,
-      from: from.trim().substring(0,60),
-      to: to.trim().substring(0,60),
-      song: song.trim().substring(0,100),
-      message: (message || '').trim().substring(0,400),
-      createdAt: nowIso()
-    };
+    const entry = { id: db.nextId++, from: from.trim().substring(0,60), to: to.trim().substring(0,60), song: song.trim().substring(0,100), message: (message||'').trim().substring(0,400), createdAt: nowIso() };
     db.entries.push(entry);
     ffWrite('dedications', db);
     broadcast('ff:dedication:new', { id: entry.id });
     res.json({ success: true, entry });
   });
-
   app.delete('/api/fun/dedications/:id', (req, res) => {
     const auth = requireAdmin(req, res); if (!auth) return;
     const db = ffRead('dedications');
@@ -2560,33 +2342,24 @@ app.use((err, req, res, next) => {
     res.json({ success: true });
   });
 
-  // Mood
+  // ── Mood Board ────────────────────────────────────────────────────────────────
   app.get('/api/fun/mood', (req, res) => {
     const db = ffRead('mood');
     const counts = {};
-    (db.options || []).forEach(o => counts[o] = 0);
-    (db.votes || []).forEach(v => {
-      if (counts[v.mood] !== undefined) counts[v.mood]++;
-    });
+    (db.options||[]).forEach(o => counts[o] = 0);
+    (db.votes||[]).forEach(v => { if (counts[v.mood] !== undefined) counts[v.mood]++; });
     res.json({ success: true, votes: db.votes, options: db.options, counts });
   });
-
   app.post('/api/fun/mood', (req, res) => {
     const { name, mood } = req.body || {};
     if (!mood?.trim()) return res.status(400).json({ success: false, error: 'mood required' });
-
     const db = ffRead('mood');
-    db.votes.push({
-      name: (name || 'Anonymous').trim().substring(0,60),
-      mood: mood.trim().substring(0,40),
-      createdAt: nowIso()
-    });
+    db.votes.push({ name: (name||'Anonymous').trim().substring(0,60), mood: mood.trim().substring(0,40), createdAt: nowIso() });
     if (db.votes.length > 5000) db.votes = db.votes.slice(-5000);
     ffWrite('mood', db);
     broadcast('ff:mood:new', {});
     res.json({ success: true });
   });
-
   app.delete('/api/fun/mood/:idx', (req, res) => {
     const auth = requireAdmin(req, res); if (!auth) return;
     const db = ffRead('mood');
@@ -2597,47 +2370,26 @@ app.use((err, req, res, next) => {
     res.json({ success: true });
   });
 
-  // Capsules
+  // ── Time Capsule ──────────────────────────────────────────────────────────────
   app.get('/api/fun/capsules', (req, res) => {
     const db = ffRead('capsules');
     const now = new Date();
     const safe = db.entries.map(e => ({
-      id: e.id,
-      name: e.name,
-      revealDate: e.revealDate,
-      createdAt: e.createdAt,
+      id: e.id, name: e.name, revealDate: e.revealDate, createdAt: e.createdAt,
       revealed: new Date(e.revealDate) <= now,
       letter: new Date(e.revealDate) <= now ? e.letter : null
     }));
     res.json({ success: true, entries: safe });
   });
-
   app.post('/api/fun/capsules', (req, res) => {
     const { name, revealDate, letter } = req.body || {};
-    if (!name?.trim() || !letter?.trim() || !revealDate) {
-      return res.status(400).json({ success: false, error: 'name, revealDate, and letter required' });
-    }
+    if (!name?.trim() || !letter?.trim() || !revealDate) return res.status(400).json({ success: false, error: 'name, revealDate, and letter required' });
     const db = ffRead('capsules');
-    const entry = {
-      id: db.nextId++,
-      name: name.trim().substring(0,60),
-      revealDate,
-      letter: letter.trim().substring(0,2000),
-      createdAt: nowIso()
-    };
+    const entry = { id: db.nextId++, name: name.trim().substring(0,60), revealDate, letter: letter.trim().substring(0,2000), createdAt: nowIso() };
     db.entries.push(entry);
     ffWrite('capsules', db);
-    res.json({
-      success: true,
-      entry: {
-        id: entry.id,
-        name: entry.name,
-        revealDate: entry.revealDate,
-        createdAt: entry.createdAt
-      }
-    });
+    res.json({ success: true, entry: { id: entry.id, name: entry.name, revealDate: entry.revealDate, createdAt: entry.createdAt } });
   });
-
   app.delete('/api/fun/capsules/:id', (req, res) => {
     const auth = requireAdmin(req, res); if (!auth) return;
     const db = ffRead('capsules');
@@ -2648,39 +2400,280 @@ app.use((err, req, res, next) => {
     res.json({ success: true });
   });
 
-  // Admin export
+  // ── Admin CSV Export ──────────────────────────────────────────────────────────
   app.get('/api/admin/fun/export/:feature', (req, res) => {
     const auth = requireAdmin(req, res); if (!auth) return;
     if (!hasPerm(auth.user, 'export')) return res.status(403).json({ success: false, error: 'Forbidden' });
-
     const feature = req.params.feature;
-    if (!['gratitude', 'wishes', 'dedications', 'capsules', 'mood'].includes(feature)) {
+    if (!['gratitude','wishes','dedications','capsules','mood'].includes(feature))
       return res.status(400).json({ success: false, error: 'Invalid feature' });
-    }
-
     const db = ffRead(feature);
     const items = db.entries || db.votes || [];
-
     if (!items.length) {
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename="${feature}-export.csv"`);
       return res.send('No data\n');
     }
-
     const header = Object.keys(items[0]);
-    const lines = [
-      header.join(','),
-      ...items.map(r => header.map(h => `"${sanitizeCsvCell(r[h])}"`).join(','))
-    ];
-
+    const lines = [header.join(','), ...items.map(r => header.map(h => `"${sanitizeCsvCell(r[h])}"`).join(','))];
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${feature}-export-${new Date().toISOString().slice(0,10)}.csv"`);
     res.send(lines.join('\n'));
   });
 
-  console.log('✅ Fun Features API loaded.');
+ console.log('✅ Fun Features API loaded.');
 })();
 
+  const funDir = path.join(databaseDir, 'fun');
+  if (!fs.existsSync(funDir)) fs.mkdirSync(funDir, { recursive: true });
+
+  const ffPaths = {
+    gratitude:    path.join(funDir, 'gratitude.json'),
+    superlatives: path.join(funDir, 'superlatives.json'),
+    wishes:       path.join(funDir, 'wishes.json'),
+    dedications:  path.join(funDir, 'dedications.json'),
+    mood:         path.join(funDir, 'mood.json'),
+    capsules:     path.join(funDir, 'capsules.json'),
+    settings:     path.join(funDir, 'ff_settings.json'),
+  };
+
+  const ffDefaults = {
+    gratitude:    { entries: [], nextId: 1 },
+    superlatives: { categories: [], nextId: 1 },
+    wishes:       { entries: [], nextId: 1 },
+    dedications:  { entries: [], nextId: 1 },
+    mood:         { votes: [], options: ['Excited','Happy','Nostalgic','Bittersweet','Emotional'] },
+    capsules:     { entries: [], nextId: 1 },
+    settings:     { enabled: { gratitude:true, superlatives:true, wishes:true, dedications:true, mood:true, capsules:true } },
+  };
+
+  Object.entries(ffPaths).forEach(([k, p]) => {
+    if (!fs.existsSync(p)) safeWriteJson(p, ffDefaults[k]);
+  });
+
+  function ffRead(key)     { return safeReadJson(ffPaths[key], ffDefaults[key]); }
+  function ffWrite(key, d) { safeWriteJson(ffPaths[key], d); }
+
+  app.get('/api/fun/settings', (req, res) => {
+    res.json({ success: true, settings: ffRead('settings') });
+  });
+  app.post('/api/fun/settings', (req, res) => {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    const s = ffRead('settings');
+    if (req.body?.enabled && typeof req.body.enabled === 'object') s.enabled = { ...s.enabled, ...req.body.enabled };
+    ffWrite('settings', s);
+    broadcast('ff:settings', s.enabled);
+    res.json({ success: true, settings: s });
+  });
+
+  app.get('/api/fun/gratitude', (req, res) => {
+    res.json({ success: true, entries: ffRead('gratitude').entries });
+  });
+  app.post('/api/fun/gratitude', (req, res) => {
+    const { from, to, message } = req.body || {};
+    if (!from?.trim() || !to?.trim() || !message?.trim()) return res.status(400).json({ success: false, error: 'from, to, and message are required' });
+    const db = ffRead('gratitude');
+    const entry = { id: db.nextId++, from: from.trim().substring(0,60), to: to.trim().substring(0,60), message: message.trim().substring(0,400), createdAt: nowIso() };
+    db.entries.push(entry);
+    ffWrite('gratitude', db);
+    broadcast('ff:gratitude:new', { id: entry.id });
+    res.json({ success: true, entry });
+  });
+  app.delete('/api/fun/gratitude/:id', (req, res) => {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    const db = ffRead('gratitude');
+    const idx = db.entries.findIndex(e => e.id === Number(req.params.id));
+    if (idx === -1) return res.status(404).json({ success: false, error: 'Not found' });
+    db.entries.splice(idx, 1);
+    ffWrite('gratitude', db);
+    res.json({ success: true });
+  });
+
+  app.get('/api/fun/superlatives', (req, res) => {
+    res.json({ success: true, categories: ffRead('superlatives').categories });
+  });
+  app.post('/api/fun/superlatives', (req, res) => {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    const { categories } = req.body || {};
+    if (!Array.isArray(categories)) return res.status(400).json({ success: false, error: 'categories array required' });
+    const db = ffRead('superlatives');
+    db.categories = categories.map(c => ({
+      id: c.id || db.nextId++,
+      title: String(c.title||'').trim().substring(0,100),
+      nominees: Array.isArray(c.nominees) ? c.nominees.map(n=>({ name: String(n.name||'').trim().substring(0,60), votes: Number(n.votes)||0, imageUrl: n.imageUrl||null })) : [],
+      imageUrl: c.imageUrl || null
+    }));
+    ffWrite('superlatives', db);
+    res.json({ success: true, categories: db.categories });
+  });
+  app.post('/api/fun/superlatives/nominee', (req, res) => {
+    const { categoryId, name } = req.body || {};
+    if (!name?.trim()) return res.status(400).json({ success: false, error: 'name required' });
+    const db = ffRead('superlatives');
+    const cat = db.categories.find(c => c.id === Number(categoryId));
+    if (!cat) return res.status(404).json({ success: false, error: 'Category not found' });
+    if (!cat.nominees.find(n => n.name.toLowerCase() === name.trim().toLowerCase())) {
+      cat.nominees.push({ name: name.trim().substring(0,60), votes: 0, imageUrl: null });
+      ffWrite('superlatives', db);
+    }
+    res.json({ success: true, categories: db.categories });
+  });
+  app.post('/api/fun/superlatives/vote', (req, res) => {
+    const { categoryId, nomineeName } = req.body || {};
+    const db = ffRead('superlatives');
+    const cat = db.categories.find(c => c.id === Number(categoryId));
+    if (!cat) return res.status(404).json({ success: false, error: 'Category not found' });
+    const nom = cat.nominees.find(n => n.name === nomineeName);
+    if (!nom) return res.status(404).json({ success: false, error: 'Nominee not found' });
+    nom.votes++;
+    ffWrite('superlatives', db);
+    broadcast('ff:superlatives:vote', { categoryId, nomineeName });
+    res.json({ success: true });
+  });
+  app.post('/api/fun/superlatives/upload-image', upload.single('image'), (req, res) => {
+    try {
+      const auth = requireAdmin(req, res); if (!auth) return;
+      const file = req.file;
+      if (!file) return res.status(400).json({ success: false, error: 'No image file' });
+      const { categoryId, nomineeName } = req.body || {};
+      const db = ffRead('superlatives');
+      const cat = db.categories.find(c => c.id === Number(categoryId));
+      if (!cat) return res.status(404).json({ success: false, error: 'Category not found' });
+      const imageUrl = `/uploads/${file.filename}`;
+      if (nomineeName) {
+        const nom = cat.nominees.find(n => n.name === nomineeName);
+        if (nom) nom.imageUrl = imageUrl;
+      } else {
+        cat.imageUrl = imageUrl;
+      }
+      ffWrite('superlatives', db);
+      res.json({ success: true, imageUrl });
+    } catch (e) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  app.get('/api/fun/wishes', (req, res) => {
+    res.json({ success: true, entries: ffRead('wishes').entries });
+  });
+  app.post('/api/fun/wishes', (req, res) => {
+    const { name, category, text } = req.body || {};
+    if (!name?.trim() || !text?.trim()) return res.status(400).json({ success: false, error: 'name and text required' });
+    const db = ffRead('wishes');
+    const entry = { id: db.nextId++, name: name.trim().substring(0,60), category: String(category||'General').trim().substring(0,40), text: text.trim().substring(0,500), createdAt: nowIso() };
+    db.entries.push(entry);
+    ffWrite('wishes', db);
+    broadcast('ff:wish:new', { id: entry.id });
+    res.json({ success: true, entry });
+  });
+  app.delete('/api/fun/wishes/:id', (req, res) => {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    const db = ffRead('wishes');
+    const idx = db.entries.findIndex(e => e.id === Number(req.params.id));
+    if (idx === -1) return res.status(404).json({ success: false, error: 'Not found' });
+    db.entries.splice(idx, 1);
+    ffWrite('wishes', db);
+    res.json({ success: true });
+  });
+
+  app.get('/api/fun/dedications', (req, res) => {
+    res.json({ success: true, entries: ffRead('dedications').entries });
+  });
+  app.post('/api/fun/dedications', (req, res) => {
+    const { from, to, song, message } = req.body || {};
+    if (!from?.trim() || !to?.trim() || !song?.trim()) return res.status(400).json({ success: false, error: 'from, to, and song required' });
+    const db = ffRead('dedications');
+    const entry = { id: db.nextId++, from: from.trim().substring(0,60), to: to.trim().substring(0,60), song: song.trim().substring(0,100), message: (message||'').trim().substring(0,400), createdAt: nowIso() };
+    db.entries.push(entry);
+    ffWrite('dedications', db);
+    broadcast('ff:dedication:new', { id: entry.id });
+    res.json({ success: true, entry });
+  });
+  app.delete('/api/fun/dedications/:id', (req, res) => {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    const db = ffRead('dedications');
+    const idx = db.entries.findIndex(e => e.id === Number(req.params.id));
+    if (idx === -1) return res.status(404).json({ success: false, error: 'Not found' });
+    db.entries.splice(idx, 1);
+    ffWrite('dedications', db);
+    res.json({ success: true });
+  });
+
+  app.get('/api/fun/mood', (req, res) => {
+    const db = ffRead('mood');
+    const counts = {};
+    (db.options||[]).forEach(o => counts[o] = 0);
+    (db.votes||[]).forEach(v => { if (counts[v.mood] !== undefined) counts[v.mood]++; });
+    res.json({ success: true, votes: db.votes, options: db.options, counts });
+  });
+  app.post('/api/fun/mood', (req, res) => {
+    const { name, mood } = req.body || {};
+    if (!mood?.trim()) return res.status(400).json({ success: false, error: 'mood required' });
+    const db = ffRead('mood');
+    db.votes.push({ name: (name||'Anonymous').trim().substring(0,60), mood: mood.trim().substring(0,40), createdAt: nowIso() });
+    if (db.votes.length > 5000) db.votes = db.votes.slice(-5000);
+    ffWrite('mood', db);
+    broadcast('ff:mood:new', {});
+    res.json({ success: true });
+  });
+  app.delete('/api/fun/mood/:idx', (req, res) => {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    const db = ffRead('mood');
+    const idx = Number(req.params.idx);
+    if (idx < 0 || idx >= db.votes.length) return res.status(404).json({ success: false, error: 'Not found' });
+    db.votes.splice(idx, 1);
+    ffWrite('mood', db);
+    res.json({ success: true });
+  });
+
+  app.get('/api/fun/capsules', (req, res) => {
+    const db = ffRead('capsules');
+    const now = new Date();
+    const safe = db.entries.map(e => ({
+      id: e.id, name: e.name, revealDate: e.revealDate, createdAt: e.createdAt,
+      revealed: new Date(e.revealDate) <= now,
+      letter: new Date(e.revealDate) <= now ? e.letter : null
+    }));
+    res.json({ success: true, entries: safe });
+  });
+  app.post('/api/fun/capsules', (req, res) => {
+    const { name, revealDate, letter } = req.body || {};
+    if (!name?.trim() || !letter?.trim() || !revealDate) return res.status(400).json({ success: false, error: 'name, revealDate, and letter required' });
+    const db = ffRead('capsules');
+    const entry = { id: db.nextId++, name: name.trim().substring(0,60), revealDate, letter: letter.trim().substring(0,2000), createdAt: nowIso() };
+    db.entries.push(entry);
+    ffWrite('capsules', db);
+    res.json({ success: true, entry: { id: entry.id, name: entry.name, revealDate: entry.revealDate, createdAt: entry.createdAt } });
+  });
+  app.delete('/api/fun/capsules/:id', (req, res) => {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    const db = ffRead('capsules');
+    const idx = db.entries.findIndex(e => e.id === Number(req.params.id));
+    if (idx === -1) return res.status(404).json({ success: false, error: 'Not found' });
+    db.entries.splice(idx, 1);
+    ffWrite('capsules', db);
+    res.json({ success: true });
+  });
+
+  app.get('/api/admin/fun/export/:feature', (req, res) => {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    if (!hasPerm(auth.user, 'export')) return res.status(403).json({ success: false, error: 'Forbidden' });
+    const feature = req.params.feature;
+    if (!['gratitude','wishes','dedications','capsules','mood'].includes(feature)) return res.status(400).json({ success: false, error: 'Invalid feature' });
+    const db = ffRead(feature);
+    const items = db.entries || db.votes || [];
+    if (!items.length) {
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${feature}-export.csv"`);
+      return res.send('No data\n');
+    }
+    const header = Object.keys(items[0]);
+    const lines = [header.join(','), ...items.map(r => header.map(h => `"${sanitizeCsvCell(r[h])}"`).join(','))];
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${feature}-export-${new Date().toISOString().slice(0,10)}.csv"`);
+    res.send(lines.join('\n'));
+  });
+console.log('✅ Fun Features API loaded.');
 
 
 server.listen(PORT, '0.0.0.0', () => {
@@ -2703,11 +2696,5 @@ server.listen(PORT, '0.0.0.0', () => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('🛑 SIGTERM received. Closing server...');
-  process.exit(0);
-});
-process.on('SIGINT', () => {
-  console.log('🛑 SIGINT received. Closing server...');
-  process.exit(0);
-});
+process.on('SIGTERM', () => { console.log('🛑 SIGTERM received. Closing server...'); process.exit(0); });
+process.on('SIGINT', () => { console.log('🛑 SIGINT received. Closing server...'); process.exit(0); });

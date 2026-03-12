@@ -1,0 +1,229 @@
+<!-- FRAGMENT: admin_destinations -->
+
+<script data-fragment-script="admin_destinations">
+// ═══════════════════════════════════════════════════════════════════════════════
+// DESTINATIONS / GLOBE ADMIN PANEL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let destData = {
+  approved: [],
+  pending: []
+};
+
+function initDestinationsPanelContent() {
+  console.log('initDestinationsPanelContent called');
+
+  const panel = document.getElementById('panelDestinations');
+  if (!panel) return;
+
+  if (panel.dataset.initialized !== 'true') {
+    panel.innerHTML = renderDestinationsPanelHtml();
+    panel.dataset.initialized = 'true';
+  }
+
+  loadDestinationsData();
+}
+
+function renderDestinationsPanelHtml() {
+  return `
+    <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">🌍 Destinations Manager</h3>
+        <button class="admin-btn admin-btn-secondary" onclick="loadDestinationsData()">🔄 Refresh</button>
+      </div>
+      <p style="color:var(--text-muted); margin-top:10px;">Manage where students are headed after graduation.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="admin-stats" style="margin-bottom:20px;">
+      <div class="stat-card">
+        <div class="stat-number" id="destApprovedCount">0</div>
+        <div class="stat-label">Approved Pins</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="destPendingCount">0</div>
+        <div class="stat-label">Pending Approval</div>
+      </div>
+    </div>
+
+    <!-- Pending Submissions -->
+    <div class="ff-admin-card">
+      <div class="ff-admin-card-header">
+        <div class="ff-admin-card-title">⏳ Pending Submissions</div>
+        <div class="ff-admin-card-actions">
+          <button class="admin-btn admin-btn-primary" onclick="approveAllDestinations()">✓ Approve All</button>
+        </div>
+      </div>
+      <div class="ff-admin-list" id="destPendingList">
+        <div class="ff-empty">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Approved Destinations -->
+    <div class="ff-admin-card">
+      <div class="ff-admin-card-header">
+        <div class="ff-admin-card-title">✅ Approved Destinations</div>
+      </div>
+      <div class="ff-admin-list" id="destApprovedList">
+        <div class="ff-empty">Loading...</div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadDestinationsData() {
+  try {
+    // Load approved
+    const approvedRes = await fetch(apiUrl('/api/destinations'));
+    const approvedData = await approvedRes.json();
+    destData.approved = approvedData.success ? approvedData.destinations || [] : [];
+
+    // Load pending
+    const pendingRes = await fetch(apiUrl('/api/destinations/pin-submissions'));
+    const pendingData = await pendingRes.json();
+    destData.pending = pendingData.success ? pendingData.submissions || [] : [];
+
+    renderDestinations();
+  } catch (e) {
+    console.error('Load destinations error:', e);
+  }
+}
+
+function renderDestinations() {
+  // Update counts
+  const approvedCount = document.getElementById('destApprovedCount');
+  const pendingCount = document.getElementById('destPendingCount');
+  if (approvedCount) approvedCount.textContent = destData.approved.length;
+  if (pendingCount) pendingCount.textContent = destData.pending.length;
+
+  // Pending list
+  const pendingList = document.getElementById('destPendingList');
+  if (pendingList) {
+    if (!destData.pending.length) {
+      pendingList.innerHTML = '<div class="ff-empty">No pending submissions.</div>';
+    } else {
+      pendingList.innerHTML = destData.pending.map(d => `
+        <div class="ff-admin-item">
+          <div class="ff-admin-item-content">
+            <div><strong>${escapeHtml(d.name)}</strong> ${d.emoji || '📍'}</div>
+            <div style="color:var(--text-light); margin-top:4px;">${escapeHtml(d.school || d.city || '')}${d.country ? `, ${escapeHtml(d.country)}` : ''}</div>
+            ${d.note ? `<div style="color:var(--text-muted); margin-top:4px; font-style:italic;">"${escapeHtml(d.note)}"</div>` : ''}
+            <div class="ff-admin-item-meta">Type: ${escapeHtml(d.type || 'university')} • Coords: ${d.lat?.toFixed(2)}, ${d.lng?.toFixed(2)}</div>
+          </div>
+          <div class="ff-admin-item-actions">
+            <button class="admin-btn admin-btn-primary" style="padding:6px 12px; font-size:0.8rem;" onclick="approveDestination(${d.id})">✓</button>
+            <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteDestination(${d.id})">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // Approved list
+  const approvedList = document.getElementById('destApprovedList');
+  if (approvedList) {
+    if (!destData.approved.length) {
+      approvedList.innerHTML = '<div class="ff-empty">No approved destinations yet.</div>';
+    } else {
+      approvedList.innerHTML = destData.approved.map(d => `
+        <div class="ff-admin-item">
+          <div class="ff-admin-item-content">
+            <div><strong>${escapeHtml(d.name)}</strong> ${d.emoji || '📍'}</div>
+            <div style="color:var(--text-light); margin-top:4px;">${escapeHtml(d.school || d.city || '')}${d.country ? `, ${escapeHtml(d.country)}` : ''}</div>
+            <div class="ff-admin-item-meta">Type: ${escapeHtml(d.type || 'university')}</div>
+          </div>
+          <div class="ff-admin-item-actions">
+            <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteDestination(${d.id})">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+async function approveDestination(id) {
+  try {
+    const res = await fetch(apiUrl('/api/admin/destinations'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.adminToken}`
+      },
+      body: JSON.stringify({ action: 'approve', id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('success', 'Approved', 'Destination approved.');
+      loadDestinationsData();
+    } else {
+      showNotification('error', 'Error', data.error);
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
+}
+
+async function approveAllDestinations() {
+  if (!destData.pending.length) {
+    showNotification('info', 'Info', 'No pending destinations.');
+    return;
+  }
+  if (!confirm(`Approve all ${destData.pending.length} pending destinations?`)) return;
+
+  try {
+    const ids = destData.pending.map(d => d.id);
+    const res = await fetch(apiUrl('/api/admin/destinations'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.adminToken}`
+      },
+      body: JSON.stringify({ action: 'approve', ids })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('success', 'Approved', `Approved ${data.changed} destinations.`);
+      loadDestinationsData();
+    } else {
+      showNotification('error', 'Error', data.error);
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
+}
+
+async function deleteDestination(id) {
+  if (!confirm('Delete this destination?')) return;
+  try {
+    const res = await fetch(apiUrl('/api/admin/destinations'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.adminToken}`
+      },
+      body: JSON.stringify({ action: 'delete', id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('success', 'Deleted', 'Destination removed.');
+      loadDestinationsData();
+    } else {
+      showNotification('error', 'Error', data.error);
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPOSE GLOBALLY
+// ═══════════════════════════════════════════════════════════════════════════════
+
+window.initDestinationsPanelContent = initDestinationsPanelContent;
+window.loadDestinationsData = loadDestinationsData;
+window.approveDestination = approveDestination;
+window.approveAllDestinations = approveAllDestinations;
+window.deleteDestination = deleteDestination;
+
+console.log('✅ Admin Destinations loaded');
+</script>

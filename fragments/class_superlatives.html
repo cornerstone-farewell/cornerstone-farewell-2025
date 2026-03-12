@@ -1,14 +1,203 @@
 <!-- FRAGMENT: superlatives -->
 <style data-fragment-style="superlatives">
-#superlativesSection{background:var(--navy-medium)}.superlative-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:24px 20px;transition:transform .3s,border-color .3s,box-shadow .3s}.superlative-card:hover{transform:translateY(-6px);border-color:var(--primary-gold);box-shadow:0 0 20px rgba(212,175,55,.25),0 0 60px rgba(212,175,55,.1),inset 0 0 20px rgba(212,175,55,.05)}.superlative-emoji{font-size:2.4rem;margin-bottom:10px;display:block}.superlative-title{font-family:var(--font-display);font-size:1.15rem;color:var(--primary-gold);margin-bottom:12px}.superlative-nominee-list{display:grid;gap:8px}.nominee-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);cursor:pointer;transition:background .2s}.nominee-row:hover{background:rgba(212,175,55,.12);border-color:rgba(212,175,55,.25)}.nominee-name{font-size:.9rem;font-weight:600}.nominee-votes{font-size:.82rem;color:var(--primary-gold);min-width:32px;text-align:right}.nominee-bar{height:4px;border-radius:2px;background:var(--primary-gold);margin-top:4px;transition:width .5s ease}.superlative-add-form{margin-top:14px;display:flex;gap:8px}.superlative-add-form .ff-input{flex:1;padding:10px 14px}
+#superlativesSection{background:var(--navy-medium)}
+.superlative-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:24px 20px;transition:transform .3s,border-color .3s,box-shadow .3s}
+.superlative-card:hover{transform:translateY(-6px);border-color:var(--primary-gold);box-shadow:0 0 20px rgba(212,175,55,.25),0 0 60px rgba(212,175,55,.1),inset 0 0 20px rgba(212,175,55,.05)}
+.superlative-emoji{font-size:2.4rem;margin-bottom:10px;display:block}
+.superlative-title{font-family:var(--font-display);font-size:1.15rem;color:var(--primary-gold);margin-bottom:12px}
+.superlative-nominee-list{display:grid;gap:10px}
+.nominee-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);cursor:pointer;transition:background .2s}
+.nominee-row:hover{background:rgba(212,175,55,.12);border-color:rgba(212,175,55,.25)}
+.nominee-main{display:flex;align-items:center;gap:10px;min-width:0}
+.nominee-avatar{width:36px;height:36px;border-radius:50%;overflow:hidden;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);flex-shrink:0}
+.nominee-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.nominee-avatar.fallback{display:flex;align-items:center;justify-content:center;color:var(--primary-gold);font-weight:700}
+.nominee-name{font-size:.9rem;font-weight:600}
+.nominee-votes{font-size:.82rem;color:var(--primary-gold);min-width:40px;text-align:right}
+.nominee-bar{height:4px;border-radius:2px;background:var(--primary-gold);margin-top:4px;transition:width .5s ease}
+.superlative-add-form{margin-top:14px;display:grid;gap:10px}
+.superlative-add-form .ff-input{width:100%;padding:10px 14px}
+.superlative-select{width:100%;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#fff}
+.superlative-select option{background:var(--navy-dark);color:#fff}
+.superlative-empty{color:var(--text-muted);font-size:.9rem}
 </style>
+
 <section class="ff-section-hidden" id="superlativesSection">
-<div class="container">
-<div class="section-header">
-<span class="section-badge">Class Awards</span>
-<h2 class="section-title">Class <span class="highlight">Superlatives</span></h2>
-<p class="section-description">Nominate and vote for your classmates in these fun farewell categories.</p>
-</div>
-<div class="superlatives-grid" id="superlativesGrid"><div class="ff-empty">Loading...</div></div>
-</div>
+  <div class="container">
+    <div class="section-header">
+      <span class="section-badge">Class Awards</span>
+      <h2 class="section-title">Class <span class="highlight">Superlatives</span></h2>
+      <p class="section-description">Nominate and vote for your classmates in these fun farewell categories.</p>
+    </div>
+    <div class="superlatives-grid" id="superlativesGrid"><div class="ff-empty">Loading...</div></div>
+  </div>
 </section>
+
+<script data-fragment-script="superlatives">
+let superlativesStudentDirectory = [];
+
+async function loadSuperlatives() {
+  try {
+    const [supRes, studentRes, settingsRes] = await Promise.all([
+      fetch(apiUrl('/api/fun/superlatives')),
+      fetch(apiUrl('/api/student-directory')),
+      fetch(apiUrl('/api/fun/settings')).catch(() => null)
+    ]);
+
+    let enabled = true;
+    if (settingsRes && settingsRes.ok) {
+      const sData = await settingsRes.json();
+      enabled = sData?.settings?.enabled?.superlatives !== false;
+    }
+
+    const section = document.getElementById('superlativesSection');
+    if (section) {
+      section.classList.toggle('ff-section-hidden', !enabled);
+    }
+    if (!enabled) return;
+
+    const supData = await supRes.json();
+    const studentData = await studentRes.json();
+
+    superlativesStudentDirectory = (studentData?.students || []).map(s => ({
+      name: String(s.name || '').trim(),
+      section: String(s.section || '').trim(),
+      photo: String(s.photo || '').trim(),
+      quote: String(s.quote || '').trim(),
+      destination: String(s.destination || '').trim()
+    }));
+
+    renderSuperlatives(supData?.categories || []);
+  } catch (e) {
+    const grid = document.getElementById('superlativesGrid');
+    if (grid) grid.innerHTML = `<div class="ff-empty">Failed to load superlatives</div>`;
+  }
+}
+
+function getStudentByName(name) {
+  const key = String(name || '').trim().toLowerCase();
+  return superlativesStudentDirectory.find(s => s.name.trim().toLowerCase() === key) || null;
+}
+
+function studentInitials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return 'S';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function renderSuperlatives(categories) {
+  const grid = document.getElementById('superlativesGrid');
+  if (!grid) return;
+
+  if (!categories.length) {
+    grid.innerHTML = `<div class="ff-empty">No superlative categories yet.</div>`;
+    return;
+  }
+
+  const emojiMap = ['🏆','🌟','😂','🧠','🎤','📚','⚡','💫','🎨','🎯'];
+
+  grid.innerHTML = categories.map((cat, i) => {
+    const maxVotes = Math.max(1, ...(cat.nominees || []).map(n => Number(n.votes) || 0));
+
+    const nomineesHtml = (cat.nominees || []).map(n => {
+      const votes = Number(n.votes) || 0;
+      const width = Math.max(6, Math.round((votes / maxVotes) * 100));
+      const student = getStudentByName(n.name);
+      const avatar = student?.photo
+        ? `<div class="nominee-avatar"><img src="${escapeAttr(student.photo.startsWith('/uploads/') ? mediaUrl(student.photo) : student.photo)}" alt="${escapeAttr(n.name)}"></div>`
+        : `<div class="nominee-avatar fallback">${escapeHtml(studentInitials(n.name))}</div>`;
+
+      return `
+        <div class="nominee-row" onclick="voteSuperlative(${cat.id}, '${escapeAttr(n.name)}')">
+          <div style="flex:1; min-width:0;">
+            <div class="nominee-main">
+              ${avatar}
+              <div style="min-width:0;">
+                <div class="nominee-name">${escapeHtml(n.name)}</div>
+                ${student?.section ? `<div style="font-size:.75rem; color:var(--text-muted);">${escapeHtml(student.section)}</div>` : ''}
+              </div>
+            </div>
+            <div class="nominee-bar" style="width:${width}%"></div>
+          </div>
+          <div class="nominee-votes">${votes}</div>
+        </div>
+      `;
+    }).join('');
+
+    const studentOptions = superlativesStudentDirectory
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(s => `<option value="${escapeAttr(s.name)}">${escapeHtml(s.name)}${s.section ? ` (${escapeHtml(s.section)})` : ''}</option>`)
+      .join('');
+
+    return `
+      <div class="superlative-card">
+        <span class="superlative-emoji">${emojiMap[i % emojiMap.length]}</span>
+        <div class="superlative-title">${escapeHtml(cat.title)}</div>
+        <div class="superlative-nominee-list">
+          ${nomineesHtml || `<div class="superlative-empty">No nominees yet.</div>`}
+        </div>
+        <div class="superlative-add-form">
+          <select class="superlative-select" id="superSelect_${cat.id}">
+            <option value="">Select a class member...</option>
+            ${studentOptions}
+          </select>
+          <button class="ff-submit-btn" onclick="addSuperlativeNomineeFromSelect(${cat.id})"><span>+ Add Nominee</span></button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function voteSuperlative(categoryId, nomineeName) {
+  try {
+    const res = await fetch(apiUrl('/api/fun/superlatives/vote'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ categoryId, nomineeName })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification?.('success', 'Vote counted', `You voted for ${nomineeName}`);
+      loadSuperlatives();
+    } else {
+      showNotification?.('error', 'Vote failed', data.error || 'Could not vote');
+    }
+  } catch (e) {
+    showNotification?.('error', 'Vote failed', e.message);
+  }
+}
+
+async function addSuperlativeNomineeFromSelect(categoryId) {
+  const select = document.getElementById(`superSelect_${categoryId}`);
+  const name = select?.value?.trim();
+  if (!name) {
+    return showNotification?.('error', 'No student selected', 'Please select a class member first.');
+  }
+
+  try {
+    const res = await fetch(apiUrl('/api/fun/superlatives/nominee'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ categoryId, name })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification?.('success', 'Nominee added', `${name} added to category.`);
+      loadSuperlatives();
+    } else {
+      showNotification?.('error', 'Failed', data.error || 'Could not add nominee');
+    }
+  } catch (e) {
+    showNotification?.('error', 'Failed', e.message);
+  }
+}
+
+window.loadSuperlatives = loadSuperlatives;
+window.voteSuperlative = voteSuperlative;
+window.addSuperlativeNomineeFromSelect = addSuperlativeNomineeFromSelect;
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadSuperlatives();
+});
+</script>
