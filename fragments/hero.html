@@ -1,0 +1,408 @@
+<!-- FRAGMENT: hero -->
+<style data-fragment-style="hero">
+.hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      background: var(--gradient-navy);
+    }.hero-bg {
+      position: absolute; top:0; left:0; right:0; bottom:0;
+      background:
+        radial-gradient(ellipse at 20% 80%, rgba(212, 175, 55, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(123, 45, 142, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(15, 52, 96, 0.3) 0%, transparent 70%);
+    }.hero-content {
+      text-align: center;
+      z-index: 10;
+      padding: 0 20px;
+      max-width: 900px;
+    }.hero-badge {
+      display: inline-block;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      padding: 10px 25px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      color: var(--primary-gold);
+      margin-bottom: 30px;
+      backdrop-filter: blur(10px);
+      animation: fadeInUp 0.8s ease;
+    }.hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.8s ease 0.2s both;
+    }.hero-title .highlight {
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }.hero-subtitle {
+      font-family: var(--font-script);
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      color: var(--primary-gold-light);
+      margin-bottom: 20px;
+      animation: fadeInUp 0.8s ease 0.4s both;
+    }.hero-description {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 40px;
+      animation: fadeInUp 0.8s ease 0.6s both;
+    }.hero-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeInUp 0.8s ease 0.8s both;
+    }
+
+.intro-video-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }.intro-video-overlay.hidden { display: none !important; }.intro-video { width: 100%; height: 100%; object-fit: cover; }.skip-intro-btn { position: absolute; top: 20px; right: 20px; padding: 12px 24px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 25px; cursor: pointer; font-family: var(--font-body); font-size: 0.95rem; backdrop-filter: blur(10px); transition: var(--transition-smooth); z-index: 10; }.skip-intro-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+
+@media (max-width: 480px) {
+.hero-buttons { flex-direction: column; width: 100%; padding: 0 20px; }
+}
+</style>
+<div class="intro-video-overlay" id="introVideoOverlay">
+<video autoplay="" class="intro-video" id="introVideo" playsinline=""></video>
+<div id="unmuteOverlay" onclick="forceUnmute()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 15; display: none; align-items: center; justify-content: center; cursor: pointer; background: rgba(0,0,0,0.3);">
+<div style="padding: 15px 30px; font-size: 1.5rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none;">🔊 Tap Anywhere for Sound</div>
+</div>
+<button class="skip-intro-btn" id="skipIntroBtn" style="z-index: 20;">Skip →</button>
+<button class="toggle-intro-controls" id="toggleIntroControls" style="display:none;">⚙</button>
+</div>
+<div id="particles-container"></div>
+<section class="hero" id="home">
+<div class="hero-bg"></div>
+<div class="hero-content">
+<div class="hero-badge" id="uiHeroBadge">Class of 2025</div>
+<h1 class="hero-title" id="uiHeroTitle">Farewell <span class="highlight">2025</span></h1>
+<p class="hero-subtitle" id="uiHeroSubtitle">Where Memories Become Eternal</p>
+<p class="hero-description" id="uiHeroDescription">
+        As we close this chapter and begin new journeys, let's celebrate the friendships, lessons, and memories that shaped us.
+      </p>
+<div class="hero-buttons">
+<a class="btn btn-primary" href="#upload">Share Your Memory</a>
+<a class="btn btn-secondary" href="#memories">View Memory Wall</a>
+</div>
+</div>
+</section>
+<script data-fragment-script="hero">
+// INTRO VIDEO
+// ═══════════════════════════════════════════════════════════════════════════════
+window.forceUnmute = function() {
+  const video = document.getElementById('introVideo');
+  const overlay = document.getElementById('unmuteOverlay');
+
+  if (video) {
+    video.muted = false;
+    video.currentTime = 0;
+    video.play().catch((e) => console.log('Play failed:', e));
+  }
+
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+};
+
+async function initIntroVideo() {
+  const overlay = document.getElementById('introVideoOverlay');
+  const video = document.getElementById('introVideo');
+  const skipBtn = document.getElementById('skipIntroBtn');
+  const unmuteOverlay = document.getElementById('unmuteOverlay');
+
+  try {
+    localStorage.removeItem('introSeen');
+    sessionStorage.removeItem('introSeen');
+  } catch (e) {}
+
+  if (!overlay || !video) return;
+
+  const introPath = state.settings?.introVideoPath;
+  if (!introPath) {
+    overlay.style.display = 'none';
+    overlay.classList.add('hidden');
+    return;
+  }
+
+  overlay.style.display = 'flex';
+  overlay.classList.remove('hidden');
+  overlay.style.opacity = '1';
+
+  if (unmuteOverlay) {
+    unmuteOverlay.style.display = 'none';
+  }
+
+  const src = mediaUrl(('/uploads/' + introPath).replace(/\/+/g, '/'));
+
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+  video.src = src;
+  video.currentTime = 0;
+  video.load();
+
+  video.onended = () => skipIntro();
+  video.onerror = () => skipIntro();
+
+  if (skipBtn) {
+    skipBtn.onclick = (e) => {
+      e.stopPropagation();
+      skipIntro();
+    };
+    skipBtn.style.display = state.settings?.introHideSkip ? 'none' : '';
+  }
+
+  try {
+    video.muted = false;
+    await video.play();
+    if (unmuteOverlay) unmuteOverlay.style.display = 'none';
+  } catch (err) {
+    try {
+      video.muted = true;
+      await video.play();
+      if (unmuteOverlay) unmuteOverlay.style.display = 'flex';
+    } catch (err2) {
+      if (unmuteOverlay) unmuteOverlay.style.display = 'flex';
+    }
+  }
+}
+
+function skipIntro() {
+  const overlay = document.getElementById('introVideoOverlay');
+  const video = document.getElementById('introVideo');
+
+  if (overlay) {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.5s ease';
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      overlay.classList.add('hidden');
+    }, 500);
+  }
+
+  if (video) {
+    video.pause();
+    video.currentTime = 0;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MISSING ADMIN FUNCTIONS (Video & Hashes)
+// ═══════════════════════════════════════════════════════════════════════════════
+async function uploadIntroVideoFile(file) {
+    if (!file) return;
+    const status = document.getElementById('currentIntroVideoStatus');
+    if (status) status.textContent = 'Uploading...';
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+        const res = await fetch(apiUrl('/api/admin/settings/intro-video'), {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + state.adminToken },
+            body: fd
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('success', 'Uploaded', 'Intro video saved.');
+            if (status) status.textContent = 'Video uploaded successfully';
+            state.settings.introVideoPath = data.path;
+        } else {
+            showNotification('error', 'Failed', data.error || 'Upload failed');
+            if (status) status.textContent = 'Upload failed';
+        }
+    } catch (e) {
+        showNotification('error', 'Error', e.message);
+        if (status) status.textContent = 'Upload error';
+    }
+}
+
+async function removeIntroVideo() {
+    if (!confirm('Remove intro video?')) return;
+    try {
+        const res = await fetch(apiUrl('/api/admin/settings/intro-video'), {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + state.adminToken }
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('success', 'Removed', 'Intro video deleted.');
+            const status = document.getElementById('currentIntroVideoStatus');
+            if (status) status.textContent = 'No video';
+            state.settings.introVideoPath = null;
+        } else showNotification('error', 'Failed', data.error);
+    } catch (e) { showNotification('error', 'Error', e.message); }
+}
+
+async function resetUploadHashes() {
+    if (!confirm('Are you sure you want to reset all duplicate detection hashes?')) return;
+    try {
+        const res = await fetch(apiUrl('/api/admin/reset-hashes'), {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + state.adminToken }
+        });
+        const data = await res.json();
+        if (data.success) showNotification('success', 'Hashes Reset', 'Duplicate detection cleared.');
+        else showNotification('error', 'Failed', data.error);
+    } catch (e) { showNotification('error', 'Error', e.message); }
+}
+// ═══════════════════════════════════════════════════════════════════════════════
+</script>
+<script data-fragment-script="hero">
+/* === SNIPER_PATCH_V6_START === */
+(function(){
+  if (window.__SNIPER_PATCH_V6__) return;
+  window.__SNIPER_PATCH_V6__ = true;
+
+  const v6 = {
+    popupTriggered: false,
+    popupBound: false
+  };
+
+  function bootV6(){
+    patchGhostPopupLogic();
+    patchIntroReturnToTop();
+    refineGlobeLayout();
+  }
+
+  function introOverlayVisibleV6(){
+    const overlay = document.getElementById('introVideoOverlay');
+    if (!overlay) return false;
+    const cs = getComputedStyle(overlay);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+    if (overlay.classList.contains('hidden')) return false;
+    return true;
+  }
+
+  function refineGlobeLayout(){
+    const wrap = document.getElementById('distanceMapWrap');
+    const ui = document.getElementById('distanceGlobeUi');
+    const canvas = document.getElementById('distanceGlobeCanvas');
+    const actions = document.getElementById('distanceBottomActions');
+    if (!wrap || !ui || !canvas || !actions) return;
+
+    if (!ui.dataset.v6Fixed){
+      ui.dataset.v6Fixed = '1';
+      if (ui.parentElement === wrap) {
+        wrap.parentNode.insertBefore(ui, wrap);
+      }
+    }
+    if (!actions.dataset.v6Fixed){
+      actions.dataset.v6Fixed = '1';
+      if (actions.parentElement === wrap) {
+        wrap.insertAdjacentElement('afterend', actions);
+      }
+    }
+  }
+
+  function patchGhostPopupLogic(){
+    if (v6.popupBound) return;
+    v6.popupBound = true;
+
+    const ghostPopup = document.getElementById('ghostCursorPopup');
+    const paperPopup = document.getElementById('paperTutorial');
+    if (ghostPopup) ghostPopup.classList.remove('active');
+    if (paperPopup) paperPopup.classList.remove('active');
+
+    const originalInstall = window.installScrollTriggeredPopups;
+    if (typeof originalInstall === 'function' && !originalInstall.__v6Wrapped){
+      window.installScrollTriggeredPopups = function(){
+        if (window.__sniperV6PopupInstalled) return;
+        window.__sniperV6PopupInstalled = true;
+
+        const tryShow = () => {
+          if (v6.popupTriggered) return;
+          if (introOverlayVisibleV6()) return;
+
+          const countdown = document.getElementById('countdown');
+          if (!countdown) return;
+
+          const rect = countdown.getBoundingClientRect();
+          const crossed = rect.bottom < window.innerHeight * 0.35;
+          if (!crossed) return;
+
+          v6.popupTriggered = true;
+          setTimeout(() => {
+            if (!introOverlayVisibleV6()) document.getElementById('ghostCursorPopup')?.classList.add('active');
+          }, 500);
+          setTimeout(() => {
+            if (!introOverlayVisibleV6()) document.getElementById('paperTutorial')?.classList.add('active');
+          }, 1700);
+
+          window.removeEventListener('scroll', tryShow);
+        };
+
+        window.addEventListener('scroll', tryShow, { passive: true });
+      };
+      window.installScrollTriggeredPopups.__v6Wrapped = true;
+    }
+
+    const oldSetupGhost = window.setupGhostCursors;
+    if (typeof oldSetupGhost === 'function' && !oldSetupGhost.__v6Wrapped){
+      window.setupGhostCursors = function(){
+        const out = oldSetupGhost.apply(this, arguments);
+        document.getElementById('ghostCursorPopup')?.classList.remove('active');
+        document.getElementById('paperTutorial')?.classList.remove('active');
+        return out;
+      };
+      window.setupGhostCursors.__v6Wrapped = true;
+    }
+
+    const oldInitPaper = window.initPaperAirplanes;
+    if (typeof oldInitPaper === 'function' && !oldInitPaper.__v6Wrapped){
+      window.initPaperAirplanes = function(){
+        const out = oldInitPaper.apply(this, arguments);
+        document.getElementById('paperTutorial')?.classList.remove('active');
+        return out;
+      };
+      window.initPaperAirplanes.__v6Wrapped = true;
+    }
+  }
+
+  function patchIntroReturnToTop(){
+    const oldSkip = window.skipIntro;
+    if (typeof oldSkip === 'function' && !oldSkip.__v6Wrapped){
+      window.skipIntro = function(){
+        const out = oldSkip.apply(this, arguments);
+        setTimeout(() => {
+          try{
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            location.hash = '#home';
+          }catch(_){}
+        }, 620);
+        setTimeout(() => {
+          if (typeof window.installScrollTriggeredPopups === 'function') {
+            try { window.installScrollTriggeredPopups(); } catch(_){}
+          }
+        }, 900);
+        return out;
+      };
+      window.skipIntro.__v6Wrapped = true;
+    }
+
+    const introVideo = document.getElementById('introVideo');
+    if (introVideo && !introVideo.dataset.v6Bound){
+      introVideo.dataset.v6Bound = '1';
+      introVideo.addEventListener('ended', () => {
+        setTimeout(() => {
+          try{
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            location.hash = '#home';
+          }catch(_){}
+        }, 650);
+      });
+    }
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bootV6);
+  } else {
+    bootV6();
+  }
+})();
+</script>

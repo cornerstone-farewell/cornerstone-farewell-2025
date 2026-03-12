@@ -1,0 +1,102 @@
+<!-- FRAGMENT: upload -->
+<style data-fragment-style="upload">
+#upload { background: var(--navy-medium); }.upload-container { max-width: 800px; margin: 0 auto; }.upload-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 30px; padding: 50px; backdrop-filter: blur(20px); }.dropzone {
+      border: 3px dashed var(--glass-border);
+      border-radius: 20px;
+      padding: 60px 40px;
+      text-align: center;
+      transition: var(--transition-smooth);
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.02);
+    }.dropzone:hover, .dropzone.drag-over { border-color: var(--primary-gold); background: rgba(212, 175, 55, 0.05); }.dropzone-icon { font-size: 4rem; margin-bottom: 20px; }.dropzone-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 10px; }.dropzone-subtitle { color: var(--text-muted); margin-bottom: 20px; }.dropzone-formats { font-size: 0.85rem; color: var(--text-muted); }.dropzone-formats span { background: rgba(212, 175, 55, 0.2); padding: 4px 10px; border-radius: 10px; margin: 0 3px; color: var(--primary-gold); }#file-input { display: none; }.file-preview-container { margin-top: 30px; display: none; }.file-preview-container.has-files { display: block; }.file-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }.file-preview-item { position: relative; aspect-ratio: 1; border-radius: 15px; overflow: hidden; background: var(--navy-dark); }.file-preview-item img, .file-preview-item video { width: 100%; height: 100%; object-fit: cover; }.file-preview-item .video-indicator {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px; height: 40px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }.file-preview-item .remove-file {
+      position: absolute;
+      top: 5px; right: 5px;
+      width: 25px; height: 25px;
+      background: var(--error-red);
+      border: none; border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: var(--transition-smooth);
+    }.file-preview-item:hover .remove-file { opacity: 1; }.upload-form { margin-top: 30px; }.upload-progress { display: none; margin-top: 20px; }.upload-progress.active { display: block; }.upload-success { display: none; text-align: center; padding: 40px; }.upload-success.active { display: block; animation: scaleIn 0.5s ease; }@media (max-width: 768px) {
+.upload-card { padding: 30px 20px; }
+.dropzone { padding: 40px 20px; }
+}
+</style>
+<section id="upload">
+<div class="container">
+<div class="section-header">
+<span class="section-badge" id="uiUploadBadge">Share Your Story</span>
+<h2 class="section-title" id="uiUploadTitle">Upload Your <span class="highlight">Memories</span></h2>
+<p class="section-description" id="uiUploadDesc">Share the moments that made your journey special</p>
+</div>
+<div class="upload-container">
+<div class="upload-card">
+<div class="callout" id="uploadStatusCallout" style="display:none;"></div>
+<div id="uploadForm">
+<div class="dropzone" id="dropzone">
+<div class="dropzone-icon">📤</div>
+<h3 class="dropzone-title">Drag &amp; Drop Your Files</h3>
+<p class="dropzone-subtitle">or click to browse</p>
+<p class="dropzone-formats">Supported: <span>JPG</span> <span>PNG</span> <span>GIF</span> <span>MP4</span> <span>MOV</span></p>
+<p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);">Max 200MB total • 100MB per file</p>
+<input accept="image/*,video/*" id="file-input" multiple="" type="file"/>
+</div>
+<div class="file-preview-container" id="filePreviewContainer">
+<h4 style="margin-bottom: 15px;">Selected Files:</h4>
+<div class="file-preview-grid" id="filePreviewGrid"></div>
+<p class="file-info" id="fileInfo"></p>
+</div>
+<div class="upload-form" id="uploadFormFields" style="display: none;">
+<div class="form-group">
+<label>Your Name <span class="required">*</span></label>
+<input class="form-input" id="studentName" maxlength="100" placeholder="Enter your full name" type="text"/>
+</div>
+<div class="form-group">
+<label>Caption / Memory Description <span class="required">*</span></label>
+<textarea class="form-textarea" id="caption" maxlength="500" placeholder="Share the story behind this memory..."></textarea>
+<p class="char-counter"><span id="charCount">0</span>/500 characters</p>
+</div>
+<div class="form-group">
+<label>Memory Category <span class="required">*</span></label>
+<select class="form-select" id="memoryType">
+<option value="">Select a category</option>
+<option value="Friends">Friends</option>
+<option value="Teachers">Teachers</option>
+<option value="Events">Events</option>
+<option value="Fun Moments">Fun Moments</option>
+<option value="Sports">Sports</option>
+<option value="Academics">Academics</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<button class="btn btn-primary" id="submitUpload" style="width: 100%;" type="button">Upload Memory</button>
+</div>
+<div class="upload-progress" id="uploadProgress">
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<p class="progress-text" id="progressText">Uploading... 0%</p>
+</div>
+</div>
+<div class="upload-success" id="uploadSuccess">
+<div class="success-icon">✅</div>
+<h3 class="success-title">Memory Uploaded!</h3>
+<p class="success-message" id="uploadSuccessMsg">
+              Your memory has been submitted and is pending approval. It will appear once approved by the admin.
+            </p>
+<button class="btn btn-primary" onclick="resetUploadForm()">Upload Another</button>
+</div>
+</div>
+</div>
+</div>
+</section>

@@ -1,0 +1,25 @@
+<!-- FRAGMENT: dedications -->
+<style data-fragment-style="dedications">
+#songDedicationsSection{background:var(--navy-dark)}.dedication-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start}.dedication-vinyl{width:48px;height:48px;flex-shrink:0;border-radius:50%;background:radial-gradient(circle,#222 30%,#111 30%,#111 35%,#333 35%,#333 40%,#111 40%);border:3px solid var(--primary-gold);display:flex;align-items:center;justify-content:center;font-size:1.2rem;animation:vinylSpin 4s linear infinite;animation-play-state:paused}.dedication-card:hover .dedication-vinyl{animation-play-state:running}.dedication-content{flex:1;min-width:0}.dedication-song{font-weight:700;font-size:1rem;color:var(--primary-gold-light)}.dedication-msg{font-size:.88rem;color:rgba(255,255,255,.75);margin-top:3px}.dedication-meta{font-size:.78rem;color:rgba(255,255,255,.45);margin-top:6px}
+</style>
+<section class="ff-section-hidden" id="songDedicationsSection">
+<div class="container">
+<div class="section-header">
+<span class="section-badge">Musical Moments</span>
+<h2 class="section-title">Song <span class="highlight">Dedications</span></h2>
+<p class="section-description">Dedicate a song to a friend, a memory, or the whole class.</p>
+</div>
+<div class="ff-form-box">
+<div class="ff-grid-2">
+<div><label class="ff-label">From</label><input class="ff-input" id="dedFrom" maxlength="60" placeholder="Your name"/></div>
+<div><label class="ff-label">Dedicated To</label><input class="ff-input" id="dedTo" maxlength="80" placeholder="A person or 'The whole class'"/></div>
+</div>
+<label class="ff-label">Song Name &amp; Artist</label>
+<input class="ff-input" id="dedSong" maxlength="120" placeholder="e.g. Good Riddance – Green Day" style="margin-bottom:14px;"/>
+<label class="ff-label">Why this song? (optional)</label>
+<textarea class="ff-input" id="dedMsg" maxlength="240" placeholder="What does this song mean to you?" style="min-height:72px;"></textarea>
+<button class="ff-submit-btn" onclick="submitDedication()" type="button">Dedicate This Song 🎵</button>
+</div>
+<div class="dedications-list" id="dedicationsList"><div class="ff-empty">No dedications yet. Be first!</div></div>
+</div>
+</section>

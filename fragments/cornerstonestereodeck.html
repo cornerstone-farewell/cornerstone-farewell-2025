@@ -1,0 +1,2216 @@
+<!-- FRAGMENT: stereodeck -->
+<style data-fragment-style="stereodeck">
+#livePill,
+ #ghostCursorToggle,
+ #sendNoteBtn,
+ #ghostCursorPopup,
+ #ghostOffModal,
+ #paperTutorial,
+ #paperAirplaneLayer,
+ #wsStatusBadge,
+ .ghost-cursor{ display:none !important; }
+
+#livePill,
+ #ghostCursorToggle,
+ #ghostCursorPopup,
+ #ghostOffModal,
+ #paperTutorial,
+ #wsStatusBadge,
+ .ghost-cursor{ display:none !important; }
+
+#boomboxDock{
+  position:fixed; left:18px; right:18px; bottom:14px; z-index:2500;
+  display:flex; gap:16px; align-items:flex-end; justify-content:center; pointer-events:none;
+}#boomboxDock *{pointer-events:auto}.boombox-top{display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px;}.boombox-brand{font-weight:700; color:var(--primary-gold);}.boombox-door{
+  height:110px; border-radius:16px; border:2px solid rgba(255,255,255,.12); background:#111;
+  display:flex; align-items:center; justify-content:center; color:#bbb; position:relative; overflow:hidden;
+}.boombox-door.has-tape{background:linear-gradient(180deg,#1b1b1f,#0a0a0c);}.boombox-speakers{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;}.boombox-speaker{
+  aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,#0d0d0f 0 20%,#2b2b33 21% 45%,#0c0c0f 46% 60%,#444 61% 100%);
+  border:2px solid rgba(255,255,255,.08);
+}.cassette{
+  min-width:140px; padding:12px 16px; border-radius:14px; cursor:grab;
+  background:linear-gradient(180deg,#f0e3b8,#cfb15b); color:#111; font-weight:700; border:1px solid rgba(0,0,0,.15);
+  box-shadow:0 10px 24px rgba(0,0,0,.28);
+}.cassette.dragging{opacity:.5}#ghostCursorToggle{
+  position:fixed; right:18px; bottom:18px; z-index:2600;
+}.ghost-cursor{
+  position:fixed; transform:translate(-2px,-2px); pointer-events:none; z-index:2601;
+}.ghost-cursor .tip{
+  width:14px; height:14px; background:#fff; clip-path:polygon(0 0,100% 50%,50% 55%,68% 100%,48% 100%,35% 64%,0 100%);
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}.ghost-cursor .label{
+  margin-left:8px; margin-top:-8px; display:inline-block; padding:4px 8px; border-radius:999px; font-size:11px; color:#fff;
+  background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.16);
+}#paperAirplaneLayer{
+  position:fixed; inset:0; pointer-events:none; z-index:2602; overflow:hidden;
+}
+
+#boomboxDock{
+  position:static !important;
+  left:auto !important;
+  right:auto !important;
+  bottom:auto !important;
+  width:100%;
+  max-width:var(--container-width);
+  margin:24px auto 10px;
+  padding:0 20px;
+  justify-content:center;
+  z-index:10 !important;
+  pointer-events:auto !important;
+}#boomboxDock.sniper-inline-bottom{
+  display:flex;
+}.boombox-top{
+  margin-bottom:8px !important;
+}.boombox-brand{
+  font-size:.92rem !important;
+}.boombox-door{
+  height:72px !important;
+  border-radius:12px !important;
+  font-size:.86rem !important;
+}.boombox-speakers{
+  gap:8px !important;
+  margin-top:8px !important;
+}.cassette{
+  min-width:0 !important;
+  width:100%;
+  padding:10px 8px !important;
+  font-size:.78rem !important;
+  text-align:center;
+  border-radius:12px !important;
+  cursor:pointer !important;
+  user-select:none;
+}#ghostCursorToggle{
+  right:12px !important;
+  bottom:12px !important;
+  padding:9px 12px !important;
+  font-size:.78rem !important;
+  border-radius:999px !important;
+  z-index:2400 !important;
+}.ghost-cursor .tip{
+  width:10px !important;
+  height:10px !important;
+}.ghost-cursor .label{
+  margin-left:6px !important;
+  padding:3px 6px !important;
+  font-size:9px !important;
+}@media (max-width: 720px) {
+#boomboxDock{
+    flex-direction:column;
+    align-items:center;
+  }
+}
+</style>
+<div id="sniperGlobalFx">
+<div class="sniper-disposable-flash" id="sniperDisposableFlash"></div>
+<div id="emojiPhysicsLayer"></div>
+<div id="paperAirplaneLayer"></div>
+<div id="lockerTransition">
+<div class="locker-door locker-left"></div>
+<div class="locker-door locker-right"></div>
+</div>
+<div class="sniper-last-bell" id="sniperLastBell">
+<h1>Last Bell.</h1>
+<p>One final ring. One final goodbye.</p>
+<div class="sniper-final-video">
+<video id="sniperFinalGoodbyeVideo" playsinline=""></video>
+</div>
+</div>
+</div>
+<div id="leanBackOverlay">
+<div id="leanBackStage"></div>
+<div id="leanBackControls">
+<div class="sniper-pill" id="leanBackStatus">Lean Back Mode</div>
+<button class="btn btn-danger" onclick="stopLeanBackMode()" type="button">Exit</button>
+</div>
+</div>
+<div id="boomboxDock">
+<div id="cassetteRack"></div>
+<div id="boomboxUnit">
+<div class="boombox-top">
+<div class="boombox-brand">Cornerstone StereoDeck</div>
+<button class="btn btn-secondary" id="ejectTapeBtn" type="button">Eject</button>
+</div>
+<div class="boombox-door" id="boomboxDoor">Drag a tape here</div>
+<div class="boombox-speakers">
+<div class="boombox-speaker"></div>
+<div class="boombox-speaker"></div>
+</div>
+</div>
+</div>
+<button class="btn btn-secondary" id="ghostCursorToggle" type="button">Ghost Cursors: ON</button>
+<button class="btn btn-primary" id="sendNoteBtn" type="button">Send a Note</button>
+<div id="ghostCursorPopup">
+<div class="sniper-modal">
+<h3>Live Ghost Cursors are ON</h3>
+<p>You can see other students moving around the site in real time. You can turn this off now, or jump straight to the toggle button.</p>
+<div class="sniper-actions">
+<button class="btn btn-danger" onclick="sniperSetGhostCursors(false)" type="button">Turn Off</button>
+<button class="btn btn-secondary" onclick="document.getElementById('ghostCursorToggle').scrollIntoView({behavior:'smooth',block:'center'}); closeSniperModal('ghostCursorPopup')" type="button">Show Me the Toggle</button>
+<button class="btn btn-primary" onclick="closeSniperModal('ghostCursorPopup')" type="button">Keep It On</button>
+</div>
+</div>
+</div>
+<div id="ghostOffModal">
+<div class="sniper-modal">
+<h3>Ghost Cursors Turned Off</h3>
+<p>You can switch them back on any time from the floating Ghost Cursors button.</p>
+<div class="sniper-actions">
+<button class="btn btn-primary" onclick="closeSniperModal('ghostOffModal')" type="button">Okay</button>
+<button class="btn btn-secondary" onclick="document.getElementById('ghostCursorToggle').scrollIntoView({behavior:'smooth',block:'center'}); closeSniperModal('ghostOffModal')" type="button">Take Me There</button>
+</div>
+</div>
+</div>
+<div id="paperTutorial">
+<div class="sniper-modal">
+<h3>Paper Airplane Notes</h3>
+<p>Tap “Send a Note,” write a memory, and launch a paper airplane. Random notes from others can glide across your screen. Catch one to read it.</p>
+<div class="sniper-actions">
+<button class="btn btn-primary" onclick="closeSniperModal('paperTutorial')" type="button">Got It</button>
+</div>
+</div>
+</div>
+<script data-fragment-script="stereodeck">
+/* === SNIPER_PATCH_V2_START === */
+(function(){
+  if (window.__SNIPER_PATCH_V2__) return;
+  window.__SNIPER_PATCH_V2__ = true;
+
+  const sniperState = {
+    zeroHourTriggered: false,
+    leanBackTimer: null,
+    leanBackIndex: 0,
+    leanBackItems: [],
+    uiSoundEnabled: true,
+    ghostEnabled: true,
+    ghostClientId: 'gc_' + Math.random().toString(36).slice(2),
+    ghostPeers: new Map(),
+    paperLastFetchTs: 0,
+    boomboxCurrent: null,
+    boomboxAudio: null,
+    finalBellAudio: null,
+    mentorAudio: null,
+    ambientAudio: null,
+    movieAudio: null,
+    notePoller: null,
+    pointerLastSent: 0
+  };
+
+  const SOUND = {
+    kachunk: 'data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTAAAAAAAP//AAD//wAA////AAD//wAA',
+    click: 'data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTAAAAAA////AAAA//8AAP//AAD//wAA',
+    rip: 'data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTAAAAAA//////8AAAD//wAAAP//AAAA',
+    bang: 'data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTAAAAAAAP8A/wAA/wAAAP8AAP8AAAA=',
+    camera: 'data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTAAAAAAAP//AP8AAP8A/wD/AP8AAAA=',
+    bell: 'data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTAAAAAA//8AAP8AAP//AAD/AP8AAAA='
+  };
+
+  function safePlay(src, loop=false, volume=1){
+    try{
+      const a = new Audio(src);
+      a.loop = loop;
+      a.volume = volume;
+      a.play().catch(()=>{});
+      return a;
+    }catch(e){ return null; }
+  }
+
+  function closeSniperModal(id){
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  }
+  window.closeSniperModal = closeSniperModal;
+
+  function tapeClickSound(){
+    if (!sniperState.uiSoundEnabled) return;
+    safePlay(SOUND.kachunk, false, 0.4);
+  }
+
+  function disposableFlash(){
+    const flash = document.getElementById('sniperDisposableFlash');
+    if (!flash) return;
+    safePlay(SOUND.camera, false, 0.55);
+    flash.classList.remove('active');
+    void flash.offsetWidth;
+    flash.classList.add('active');
+  }
+
+  function patchButtonsForUISounds(){
+    document.addEventListener('click', (e)=>{
+      const target = e.target.closest('button, .btn, .filter-btn, .admin-btn, .react-btn, .comments-open-btn, a');
+      if (!target) return;
+      tapeClickSound();
+    }, true);
+  }
+
+  function patchHeroMovieButton(){
+    const heroButtons = document.querySelector('.hero-buttons');
+    if (!heroButtons || document.getElementById('watchAsMovieBtn')) return;
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-secondary';
+    btn.id = 'watchAsMovieBtn';
+    btn.textContent = 'Watch as Movie';
+    btn.addEventListener('click', startLeanBackMode);
+    heroButtons.appendChild(btn);
+  }
+
+  function getAllMemoryImages(){
+    const out = [];
+    (window.state?.memories || []).forEach(m=>{
+      if (m && m.file_type === 'image' && m.file_url) {
+        out.push({src: m.file_url, caption: m.caption || '', id: m.id});
+      }
+    });
+    return out;
+  }
+
+  function startLeanBackMode(){
+    sniperState.leanBackItems = getAllMemoryImages();
+    if (!sniperState.leanBackItems.length) {
+      if (window.showNotification) showNotification('info', 'No photos yet', 'Lean Back Mode needs approved image memories.');
+      return;
+    }
+    sniperState.leanBackIndex = 0;
+    document.body.classList.add('sniper-ui-hidden');
+    const overlay = document.getElementById('leanBackOverlay');
+    overlay.classList.add('active');
+    sniperState.movieAudio?.pause?.();
+    sniperState.movieAudio = safePlay(SOUND.click, true, 0.18);
+    showLeanBackSlide();
+  }
+  window.startLeanBackMode = startLeanBackMode;
+
+  function stopLeanBackMode(){
+    clearTimeout(sniperState.leanBackTimer);
+    document.body.classList.remove('sniper-ui-hidden');
+    document.getElementById('leanBackOverlay')?.classList.remove('active');
+    if (sniperState.movieAudio){ sniperState.movieAudio.pause(); sniperState.movieAudio = null; }
+  }
+  window.stopLeanBackMode = stopLeanBackMode;
+
+  function showLeanBackSlide(){
+    const stage = document.getElementById('leanBackStage');
+    const status = document.getElementById('leanBackStatus');
+    if (!stage || !sniperState.leanBackItems.length) return;
+    const item = sniperState.leanBackItems[sniperState.leanBackIndex % sniperState.leanBackItems.length];
+    stage.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = item.src;
+    img.style.opacity = '0';
+    img.style.transform = 'scale(1.05)';
+    stage.appendChild(img);
+    requestAnimationFrame(()=>{
+      img.style.transition = 'transform 7s ease, opacity .8s ease';
+      img.style.opacity = '1';
+      img.style.transform = 'scale(1.18) translate3d(2vw,-1vh,0)';
+    });
+    status.textContent = `Lean Back Mode • ${sniperState.leanBackIndex + 1} / ${sniperState.leanBackItems.length}`;
+    clearTimeout(sniperState.leanBackTimer);
+    sniperState.leanBackTimer = setTimeout(()=>{
+      sniperState.leanBackIndex = (sniperState.leanBackIndex + 1) % sniperState.leanBackItems.length;
+      showLeanBackSlide();
+    }, 6500);
+  }
+
+  function spawnEmojiBurst(btn, emoji){
+    const layer = document.getElementById('emojiPhysicsLayer');
+    if (!layer || !btn) return;
+    const rect = btn.getBoundingClientRect();
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const pieces = [];
+    for (let i = 0; i < 50; i++){
+      const el = document.createElement('div');
+      el.className = 'emoji-particle';
+      el.textContent = emoji;
+      layer.appendChild(el);
+      pieces.push({
+        el,
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+        vx: (Math.random() - 0.5) * 18,
+        vy: -Math.random() * 14 - 4,
+        g: 0.45,
+        b: 0.78,
+        life: 180 + Math.random() * 40,
+        r: 22 + Math.random() * 10
+      });
+    }
+    let raf = 0;
+    const tick = ()=>{
+      for (const p of pieces){
+        p.vy += p.g;
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0){ p.x = 0; p.vx *= -p.b; }
+        if (p.x > W - p.r){ p.x = W - p.r; p.vx *= -p.b; }
+        if (p.y < 0){ p.y = 0; p.vy *= -p.b; }
+        if (p.y > H - p.r){ p.y = H - p.r; p.vy *= -0.72; p.vx *= 0.98; }
+        p.el.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${p.life}deg)`;
+        p.life -= 1;
+      }
+      for (let i = pieces.length - 1; i >= 0; i--){
+        if (pieces[i].life <= 0){
+          pieces[i].el.remove();
+          pieces.splice(i, 1);
+        }
+      }
+      if (pieces.length) raf = requestAnimationFrame(tick);
+      else cancelAnimationFrame(raf);
+    };
+    tick();
+  }
+
+  function reactionToEmoji(type){
+    return ({like:'👍',love:'❤️',laugh:'😂',wow:'😮',sad:'😢'})[type] || '✨';
+  }
+
+  function patchReactionCannon(){
+    const originalReact = window.react;
+    if (typeof originalReact !== 'function' || originalReact.__sniperWrapped) return;
+    window.react = async function(memoryId, type){
+      const btn = [...document.querySelectorAll('.react-btn')].find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes(`react(${memoryId}, '${type}')`));
+      spawnEmojiBurst(btn || document.body, reactionToEmoji(type));
+      return originalReact.apply(this, arguments);
+    };
+    window.react.__sniperWrapped = true;
+  }
+
+  function patchCountdownZeroHour(){
+    const originalUpdate = window.updateCountdown;
+    if (typeof originalUpdate !== 'function' || originalUpdate.__sniperWrapped) return;
+    window.updateCountdown = function(){
+      originalUpdate.apply(this, arguments);
+      try{
+        const target = window.parseISTLocalToDate?.(window.state?.settings?.farewellIST);
+        if (!target) return;
+        if ((target - new Date()) <= 0 && !sniperState.zeroHourTriggered){
+          sniperState.zeroHourTriggered = true;
+          triggerLastBell();
+        }
+      }catch(e){}
+    };
+    window.updateCountdown.__sniperWrapped = true;
+  }
+
+  function triggerLastBell(){
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    safePlay(SOUND.bell, false, 1.0);
+    if (typeof window.triggerConfetti === 'function') {
+      for (let i = 0; i < 8; i++) setTimeout(() => triggerConfetti(), i * 180);
+    }
+    const wrap = document.getElementById('sniperLastBell');
+    const video = document.getElementById('sniperFinalGoodbyeVideo');
+    if (window.state?.settings?.finalGoodbyeVideoPath) {
+      video.src = window.mediaUrl ? mediaUrl('/uploads/' + window.state.settings.finalGoodbyeVideoPath) : ('/uploads/' + window.state.settings.finalGoodbyeVideoPath);
+      video.autoplay = true;
+      video.controls = true;
+      video.play().catch(()=>{});
+    }
+    wrap.classList.add('active');
+  }
+
+  function patchIntroAndCompilationFlash(){
+    const originalSkipIntro = window.skipIntro;
+    if (typeof originalSkipIntro === 'function' && !originalSkipIntro.__sniperWrapped){
+      window.skipIntro = function(){
+        originalSkipIntro.apply(this, arguments);
+        setTimeout(disposableFlash, 80);
+      };
+      window.skipIntro.__sniperWrapped = true;
+    }
+    const originalCloseCompilationPlayer = window.closeCompilationPlayer;
+    if (typeof originalCloseCompilationPlayer === 'function' && !originalCloseCompilationPlayer.__sniperWrapped){
+      window.closeCompilationPlayer = function(){
+        originalCloseCompilationPlayer.apply(this, arguments);
+        setTimeout(disposableFlash, 80);
+      };
+      window.closeCompilationPlayer.__sniperWrapped = true;
+    }
+  }
+
+  function patchTeacherAudio(){
+    const originalRenderTeachers = window.renderTeachers;
+    if (typeof originalRenderTeachers !== 'function' || originalRenderTeachers.__sniperWrapped) return;
+    window.renderTeachers = function(){
+      originalRenderTeachers.apply(this, arguments);
+      const grid = document.getElementById('teachersGrid');
+      const teachers = window.state?.settings?.teachers || [];
+      [...grid.querySelectorAll('.teacher-card')].forEach((card, i)=>{
+        const t = teachers[i] || {};
+        if (t.audioUrl || t.audioPath) {
+          if (!card.querySelector('.teacher-audio-badge')) {
+            const badge = document.createElement('div');
+            badge.className = 'teacher-audio-badge';
+            badge.textContent = 'Tap to hear goodbye';
+            card.appendChild(badge);
+          }
+          card.style.cursor = 'pointer';
+          card.addEventListener('click', ()=>{
+            const src = t.audioUrl || (window.mediaUrl ? mediaUrl('/uploads/' + t.audioPath) : ('/uploads/' + t.audioPath));
+            if (sniperState.mentorAudio) sniperState.mentorAudio.pause();
+            sniperState.mentorAudio = safePlay(src, false, 1.0);
+          }, { once:false });
+        }
+      });
+    };
+    window.renderTeachers.__sniperWrapped = true;
+  }
+
+  function buildCassetteRack(){
+    const rack = document.getElementById('cassetteRack');
+    if (!rack || rack.dataset.ready) return;
+    rack.dataset.ready = '1';
+    const tapes = [
+      {name:'Graduation Vibes', src:SOUND.click},
+      {name:'Sad Boi Hours', src:SOUND.rip},
+      {name:'Hype', src:SOUND.bang}
+    ];
+    tapes.forEach(t=>{
+      const el = document.createElement('div');
+      el.className = 'cassette';
+      el.textContent = t.name;
+      el.draggable = true;
+      el.dataset.src = t.src;
+      el.dataset.name = t.name;
+      el.addEventListener('dragstart', ()=> el.classList.add('dragging'));
+      el.addEventListener('dragend', ()=> el.classList.remove('dragging'));
+      rack.appendChild(el);
+    });
+    const door = document.getElementById('boomboxDoor');
+    door.addEventListener('dragover', (e)=> e.preventDefault());
+    door.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      const dragged = document.querySelector('.cassette.dragging');
+      if (!dragged) return;
+      insertTape(dragged.dataset.name, dragged.dataset.src);
+    });
+    document.getElementById('ejectTapeBtn')?.addEventListener('click', ejectTape);
+  }
+
+  function insertTape(name, src){
+    const door = document.getElementById('boomboxDoor');
+    door.classList.add('has-tape');
+    door.innerHTML = `<div style="text-align:center;"><div style="font-weight:700;color:var(--primary-gold);">${name}</div><div style="opacity:.7;font-size:.9rem;">Now playing</div></div>`;
+    tapeClickSound();
+    if (sniperState.boomboxAudio) sniperState.boomboxAudio.pause();
+    sniperState.boomboxCurrent = {name, src};
+    sniperState.boomboxAudio = safePlay(src, true, 0.22);
+  }
+
+  function ejectTape(){
+    const door = document.getElementById('boomboxDoor');
+    door.classList.remove('has-tape');
+    door.textContent = 'Drag a tape here';
+    tapeClickSound();
+    if (sniperState.boomboxAudio){ sniperState.boomboxAudio.pause(); sniperState.boomboxAudio = null; }
+    sniperState.boomboxCurrent = null;
+  }
+
+  function patchLockerTransitions(){
+    const trigger = ()=>{
+      const box = document.getElementById('lockerTransition');
+      if (!box) return;
+      safePlay(SOUND.bang, false, 0.55);
+      box.classList.remove('active');
+      void box.offsetWidth;
+      box.classList.add('active');
+      setTimeout(()=> box.classList.remove('active'), 1650);
+    };
+    const originalOpenLightbox = window.openLightbox;
+    if (typeof originalOpenLightbox === 'function' && !originalOpenLightbox.__sniperWrapped){
+      window.openLightbox = function(){
+        trigger();
+        setTimeout(()=> originalOpenLightbox.apply(this, arguments), 440);
+      };
+      window.openLightbox.__sniperWrapped = true;
+    }
+    const originalPlayCompilation = window.playCompilation;
+    if (typeof originalPlayCompilation === 'function' && !originalPlayCompilation.__sniperWrapped){
+      window.playCompilation = function(){
+        trigger();
+        setTimeout(()=> originalPlayCompilation.apply(this, arguments), 440);
+      };
+      window.playCompilation.__sniperWrapped = true;
+    }
+  }
+
+  function patchTearOutClose(){
+    const originalCloseLightbox = window.closeLightbox;
+    if (typeof originalCloseLightbox !== 'function' || originalCloseLightbox.__sniperWrapped) return;
+    window.closeLightbox = function(){
+      const lb = document.getElementById('lightbox');
+      if (!lb || !lb.classList.contains('active')) return originalCloseLightbox.apply(this, arguments);
+      safePlay(SOUND.rip, false, 0.7);
+      const r = lb.getBoundingClientRect();
+      const mk = (clip, tx, rot)=>{
+        const d = document.createElement('div');
+        d.className = 'rip-half';
+        d.style.left = r.left + 'px';
+        d.style.top = r.top + 'px';
+        d.style.width = r.width + 'px';
+        d.style.height = r.height + 'px';
+        d.style.clipPath = clip;
+        d.style.transition = 'transform .8s ease, opacity .8s ease';
+        document.body.appendChild(d);
+        requestAnimationFrame(()=>{
+          d.style.transform = `translate(${tx}px, 140px) rotate(${rot}deg)`;
+          d.style.opacity = '0';
+        });
+        setTimeout(()=> d.remove(), 900);
+      };
+      mk('polygon(0 0,100% 0,0 100%)', -120, -16);
+      mk('polygon(100% 0,100% 100%,0 100%)', 120, 16);
+      setTimeout(()=> originalCloseLightbox.apply(this, arguments), 120);
+    };
+    window.closeLightbox.__sniperWrapped = true;
+  }
+
+  function patchSecretMemories(){
+    const originalRenderMemories = window.renderMemories;
+    if (typeof originalRenderMemories !== 'function' || originalRenderMemories.__sniperWrapped) return;
+    window.renderMemories = function(){
+      originalRenderMemories.apply(this, arguments);
+      const cards = [...document.querySelectorAll('#memoryGrid .memory-card')];
+      const memories = window.state?.memories || [];
+      cards.forEach((card, i)=>{
+        const mem = memories[i];
+        if (!mem) return;
+        const shouldSecret = !!mem.secretMemory || !!mem.secret || (i % 25 === 7);
+        if (!shouldSecret) return;
+        const media = card.querySelector('.memory-media');
+        if (!media || media.querySelector('.scratch-canvas')) return;
+        media.classList.add('secret-memory');
+        media.title = 'A Core Memory... Scratch to Remember.';
+        const canvas = document.createElement('canvas');
+        canvas.className = 'scratch-canvas';
+        const tip = document.createElement('div');
+        tip.className = 'secret-tip';
+        tip.textContent = 'A Core Memory... Scratch to Remember.';
+        media.appendChild(canvas);
+        media.appendChild(tip);
+        const resize = ()=>{
+          canvas.width = media.clientWidth;
+          canvas.height = media.clientHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = 'rgba(12,12,18,0.92)';
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+        };
+        resize();
+        let scratching = false;
+        const scratch = (clientX, clientY)=>{
+          const rect = canvas.getBoundingClientRect();
+          const x = clientX - rect.left;
+          const y = clientY - rect.top;
+          const ctx = canvas.getContext('2d');
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.beginPath();
+          ctx.arc(x,y,24,0,Math.PI*2);
+          ctx.fill();
+          const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+          let clear = 0;
+          for (let p = 3; p < data.length; p += 4) if (data[p] === 0) clear++;
+          if ((clear / (canvas.width * canvas.height)) > 0.28){
+            canvas.remove();
+            tip.remove();
+          }
+        };
+        canvas.addEventListener('mousedown', ()=> scratching = true);
+        canvas.addEventListener('mouseup', ()=> scratching = false);
+        canvas.addEventListener('mouseleave', ()=> scratching = false);
+        canvas.addEventListener('mousemove', e=> scratching && scratch(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', ()=> scratching = true, {passive:true});
+        canvas.addEventListener('touchend', ()=> scratching = false, {passive:true});
+        canvas.addEventListener('touchmove', e=>{
+          if (!scratching || !e.touches[0]) return;
+          scratch(e.touches[0].clientX, e.touches[0].clientY);
+        }, {passive:true});
+        window.addEventListener('resize', resize, {passive:true});
+      });
+    };
+    window.renderMemories.__sniperWrapped = true;
+  }
+
+  function ensureMemoryWallMovieButton(){
+    const sec = document.querySelector('#memories .section-header');
+    if (!sec || document.getElementById('memoriesMovieBtn')) return;
+    const row = document.createElement('div');
+    row.style.marginTop = '18px';
+    row.innerHTML = '<button id="memoriesMovieBtn" class="btn btn-secondary sniper-leanback-btn" type="button">Watch as Movie</button>';
+    sec.appendChild(row);
+    document.getElementById('memoriesMovieBtn').addEventListener('click', startLeanBackMode);
+  }
+
+  function setupGhostCursors(){
+    sniperState.ghostEnabled = localStorage.getItem('ghostCursorsEnabled') !== 'false';
+    syncGhostToggle();
+    setTimeout(()=> document.getElementById('ghostCursorPopup')?.classList.add('active'), 900);
+
+    document.getElementById('ghostCursorToggle')?.addEventListener('click', ()=>{
+      sniperSetGhostCursors(!sniperState.ghostEnabled);
+    });
+
+    document.addEventListener('mousemove', e=>{
+      if (!sniperState.ghostEnabled) return;
+      const now = Date.now();
+      if (now - sniperState.pointerLastSent < 40) return;
+      sniperState.pointerLastSent = now;
+      if (window.state?.ws && window.state.ws.readyState === 1) {
+        try {
+          state.ws.send(JSON.stringify({
+            type:'ghost:move',
+            id: sniperState.ghostClientId,
+            x: e.clientX,
+            y: e.clientY,
+            initials: getGhostInitials()
+          }));
+        } catch(_){}
+      }
+    }, {passive:true});
+
+    patchConnectWSForGhosts();
+  }
+
+  function getGhostInitials(){
+    const n = localStorage.getItem('ghostInitials') || (window.state?.adminUser?.name || localStorage.getItem('guestName') || 'GS');
+    return String(n).trim().split(/\s+/).slice(0,2).map(x=>x[0] || '').join('').toUpperCase().slice(0,2) || 'GS';
+  }
+
+  function syncGhostToggle(){
+    const btn = document.getElementById('ghostCursorToggle');
+    if (btn) btn.textContent = `Ghost Cursors: ${sniperState.ghostEnabled ? 'ON' : 'OFF'}`;
+  }
+
+  function sniperSetGhostCursors(on){
+    sniperState.ghostEnabled = !!on;
+    localStorage.setItem('ghostCursorsEnabled', String(!!on));
+    syncGhostToggle();
+    closeSniperModal('ghostCursorPopup');
+    if (!on) document.getElementById('ghostOffModal')?.classList.add('active');
+    if (!on){
+      sniperState.ghostPeers.forEach(v=> v.el.remove());
+      sniperState.ghostPeers.clear();
+    }
+  }
+  window.sniperSetGhostCursors = sniperSetGhostCursors;
+
+  function patchConnectWSForGhosts(){
+    const original = window.connectWS;
+    if (typeof original !== 'function' || original.__sniperGhostWrapped) return;
+    window.connectWS = function(){
+      original.apply(this, arguments);
+      const ws = window.state?.ws;
+      if (!ws || ws.__sniperGhostBound) return;
+      ws.__sniperGhostBound = true;
+      const prev = ws.onmessage;
+      ws.onmessage = async function(msg){
+        if (typeof prev === 'function') {
+          try { await prev.call(this, msg); } catch(_){}
+        }
+        let data;
+        try { data = JSON.parse(msg.data); } catch(_){ return; }
+        if (!data) return;
+        if (data.event === 'ghost:move' && data.payload?.id !== sniperState.ghostClientId && sniperState.ghostEnabled){
+          renderGhost(data.payload);
+        }
+        if (data.event === 'ghost:spark' && sniperState.ghostEnabled){
+          if (typeof window.triggerConfetti === 'function') triggerConfetti();
+        }
+      };
+    };
+    window.connectWS.__sniperGhostWrapped = true;
+  }
+
+  function renderGhost(p){
+    let peer = sniperState.ghostPeers.get(p.id);
+    if (!peer){
+      const wrap = document.createElement('div');
+      wrap.className = 'ghost-cursor';
+      wrap.innerHTML = '<div class="tip"></div><div class="label"></div>';
+      document.body.appendChild(wrap);
+      peer = {el: wrap};
+      sniperState.ghostPeers.set(p.id, peer);
+    }
+    peer.el.querySelector('.label').textContent = p.initials || 'GS';
+    peer.el.style.left = p.x + 'px';
+    peer.el.style.top = p.y + 'px';
+  }
+
+  async function loadDestinations(){
+    const select = document.getElementById('destinationSelect');
+    if (!select) return;
+    try{
+      const res = await fetch(apiUrl('/api/destinations'));
+      const data = await res.json();
+      if (data.success && Array.isArray(data.destinations)) {
+        select.innerHTML = '<option value="">Choose your future destination</option>' +
+          data.destinations.map(d => `<option value="${escapeAttr(d.name || d)}">${escapeHtml(d.name || d)}</option>`).join('');
+      }
+    }catch(_){}
+  }
+
+  function animateDistanceArcs(){
+    const wrap = document.getElementById('distanceMapWrap');
+    const globe = document.getElementById('distanceGlobe');
+    if (!wrap || !globe) return;
+    wrap.querySelectorAll('.distance-arc').forEach(x=>x.remove());
+    const total = 140;
+    for (let i = 0; i < total; i++){
+      const arc = document.createElement('div');
+      arc.className = 'distance-arc';
+      const angle = Math.random() * 360;
+      const len = 90 + Math.random() * 170;
+      arc.style.height = len + 'px';
+      arc.style.transform = `translate(-50%, -100%) rotate(${angle}deg) scaleY(0)`;
+      arc.style.transition = `transform 1.2s cubic-bezier(.2,.8,.2,1) ${Math.random() * .9}s`;
+      wrap.appendChild(arc);
+      requestAnimationFrame(()=> {
+        arc.style.transform = `translate(-50%, -100%) rotate(${angle}deg) scaleY(1)`;
+      });
+    }
+  }
+
+  async function submitDestination(){
+    const select = document.getElementById('destinationSelect');
+    const val = select?.value?.trim();
+    if (!val) return;
+    try{
+      await fetch(apiUrl('/api/destinations/submit'), {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ destination: val })
+      });
+    }catch(_){}
+    animateDistanceArcs();
+    safePlay(SOUND.bang, false, 0.35);
+  }
+
+  async function initPaperAirplanes(){
+    if (!sessionStorage.getItem('paperTutorialSeen')) {
+      document.getElementById('paperTutorial')?.classList.add('active');
+      sessionStorage.setItem('paperTutorialSeen', 'true');
+    }
+    document.getElementById('sendNoteBtn')?.addEventListener('click', async ()=>{
+      const note = prompt('Write a note or memory to send:');
+      if (!note || !note.trim()) return;
+      const safe = note.trim().slice(0, 400);
+      await sendPaperNote(safe);
+      launchLocalPlane(safe);
+    });
+    sniperState.notePoller = setInterval(fetchPaperPlane, 12000);
+  }
+
+  async function sendPaperNote(text){
+    try{
+      await fetch(apiUrl('/api/paper-notes'), {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ text })
+      });
+    }catch(_){}
+  }
+
+  async function fetchPaperPlane(){
+    try{
+      const res = await fetch(apiUrl('/api/paper-notes/random?since=' + encodeURIComponent(String(sniperState.paperLastFetchTs))));
+      const data = await res.json();
+      if (data.success && data.note){
+        sniperState.paperLastFetchTs = Date.now();
+        flyIncomingPlane(data.note.text || 'A memory from someone.');
+      }
+    }catch(_){}
+  }
+
+  function launchLocalPlane(text){
+    const layer = document.getElementById('paperAirplaneLayer');
+    const plane = document.createElement('div');
+    plane.className = 'paper-plane';
+    plane.style.left = '80px';
+    plane.style.bottom = '90px';
+    layer.appendChild(plane);
+    let x = 80, y = window.innerHeight - 90;
+    let vx = 8, vy = -4;
+    let ticks = 0;
+    const step = ()=>{
+      x += vx; y += vy; vy += 0.03; ticks++;
+      plane.style.left = x + 'px';
+      plane.style.top = y + 'px';
+      if (x > window.innerWidth + 60 || y < -60 || ticks > 260) { plane.remove(); return; }
+      requestAnimationFrame(step);
+    };
+    step();
+  }
+
+  function flyIncomingPlane(text){
+    const layer = document.getElementById('paperAirplaneLayer');
+    const plane = document.createElement('div');
+    plane.className = 'paper-plane';
+    plane.title = 'Catch this note';
+    layer.appendChild(plane);
+    let x = -40, y = 120 + Math.random() * (window.innerHeight * 0.5);
+    let vx = 2.4 + Math.random() * 1.8;
+    const step = ()=>{
+      x += vx;
+      plane.style.left = x + 'px';
+      plane.style.top = y + 'px';
+      if (x > window.innerWidth + 60) { plane.remove(); return; }
+      requestAnimationFrame(step);
+    };
+    plane.addEventListener('click', ()=>{
+      alert(text);
+      plane.remove();
+    });
+    step();
+  }
+
+  function patchAdminSettingsRender(){
+    const original = window.renderSettingsPanelHtml;
+    if (typeof original !== 'function' || original.__sniperWrapped) return;
+    window.renderSettingsPanelHtml = function(){
+      const base = original.apply(this, arguments);
+      const inject = `
+      <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+        <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Mentor Voice Messages</h4>
+        <p class="mini-pill" style="margin-bottom:10px;">Upload short goodbye audio for teachers. File should be around 10 seconds.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <input type="text" class="form-input" id="teacherAudioTeacherName" placeholder="Teacher name" style="max-width:220px;" />
+          <input type="file" class="form-input" id="teacherAudioFile" accept="audio/*" style="max-width:280px; padding:8px;" />
+          <button class="admin-btn admin-btn-primary" type="button" onclick="uploadTeacherAudioFromPanel()">Upload Audio</button>
+        </div>
+        <div id="teacherAudioAdminList" style="margin-top:12px;"></div>
+      </div>
+      <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+        <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Destinations Admin</h4>
+        <p class="mini-pill" style="margin-bottom:10px;">One destination per line. This prevents abuse by forcing users to choose from admin-approved options.</p>
+        <textarea class="form-textarea" id="destinationsAdminText" style="min-height:120px;" placeholder="Delhi&#10;Mumbai&#10;London"></textarea>
+        <button class="admin-btn admin-btn-primary" style="margin-top:10px;" type="button" onclick="saveDestinationsFromPanel()">Save Destinations</button>
+      </div>`;
+      return base.replace('</div></div></div>', inject + '</div></div></div>');
+    };
+    window.renderSettingsPanelHtml.__sniperWrapped = true;
+  }
+
+  async function loadTeacherAudioAdminList(){
+    const box = document.getElementById('teacherAudioAdminList');
+    if (!box) return;
+    try{
+      const res = await fetch(apiUrl('/api/teacher-audio'));
+      const data = await res.json();
+      if (!data.success) return;
+      box.innerHTML = (data.items || []).map(x => `<div class="mini-pill" style="margin:6px 6px 0 0; display:inline-block;">${escapeHtml(x.teacherName || 'Teacher')}</div>`).join('') || '<div class="mini-pill">No teacher audio uploaded yet.</div>';
+    }catch(_){}
+  }
+
+  async function uploadTeacherAudioFromPanel(){
+    const name = document.getElementById('teacherAudioTeacherName')?.value?.trim();
+    const file = document.getElementById('teacherAudioFile')?.files?.[0];
+    if (!name || !file) return window.showNotification?.('error','Missing fields','Add teacher name and audio file.');
+    const fd = new FormData();
+    fd.append('teacherName', name);
+    fd.append('audio', file);
+    try{
+      const res = await fetch(apiUrl('/api/admin/teacher-audio'), {
+        method:'POST',
+        headers:{'Authorization':'Bearer ' + (window.state?.adminToken || '')},
+        body:fd
+      });
+      const data = await res.json();
+      if (!data.success) return showNotification('error','Upload failed', data.error || 'Could not upload audio.');
+      const arr = window.state?.settings?.teachers || [];
+      const t = arr.find(x => String(x.name || '').trim().toLowerCase() === name.toLowerCase());
+      if (t) t.audioPath = data.item?.audioPath || data.item?.path;
+      loadTeacherAudioAdminList();
+      showNotification('success','Uploaded','Teacher voice message uploaded.');
+      renderTeachers?.();
+    }catch(e){
+      showNotification?.('error','Upload failed', e.message);
+    }
+  }
+  window.uploadTeacherAudioFromPanel = uploadTeacherAudioFromPanel;
+
+  async function saveDestinationsFromPanel(){
+    const text = document.getElementById('destinationsAdminText')?.value || '';
+    const items = text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0, 500);
+    try{
+      const res = await fetch(apiUrl('/api/admin/destinations'), {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization':'Bearer ' + (window.state?.adminToken || '')
+        },
+        body:JSON.stringify({ destinations: items })
+      });
+      const data = await res.json();
+      if (!data.success) return showNotification('error','Save failed', data.error || 'Could not save destinations.');
+      showNotification('success','Saved','Destinations updated.');
+      loadDestinations();
+    }catch(e){
+      showNotification('error','Save failed', e.message);
+    }
+  }
+  window.saveDestinationsFromPanel = saveDestinationsFromPanel;
+
+  async function syncDestinationsAdminPanel(){
+    const ta = document.getElementById('destinationsAdminText');
+    if (!ta) return;
+    try{
+      const res = await fetch(apiUrl('/api/destinations'));
+      const data = await res.json();
+      if (data.success) ta.value = (data.destinations || []).map(d => d.name || d).join('\n');
+    }catch(_){}
+  }
+
+  function patchBuildAdminPanelsPostHook(){
+    const original = window.buildAdminPanels;
+    if (typeof original !== 'function' || original.__sniperWrapped) return;
+    window.buildAdminPanels = function(){
+      const out = original.apply(this, arguments);
+      setTimeout(()=>{
+        loadTeacherAudioAdminList();
+        syncDestinationsAdminPanel();
+      }, 80);
+      return out;
+    };
+    window.buildAdminPanels.__sniperWrapped = true;
+  }
+
+  function patchIntroVideoRoutesCompatibility(){
+    const originalUpload = window.uploadIntroVideoFile;
+    if (typeof originalUpload === 'function' && !originalUpload.__sniperWrapped){
+      window.uploadIntroVideoFile = async function(file){
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('video', file);
+        try{
+          const res = await fetch(apiUrl('/api/admin/upload-intro-video'), {
+            method:'POST',
+            headers:{ 'Authorization':'Bearer ' + (window.state?.adminToken || '') },
+            body: fd
+          });
+          const data = await res.json();
+          if (data.success){
+            state.settings.introVideoPath = data.path;
+            showNotification('success','Uploaded','Intro video saved.');
+          } else {
+            showNotification('error','Failed', data.error || 'Upload failed');
+          }
+        }catch(e){
+          showNotification('error','Failed', e.message);
+        }
+      };
+      window.uploadIntroVideoFile.__sniperWrapped = true;
+    }
+  }
+
+  function initDisposableOnLoad(){
+    window.addEventListener('load', ()=> setTimeout(disposableFlash, 120));
+  }
+
+  function initDestinationControls(){
+    document.getElementById('destinationLaunchBtn')?.addEventListener('click', submitDestination);
+  }
+
+  function bootstrap(){
+    patchButtonsForUISounds();
+    patchHeroMovieButton();
+    ensureMemoryWallMovieButton();
+    patchReactionCannon();
+    patchCountdownZeroHour();
+    patchIntroAndCompilationFlash();
+    patchTeacherAudio();
+    buildCassetteRack();
+    patchLockerTransitions();
+    patchTearOutClose();
+    patchSecretMemories();
+    patchAdminSettingsRender();
+    patchBuildAdminPanelsPostHook();
+    patchIntroVideoRoutesCompatibility();
+    setupGhostCursors();
+    initPaperAirplanes();
+    initDisposableOnLoad();
+    initDestinationControls();
+    loadDestinations();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrap);
+  } else {
+    bootstrap();
+  }
+})();
+</script>
+<script data-fragment-script="stereodeck">
+/* === SNIPER_PATCH_V3_START === */
+(function(){
+  if (window.__SNIPER_PATCH_V3__) return;
+  window.__SNIPER_PATCH_V3__ = true;
+
+  const MUSIC_DEFAULTS = {
+    ambientSiteMusic: '',
+    leanBackMusic: '',
+    lastBellMusic: '',
+    globeMusic: '',
+    boomboxGraduationVibes: '',
+    boomboxSadBoiHours: '',
+    boomboxHype: ''
+  };
+
+  function sniperV3Apply(){
+    moveStereoBeforeFooter();
+    convertBoomboxToButtons();
+    patchMemoryOnlyNotes();
+    patchBetterPlanes();
+    patchMusicSettings();
+    patchLeanBackMusic();
+    patchAmbient24x7Music();
+    patchLastBellMusic();
+    patchDistanceMapMusic();
+    shrinkFloatingButtons();
+  }
+
+  function moveStereoBeforeFooter(){
+    const dock = document.getElementById('boomboxDock');
+    const footer = document.querySelector('footer');
+    if (!dock || !footer) return;
+    if (dock.dataset.v3Moved === '1') return;
+    dock.dataset.v3Moved = '1';
+    dock.classList.add('sniper-inline-bottom');
+    footer.parentNode.insertBefore(dock, footer);
+
+    if (!document.getElementById('sniperMusicHint')){
+      const hint = document.createElement('div');
+      hint.id = 'sniperMusicHint';
+      hint.textContent = 'Music controls';
+      dock.insertAdjacentElement('afterend', hint);
+    }
+  }
+
+  function resolveMusicPath(value){
+    if (!value) return '';
+    if (/^https?:\/\//i.test(value) || value.startsWith('/')) return value;
+    return '/music/' + String(value).replace(/^\/+/, '');
+  }
+
+  function getMusicSettings(){
+    const s = (window.state && window.state.settings) ? window.state.settings : {};
+    return Object.assign({}, MUSIC_DEFAULTS, s.music || {});
+  }
+
+  function stopAudioRef(refName){
+    const st = window.sniperState || window.__sniperStateFallback || {};
+    const a = st[refName];
+    if (a && typeof a.pause === 'function'){
+      try { a.pause(); } catch(_){}
+      st[refName] = null;
+    }
+  }
+
+  function playNamedAudio(refName, src, loop, volume){
+    const st = window.sniperState || window.__sniperStateFallback || (window.__sniperStateFallback = {});
+    stopAudioRef(refName);
+    if (!src) return null;
+    try{
+      const a = new Audio(src);
+      a.loop = !!loop;
+      a.volume = typeof volume === 'number' ? volume : 1;
+      a.play().catch(()=>{});
+      st[refName] = a;
+      return a;
+    }catch(_){
+      return null;
+    }
+  }
+
+  function convertBoomboxToButtons(){
+    const rack = document.getElementById('cassetteRack');
+    const door = document.getElementById('boomboxDoor');
+    if (!rack || !door || rack.dataset.v3Ready === '1') return;
+    rack.dataset.v3Ready = '1';
+    rack.innerHTML = '';
+
+    const defs = [
+      { key: 'boomboxGraduationVibes', label: 'Graduation Vibes' },
+      { key: 'boomboxSadBoiHours', label: 'Sad Boi Hours' },
+      { key: 'boomboxHype', label: 'Hype' }
+    ];
+
+    defs.forEach(def => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cassette';
+      btn.textContent = def.label;
+      btn.addEventListener('click', () => {
+        const music = getMusicSettings();
+        const src = resolveMusicPath(music[def.key]);
+        if (!src) {
+          if (window.showNotification) showNotification('info', 'Music missing', def.label + ' has not been configured yet.');
+          return;
+        }
+        door.classList.add('has-tape');
+        door.innerHTML = '<div style="text-align:center;"><div style="font-weight:700;color:var(--primary-gold);">' + def.label + '</div><div style="opacity:.7;font-size:.82rem;">Now playing</div></div>';
+        playNamedAudio('boomboxAudio', src, true, 0.32);
+      });
+      rack.appendChild(btn);
+    });
+
+    const eject = document.getElementById('ejectTapeBtn');
+    if (eject && !eject.dataset.v3Bound){
+      eject.dataset.v3Bound = '1';
+      eject.addEventListener('click', () => {
+        door.classList.remove('has-tape');
+        door.textContent = 'Choose a vibe';
+        stopAudioRef('boomboxAudio');
+      });
+    }
+
+    if (door.textContent.trim().toLowerCase().includes('drag a tape')){
+      door.textContent = 'Choose a vibe';
+    }
+  }
+
+  function patchMemoryOnlyNotes(){
+    const btn = document.getElementById('sendNoteBtn');
+    if (!btn || btn.dataset.v3Bound === '1') return;
+    btn.dataset.v3Bound = '1';
+    btn.onclick = null;
+    btn.addEventListener('click', async () => {
+      const memories = ((window.state && window.state.memories) || []).filter(m => m && m.id && (m.caption || '').trim());
+      if (!memories.length){
+        if (window.showNotification) showNotification('info', 'No memories available', 'A note can only be sent from an approved memory.');
+        return;
+      }
+      const random = memories[Math.floor(Math.random() * memories.length)];
+      try{
+        await fetch(apiUrl('/api/paper-notes/from-memory'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memoryId: random.id })
+        });
+      }catch(_){}
+      launchMemoryPlane(random);
+    });
+  }
+
+  function launchMemoryPlane(memory){
+    const layer = document.getElementById('paperAirplaneLayer');
+    if (!layer) return;
+    const plane = makePlaneNode(memory);
+    layer.appendChild(plane);
+
+    let x = 30;
+    let y = window.innerHeight - 120;
+    let vx = 8.8;
+    let vy = -6.6;
+    let rot = -10;
+    let frames = 0;
+
+    const step = () => {
+      x += vx;
+      y += vy;
+      vy += 0.055;
+      rot = Math.max(-18, Math.min(28, rot + 0.18));
+      frames += 1;
+      plane.style.left = x + 'px';
+      plane.style.top = y + 'px';
+      plane.style.transform = 'rotate(' + rot + 'deg)';
+
+      if (x > window.innerWidth + 120 || y < -120 || frames > 320){
+        plane.remove();
+        return;
+      }
+      requestAnimationFrame(step);
+    };
+    step();
+  }
+
+  function patchBetterPlanes(){
+    const oldIncoming = window.flyIncomingPlane;
+    if (typeof oldIncoming !== 'function' || oldIncoming.__v3Wrapped) return;
+    window.flyIncomingPlane = function(payload){
+      const layer = document.getElementById('paperAirplaneLayer');
+      if (!layer) return;
+      const note = typeof payload === 'string' ? { text: payload } : (payload || {});
+      const plane = makePlaneNode(note);
+      layer.appendChild(plane);
+
+      let x = -90;
+      let baseY = 90 + Math.random() * Math.min(window.innerHeight * 0.45, 280);
+      let t = 0;
+      let vx = 3.2 + Math.random() * 1.8;
+
+      const step = () => {
+        t += 0.035;
+        x += vx;
+        const y = baseY + Math.sin(t * 2.2) * 18 + Math.cos(t * 1.1) * 8;
+        const angle = Math.sin(t * 2.2) * 8 - 8;
+        plane.style.left = x + 'px';
+        plane.style.top = y + 'px';
+        plane.style.transform = 'rotate(' + angle + 'deg)';
+        if (x > window.innerWidth + 120){
+          plane.remove();
+          return;
+        }
+        requestAnimationFrame(step);
+      };
+
+      plane.addEventListener('click', () => {
+        const text = note.caption || note.text || 'A memory from someone.';
+        alert(text);
+        plane.remove();
+      });
+
+      step();
+    };
+    window.flyIncomingPlane.__v3Wrapped = true;
+  }
+
+  function makePlaneNode(note){
+    const plane = document.createElement('div');
+    plane.className = 'paper-plane';
+    plane.title = 'Catch this memory';
+    plane.innerHTML = '<div class="plane-fold"></div><div class="plane-memory-badge">MEMORY</div>';
+    plane.dataset.caption = note.caption || note.text || '';
+    return plane;
+  }
+
+  function patchMusicSettings(){
+    const original = window.renderSettingsPanelHtml;
+    if (typeof original !== 'function' || original.__v3MusicWrapped) return;
+
+    window.renderSettingsPanelHtml = function(){
+      const html = original.apply(this, arguments);
+      if (html.includes('sniperMusicAdminPanel')) return html;
+      const inject = `
+      <div id="sniperMusicAdminPanel" style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+        <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Music Configuration</h4>
+        <p class="mini-pill" style="margin-bottom:10px;">Put music files in the root <strong>music</strong> folder. Enter file names like <strong>ambient.mp3</strong>.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>24/7 Site Music</label><input class="form-input" id="setMusicAmbientSiteMusic" placeholder="ambient.mp3" /></div>
+          <div class="form-group"><label>Lean Back Music</label><input class="form-input" id="setMusicLeanBackMusic" placeholder="leanback.mp3" /></div>
+          <div class="form-group"><label>Last Bell Music</label><input class="form-input" id="setMusicLastBellMusic" placeholder="lastbell.mp3" /></div>
+          <div class="form-group"><label>Globe / Distance Music</label><input class="form-input" id="setMusicGlobeMusic" placeholder="globe.mp3" /></div>
+          <div class="form-group"><label>Boombox: Graduation Vibes</label><input class="form-input" id="setMusicBoomboxGraduationVibes" placeholder="graduation.mp3" /></div>
+          <div class="form-group"><label>Boombox: Sad Boi Hours</label><input class="form-input" id="setMusicBoomboxSadBoiHours" placeholder="sadboi.mp3" /></div>
+          <div class="form-group"><label>Boombox: Hype</label><input class="form-input" id="setMusicBoomboxHype" placeholder="hype.mp3" /></div>
+        </div>
+      </div>`;
+      return html.replace('</div></div></div>', inject + '</div></div></div>');
+    };
+
+    window.renderSettingsPanelHtml.__v3MusicWrapped = true;
+
+    const originalRead = window.readSettingsFromEditor;
+    if (typeof originalRead === 'function' && !originalRead.__v3MusicWrapped){
+      window.readSettingsFromEditor = function(){
+        const s = originalRead.apply(this, arguments);
+        s.music = {
+          ambientSiteMusic: document.getElementById('setMusicAmbientSiteMusic')?.value?.trim() || '',
+          leanBackMusic: document.getElementById('setMusicLeanBackMusic')?.value?.trim() || '',
+          lastBellMusic: document.getElementById('setMusicLastBellMusic')?.value?.trim() || '',
+          globeMusic: document.getElementById('setMusicGlobeMusic')?.value?.trim() || '',
+          boomboxGraduationVibes: document.getElementById('setMusicBoomboxGraduationVibes')?.value?.trim() || '',
+          boomboxSadBoiHours: document.getElementById('setMusicBoomboxSadBoiHours')?.value?.trim() || '',
+          boomboxHype: document.getElementById('setMusicBoomboxHype')?.value?.trim() || ''
+        };
+        return s;
+      };
+      window.readSettingsFromEditor.__v3MusicWrapped = true;
+    }
+
+    const originalSync = window.syncSettingsEditor;
+    if (typeof originalSync === 'function' && !originalSync.__v3MusicWrapped){
+      window.syncSettingsEditor = function(){
+        originalSync.apply(this, arguments);
+        const music = getMusicSettings();
+        const set = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.value = val || '';
+        };
+        set('setMusicAmbientSiteMusic', music.ambientSiteMusic);
+        set('setMusicLeanBackMusic', music.leanBackMusic);
+        set('setMusicLastBellMusic', music.lastBellMusic);
+        set('setMusicGlobeMusic', music.globeMusic);
+        set('setMusicBoomboxGraduationVibes', music.boomboxGraduationVibes);
+        set('setMusicBoomboxSadBoiHours', music.boomboxSadBoiHours);
+        set('setMusicBoomboxHype', music.boomboxHype);
+      };
+      window.syncSettingsEditor.__v3MusicWrapped = true;
+    }
+  }
+
+  function patchLeanBackMusic(){
+    const oldStart = window.startLeanBackMode;
+    const oldStop = window.stopLeanBackMode;
+    if (typeof oldStart === 'function' && !oldStart.__v3MusicWrapped){
+      window.startLeanBackMode = function(){
+        const out = oldStart.apply(this, arguments);
+        const music = getMusicSettings();
+        const src = resolveMusicPath(music.leanBackMusic);
+        if (src) playNamedAudio('movieAudio', src, true, 0.38);
+        return out;
+      };
+      window.startLeanBackMode.__v3MusicWrapped = true;
+    }
+    if (typeof oldStop === 'function' && !oldStop.__v3MusicWrapped){
+      window.stopLeanBackMode = function(){
+        const out = oldStop.apply(this, arguments);
+        stopAudioRef('movieAudio');
+        restartAmbientIfNeeded();
+        return out;
+      };
+      window.stopLeanBackMode.__v3MusicWrapped = true;
+    }
+  }
+
+  function patchAmbient24x7Music(){
+    if (window.__sniperAmbientV3Bound) return;
+    window.__sniperAmbientV3Bound = true;
+    setTimeout(restartAmbientIfNeeded, 1200);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) restartAmbientIfNeeded();
+    });
+
+    const oldCloseCompilation = window.closeCompilationPlayer;
+    if (typeof oldCloseCompilation === 'function' && !oldCloseCompilation.__v3AmbientWrapped){
+      window.closeCompilationPlayer = function(){
+        const out = oldCloseCompilation.apply(this, arguments);
+        restartAmbientIfNeeded();
+        return out;
+      };
+      window.closeCompilationPlayer.__v3AmbientWrapped = true;
+    }
+  }
+
+  function restartAmbientIfNeeded(){
+    const music = getMusicSettings();
+    const src = resolveMusicPath(music.ambientSiteMusic);
+    if (!src) return;
+    if (document.body.classList.contains('sniper-ui-hidden')) return;
+    const bell = document.getElementById('sniperLastBell');
+    if (bell && bell.classList.contains('active')) return;
+    playNamedAudio('ambientAudio', src, true, 0.22);
+  }
+
+  function patchLastBellMusic(){
+    const old = window.triggerLastBell;
+    if (typeof old !== 'function' || old.__v3BellWrapped) return;
+    window.triggerLastBell = function(){
+      stopAudioRef('ambientAudio');
+      const out = old.apply(this, arguments);
+      const music = getMusicSettings();
+      const src = resolveMusicPath(music.lastBellMusic);
+      if (src) playNamedAudio('finalBellAudio', src, true, 0.34);
+      return out;
+    };
+    window.triggerLastBell.__v3BellWrapped = true;
+  }
+
+  function patchDistanceMapMusic(){
+    const btn = document.getElementById('destinationLaunchBtn');
+    if (!btn || btn.dataset.v3MusicBound === '1') return;
+    btn.dataset.v3MusicBound = '1';
+    btn.addEventListener('click', () => {
+      const music = getMusicSettings();
+      const src = resolveMusicPath(music.globeMusic);
+      if (src) playNamedAudio('globeAudio', src, false, 0.42);
+    });
+  }
+
+  function shrinkFloatingButtons(){
+    const g = document.getElementById('ghostCursorToggle');
+    const s = document.getElementById('sendNoteBtn');
+    if (g) g.textContent = 'Ghost';
+    if (s) s.textContent = 'Note';
+  }
+
+  const oldFetchRandom = window.fetchPaperPlane;
+  if (typeof oldFetchRandom === 'function' && !oldFetchRandom.__v3MemoryOnlyWrapped){
+    window.fetchPaperPlane = async function(){
+      try{
+        const res = await fetch(apiUrl('/api/paper-notes/random-memory'));
+        const data = await res.json();
+        if (data.success && data.note){
+          flyIncomingPlane(data.note);
+        }
+      }catch(_){}
+    };
+    window.fetchPaperPlane.__v3MemoryOnlyWrapped = true;
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', sniperV3Apply);
+  } else {
+    sniperV3Apply();
+  }
+})();
+</script>
+<script data-fragment-script="stereodeck">
+/* === SNIPER_PATCH_V7_START === */
+(function(){
+  if (window.__SNIPER_PATCH_V7__) return;
+  window.__SNIPER_PATCH_V7__ = true;
+
+  const SNIPER = {
+    popupShown: false,
+    wsConnected: false,
+    wsReconnectTimer: null,
+    wsSendThrottle: 0,
+    ghostId: 'ghost_' + Math.random().toString(36).slice(2),
+    ghosts: new Map(),
+    notePoller: null,
+    pendingMapMode: null,
+    selectedSchool: null,
+    selectedUniversity: null,
+    lastIncomingNoteId: null
+  };
+
+  function boot(){
+    exposeGlobals();
+    cleanupOldPopupBehavior();
+    patchIntroFlow();
+    installWsBadge();
+    installCleanMultiplayer();
+    upgradeDistanceFlowToMaps();
+    installAdminMusicPanelV7();
+  }
+
+  function exposeGlobals(){
+    try { if (typeof state !== 'undefined') window.state = state; } catch(_){}
+    try { if (typeof CONFIG !== 'undefined') window.CONFIG = CONFIG; } catch(_){}
+    window.__SNIPER_RUNTIME__ = SNIPER;
+  }
+
+  function introVisible(){
+    const overlay = document.getElementById('introVideoOverlay');
+    if (!overlay) return false;
+    const cs = getComputedStyle(overlay);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+    if (overlay.classList.contains('hidden')) return false;
+    return true;
+  }
+
+  function cleanupOldPopupBehavior(){
+    document.getElementById('ghostCursorPopup')?.classList.remove('active');
+    document.getElementById('paperTutorial')?.classList.remove('active');
+
+    const oldInstall = window.installScrollTriggeredPopups;
+    window.installScrollTriggeredPopups = function(){
+      if (window.__sniperCleanPopupInstalled) return;
+      window.__sniperCleanPopupInstalled = true;
+
+      const showAfterScroll = () => {
+        if (SNIPER.popupShown) return;
+        if (introVisible()) return;
+        const countdown = document.getElementById('countdown');
+        if (!countdown) return;
+        const rect = countdown.getBoundingClientRect();
+        if (rect.bottom >= window.innerHeight * 0.35) return;
+
+        SNIPER.popupShown = true;
+        setTimeout(() => {
+          if (!introVisible()) document.getElementById('ghostCursorPopup')?.classList.add('active');
+        }, 500);
+        setTimeout(() => {
+          if (!introVisible()) document.getElementById('paperTutorial')?.classList.add('active');
+        }, 1700);
+        window.removeEventListener('scroll', showAfterScroll);
+      };
+
+      window.addEventListener('scroll', showAfterScroll, { passive: true });
+    };
+    window.installScrollTriggeredPopups.__sniperClean = true;
+
+    if (typeof oldInstall === 'function') {
+      try {} catch(_){}
+    }
+  }
+
+  function patchIntroFlow(){
+    const oldSkip = window.skipIntro;
+    if (typeof oldSkip === 'function' && !oldSkip.__sniperV7Wrapped){
+      window.skipIntro = function(){
+        const out = oldSkip.apply(this, arguments);
+        setTimeout(() => {
+          try {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            const home = document.getElementById('home');
+            home?.scrollIntoView({ behavior: 'auto', block: 'start' });
+            history.replaceState(null, '', '#home');
+          } catch(_){}
+        }, 550);
+        setTimeout(() => {
+          try { window.installScrollTriggeredPopups?.(); } catch(_){}
+        }, 1200);
+        return out;
+      };
+      window.skipIntro.__sniperV7Wrapped = true;
+    }
+
+    const video = document.getElementById('introVideo');
+    if (video && !video.dataset.sniperV7Bound){
+      video.dataset.sniperV7Bound = '1';
+      video.addEventListener('ended', () => {
+        setTimeout(() => {
+          try {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            document.getElementById('home')?.scrollIntoView({ behavior: 'auto', block: 'start' });
+            history.replaceState(null, '', '#home');
+          } catch(_){}
+        }, 500);
+      });
+    }
+  }
+
+  function installWsBadge(){
+    if (document.getElementById('wsStatusBadge')) return;
+    const badge = document.createElement('div');
+    badge.id = 'wsStatusBadge';
+    badge.className = 'bad';
+    badge.textContent = 'Multiplayer: connecting...';
+    document.body.appendChild(badge);
+  }
+
+  function setWsBadge(ok, text){
+    const el = document.getElementById('wsStatusBadge');
+    if (!el) return;
+    el.classList.toggle('good', !!ok);
+    el.classList.toggle('bad', !ok);
+    el.textContent = text;
+  }
+
+  function installCleanMultiplayer(){
+    const base = (window.CONFIG && window.CONFIG.API_BASE) ? window.CONFIG.API_BASE : null;
+    if (!base) {
+      setWsBadge(false, 'Multiplayer: no backend URL');
+      return;
+    }
+
+    connectMultiplayerWS();
+    installGhostTracking();
+    installSharedNotes();
+  }
+
+  function connectMultiplayerWS(){
+    try{
+      const base = new URL(window.CONFIG.API_BASE);
+      const wsUrl = `${base.protocol === 'https:' ? 'wss' : 'ws'}://${base.host}`;
+      const ws = new WebSocket(wsUrl);
+      window.__SNIPER_WS__ = ws;
+
+      ws.onopen = () => {
+        SNIPER.wsConnected = true;
+        setWsBadge(true, 'Multiplayer: live');
+      };
+
+      ws.onclose = () => {
+        SNIPER.wsConnected = false;
+        setWsBadge(false, 'Multiplayer: disconnected');
+        clearTimeout(SNIPER.wsReconnectTimer);
+        SNIPER.wsReconnectTimer = setTimeout(connectMultiplayerWS, 2000);
+      };
+
+      ws.onerror = () => {
+        SNIPER.wsConnected = false;
+        setWsBadge(false, 'Multiplayer: error');
+      };
+
+      ws.onmessage = (msg) => {
+        let data = null;
+        try { data = JSON.parse(msg.data); } catch(_) { return; }
+        if (!data) return;
+
+        if (data.event === 'ghost:move') handleGhostMove(data.payload);
+        if (data.event === 'paper:note' && data.payload?.note) handleIncomingNote(data.payload.note);
+      };
+    }catch(_){
+      setWsBadge(false, 'Multiplayer: unavailable');
+    }
+  }
+
+  function sendWS(payload){
+    const ws = window.__SNIPER_WS__;
+    if (!ws || ws.readyState !== 1) return false;
+    try {
+      ws.send(JSON.stringify(payload));
+      return true;
+    } catch(_) {
+      return false;
+    }
+  }
+
+  function installGhostTracking(){
+    document.addEventListener('mousemove', (e) => {
+      if (introVisible()) return;
+      if (Date.now() - SNIPER.wsSendThrottle < 35) return;
+      SNIPER.wsSendThrottle = Date.now();
+
+      const initials = getInitialsForGhost();
+      sendWS({
+        type: 'ghost:move',
+        id: SNIPER.ghostId,
+        x: e.clientX,
+        y: e.clientY,
+        initials
+      });
+    }, { passive: true });
+  }
+
+  function getInitialsForGhost(){
+    const saved = localStorage.getItem('ghostInitials');
+    if (saved && saved.trim()) return saved.trim().slice(0, 3).toUpperCase();
+    const n = localStorage.getItem('guestName') || '';
+    const parts = n.trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return 'GS';
+    return parts.slice(0, 2).map(x => x[0]).join('').toUpperCase();
+  }
+
+  function handleGhostMove(p){
+    if (!p || p.id === SNIPER.ghostId) return;
+    let ghost = SNIPER.ghosts.get(p.id);
+    if (!ghost){
+      const el = document.createElement('div');
+      el.className = 'ghost-cursor';
+      el.innerHTML = '<div class="tip"></div><div class="label"></div>';
+      document.body.appendChild(el);
+      ghost = { el };
+      SNIPER.ghosts.set(p.id, ghost);
+    }
+    ghost.el.querySelector('.label').textContent = p.initials || 'GS';
+    ghost.el.style.left = p.x + 'px';
+    ghost.el.style.top = p.y + 'px';
+  }
+
+  function installSharedNotes(){
+    clearInterval(SNIPER.notePoller);
+    SNIPER.notePoller = setInterval(async () => {
+      if (introVisible()) return;
+      try{
+        const res = await fetch(apiUrl('/api/paper-notes/random-memory'));
+        const data = await res.json();
+        if (!data.success || !data.note) return;
+        if (SNIPER.lastIncomingNoteId === data.note.id) return;
+        SNIPER.lastIncomingNoteId = data.note.id;
+        handleIncomingNote(data.note);
+      }catch(_){}
+    }, 12000);
+
+    const btn = document.getElementById('sendNoteBtn');
+    if (btn && !btn.dataset.sniperV7Bound){
+      btn.dataset.sniperV7Bound = '1';
+      btn.onclick = null;
+      btn.addEventListener('click', async () => {
+        const memories = ((window.state && window.state.memories) || []).filter(m => m && m.id && (m.caption || '').trim());
+        if (!memories.length) {
+          return window.showNotification?.('info', 'No memories', 'No approved memories are available yet.');
+        }
+        const selected = memories[Math.floor(Math.random() * memories.length)];
+        try{
+          const res = await fetch(apiUrl('/api/paper-notes/from-memory'), {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({ memoryId: selected.id })
+          });
+          const data = await res.json();
+          if (data.success && data.note) {
+            sendWS({ type:'paper:note:broadcast', note: data.note });
+            launchSharedPlane(data.note);
+          }
+        }catch(_){}
+      });
+    }
+  }
+
+  function handleIncomingNote(note){
+    launchSharedPlane(note);
+  }
+
+  function launchSharedPlane(note){
+    const layer = document.getElementById('paperAirplaneLayer');
+    if (!layer) return;
+    const plane = document.createElement('div');
+    plane.className = 'paper-plane';
+    plane.title = 'Catch this memory note';
+    plane.innerHTML = '<div class="plane-fold"></div><div class="plane-memory-badge">MEMORY</div>';
+    layer.appendChild(plane);
+
+    let x = -90;
+    let yBase = 90 + Math.random() * Math.min(window.innerHeight * 0.48, 300);
+    let t = 0;
+    let vx = 3.4 + Math.random() * 1.5;
+
+    const step = () => {
+      t += 0.04;
+      x += vx;
+      const y = yBase + Math.sin(t * 2.3) * 16 + Math.cos(t * 1.2) * 8;
+      plane.style.left = x + 'px';
+      plane.style.top = y + 'px';
+      plane.style.transform = `rotate(${Math.sin(t * 2.3) * 8 - 8}deg)`;
+      if (x > window.innerWidth + 120){
+        plane.remove();
+        return;
+      }
+      requestAnimationFrame(step);
+    };
+
+    plane.addEventListener('click', () => {
+      alert(note.caption || note.text || 'A memory from someone.');
+      plane.remove();
+    });
+
+    step();
+  }
+
+  function upgradeDistanceFlowToMaps(){
+    const section = document.getElementById('distanceMapSection');
+    const controls = document.getElementById('distanceControls');
+    if (!section || !controls || document.getElementById('distanceMapsFlowCard')) return;
+
+    const info = document.createElement('div');
+    info.id = 'distanceMapsFlowCard';
+    info.innerHTML = `
+      <strong>How this works:</strong>
+      choose whether you are pinning your 11th / 12th place or your university dream,
+      click the map button to open Google Maps in a new tab, find the place there, copy the
+      coordinates or map search result, then come back and confirm it below.
+    `;
+    controls.insertAdjacentElement('beforebegin', info);
+
+    const panel = document.createElement('div');
+    panel.id = 'distanceConfirmPanel';
+    panel.innerHTML = `
+      <div class="row">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input class="form-input" id="distanceStudentNameV7" maxlength="80" placeholder="Enter your name" />
+        </div>
+        <div class="form-group">
+          <label>What are you pinning?</label>
+          <select class="form-select" id="distancePinTypeV7">
+            <option value="school">11th / 12th future place</option>
+            <option value="university">University aim place</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group">
+          <label>Google Maps coordinates</label>
+          <input class="form-input" id="distanceCoordsV7" placeholder="Example: 12.9716,77.5946" />
+        </div>
+        <div class="form-group">
+          <label>Place label</label>
+          <input class="form-input" id="distancePlaceLabelV7" maxlength="120" placeholder="Example: Bangalore" />
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+        <button class="btn btn-primary" type="button" id="distanceOpenMapsV7">Open Google Maps</button>
+        <button class="btn btn-secondary" type="button" id="distanceUseCoordsV7">Use These Coordinates</button>
+        <button class="btn btn-primary" type="button" id="distanceSavePinsV7">Confirm Future Path</button>
+      </div>
+      <div class="hint">The site will only ask for this after the intro is done and after you scroll below the countdown.</div>
+      <div id="distanceSelectedReview"></div>
+    `;
+    controls.insertAdjacentElement('afterend', panel);
+
+    controls.innerHTML = `
+      <button class="btn btn-primary" type="button" id="distanceLaunchBtnV7">Start Future Pinning</button>
+      <button class="btn btn-secondary" type="button" id="distanceRefreshBtnV7">Refresh Globe</button>
+    `;
+
+    document.getElementById('distanceLaunchBtnV7')?.addEventListener('click', () => {
+      panel.classList.add('active');
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.getElementById('distanceOpenMapsV7')?.addEventListener('click', () => {
+      if (introVisible()) return;
+      const label = document.getElementById('distancePlaceLabelV7')?.value?.trim() || 'future college';
+      window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(label), '_blank');
+    });
+
+    document.getElementById('distanceUseCoordsV7')?.addEventListener('click', applyCoordsToPendingV7);
+    document.getElementById('distanceSavePinsV7')?.addEventListener('click', saveFuturePathV7);
+    document.getElementById('distanceRefreshBtnV7')?.addEventListener('click', () => loadClassPathsGlobeV7());
+
+    loadClassPathsGlobeV7();
+  }
+
+//   let distanceLeafletMapV7 = null;
+//  let distanceLeafletMarkerV7 = null;
+ function setLeafletPickedPointV7(lat, lng, label){
+  const latEl = document.getElementById('distanceLatV7');
+  const lngEl = document.getElementById('distanceLngV7');
+  const labelEl = document.getElementById('distancePlaceLabelV7');
+  if (latEl) latEl.value = String(Number(lat).toFixed(6));
+  if (lngEl) lngEl.value = String(Number(lng).toFixed(6));
+  if (labelEl && label) labelEl.value = label;
+  if (!distanceLeafletMapV7) return;
+  if (!distanceLeafletMarkerV7) {
+   distanceLeafletMarkerV7 = L.marker([lat, lng]).addTo(distanceLeafletMapV7);
+  } else {
+   distanceLeafletMarkerV7.setLatLng([lat, lng]);
+  }
+  distanceLeafletMapV7.setView([lat, lng], Math.max(distanceLeafletMapV7.getZoom(), 4));
+ }
+ function initLeafletDistancePickerV7(){
+  const mapEl = document.getElementById('distanceLeafletPicker');
+  if (!mapEl || typeof L === 'undefined') return;
+  if (!distanceLeafletMapV7) {
+   distanceLeafletMapV7 = L.map(mapEl, { center:[20.5937, 78.9629], zoom:3, worldCopyJump:true });
+   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap contributors'
+   }).addTo(distanceLeafletMapV7);
+   distanceLeafletMapV7.on('click', (e) => {
+    setLeafletPickedPointV7(e.latlng.lat, e.latlng.lng);
+    applyCoordsToPendingV7();
+   });
+  } else {
+   distanceLeafletMapV7.invalidateSize();
+  }
+ }
+ async function searchLeafletPlaceV7(){
+  const search = document.getElementById('distancePlaceSearchV7')?.value?.trim();
+  if (!search) {
+   return window.showNotification?.('error', 'Search needed', 'Enter a place to search.');
+  }
+  try{
+   const res = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(search), {
+    headers: { 'Accept': 'application/json' }
+   });
+   const data = await res.json();
+   if (!Array.isArray(data) || !data.length) {
+    return window.showNotification?.('error', 'Not found', 'Could not find that place.');
+   }
+   const item = data[0];
+   const lat = Number(item.lat);
+   const lng = Number(item.lon);
+   const label = String(item.display_name || search).split(',').slice(0, 2).join(',').trim();
+   setLeafletPickedPointV7(lat, lng, label);
+   applyCoordsToPendingV7();
+  }catch(e){
+   window.showNotification?.('error', 'Search failed', e.message);
+  }
+ }
+ async function loadStudentDirectoryV7(){
+ try{
+  const res = await fetch(apiUrl('/api/student-directory'));
+  const data = await res.json();
+  if (!data.success) return;
+  const nameSel = document.getElementById('distanceStudentNameV7');
+  const sectionSel = document.getElementById('distanceSectionV7');
+  if (nameSel) {
+   nameSel.innerHTML = '<option value="">Select your name</option>' + (data.students || []).map(s => `<option value="${escapeAttr(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+  }
+  if (sectionSel) {
+   const sections = Array.from(new Set((data.students || []).map(s => String(s.section || '').trim()).filter(Boolean)));
+   sectionSel.innerHTML = '<option value="">Select section</option>' + sections.map(s => `<option value="${escapeAttr(s)}">${escapeHtml(s)}</option>`).join('');
+  }
+ }catch(_){}
+ }
+ let distanceLeafletMapV7 = null;
+ let distanceLeafletMarkerV7 = null;
+ function setLeafletPickedPointV7(lat, lng, label){
+  const latEl = document.getElementById('distanceLatV7');
+  const lngEl = document.getElementById('distanceLngV7');
+  const labelEl = document.getElementById('distancePlaceLabelV7');
+  if (latEl) latEl.value = String(Number(lat).toFixed(6));
+  if (lngEl) lngEl.value = String(Number(lng).toFixed(6));
+  if (labelEl && label) labelEl.value = label;
+  if (!distanceLeafletMapV7) return;
+  if (!distanceLeafletMarkerV7) {
+   distanceLeafletMarkerV7 = L.marker([lat, lng]).addTo(distanceLeafletMapV7);
+  } else {
+   distanceLeafletMarkerV7.setLatLng([lat, lng]);
+  }
+  distanceLeafletMapV7.setView([lat, lng], Math.max(distanceLeafletMapV7.getZoom(), 4));
+ }
+ function initLeafletDistancePickerV7(){
+  const mapEl = document.getElementById('distanceLeafletPicker');
+  if (!mapEl || typeof L === 'undefined') return;
+  if (!distanceLeafletMapV7) {
+   distanceLeafletMapV7 = L.map(mapEl, { center:[17.3850, 78.4867], zoom:4, worldCopyJump:true });
+   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap contributors'
+   }).addTo(distanceLeafletMapV7);
+   distanceLeafletMapV7.on('click', (e) => {
+    setLeafletPickedPointV7(e.latlng.lat, e.latlng.lng);
+    applyCoordsToPendingV7();
+   });
+  } else {
+   distanceLeafletMapV7.invalidateSize();
+  }
+ }
+ async function searchLeafletPlaceV7(){
+  const search = document.getElementById('distancePlaceSearchV7')?.value?.trim();
+  const box = document.getElementById('distanceSearchResultsV7');
+  if (box) box.innerHTML = '';
+  if (!search) {
+   return window.showNotification?.('error', 'Search needed', 'Enter a place to search.');
+  }
+  try{
+   const res = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=' + encodeURIComponent(search), {
+    headers: { 'Accept': 'application/json' }
+   });
+   const data = await res.json();
+   if (!Array.isArray(data) || !data.length) {
+    return window.showNotification?.('error', 'Not found', 'Could not find that place.');
+   }
+   if (!box) {
+    const item = data[0];
+    const lat = Number(item.lat);
+    const lng = Number(item.lon);
+    const label = String(item.display_name || search).split(',').slice(0, 2).join(',').trim();
+    setLeafletPickedPointV7(lat, lng, label);
+    applyCoordsToPendingV7();
+    return;
+   }
+   box.innerHTML = data.map(item => {
+    const label = String(item.display_name || search);
+    return `<button type="button" class="btn btn-secondary" data-lat="${escapeAttr(item.lat)}" data-lng="${escapeAttr(item.lon)}" data-label="${escapeAttr(label)}">${escapeHtml(label)}</button>`;
+   }).join('');
+   box.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+     const lat = Number(btn.getAttribute('data-lat'));
+     const lng = Number(btn.getAttribute('data-lng'));
+     const label = btn.getAttribute('data-label') || '';
+     setLeafletPickedPointV7(lat, lng, label);
+     applyCoordsToPendingV7();
+    });
+   });
+  }catch(e){
+   window.showNotification?.('error', 'Search failed', e.message);
+  }
+ }
+ function parseCoords(str){
+    const m = String(str || '').trim().match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (!m) return null;
+    const lat = Number(m[1]);
+    const lng = Number(m[2]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng };
+  }
+
+  function applyCoordsToPendingV7(){
+    const type = document.getElementById('distancePinTypeV7')?.value || 'school';
+    const coords = parseCoords(document.getElementById('distanceCoordsV7')?.value || '');
+    const label = document.getElementById('distancePlaceLabelV7')?.value?.trim() || '';
+    if (!coords) {
+      return window.showNotification?.('error', 'Bad coordinates', 'Use format: latitude,longitude');
+    }
+
+    if (!window.__SNIPER_RUNTIME__.selectedSchool) window.__SNIPER_RUNTIME__.selectedSchool = null;
+    if (!window.__SNIPER_RUNTIME__.selectedUniversity) window.__SNIPER_RUNTIME__.selectedUniversity = null;
+
+    if (type === 'school') {
+      window.__SNIPER_RUNTIME__.selectedSchool = { ...coords, label };
+    } else {
+      window.__SNIPER_RUNTIME__.selectedUniversity = { ...coords, label };
+    }
+
+    refreshDistanceReviewV7();
+    renderSavedAndPendingV7();
+  }
+
+  function refreshDistanceReviewV7(){
+    const box = document.getElementById('distanceSelectedReview');
+    if (!box) return;
+    const s = window.__SNIPER_RUNTIME__.selectedSchool;
+    const u = window.__SNIPER_RUNTIME__.selectedUniversity;
+
+    box.innerHTML = `
+      <div class="distance-review-pill">11th / 12th: ${s ? `${s.label || 'Selected'} (${s.lat.toFixed(4)}, ${s.lng.toFixed(4)})` : 'Not selected yet'}</div>
+      <div class="distance-review-pill">University: ${u ? `${u.label || 'Selected'} (${u.lat.toFixed(4)}, ${u.lng.toFixed(4)})` : 'Not selected yet'}</div>
+    `;
+  }
+
+  async function saveFuturePathV7(){
+    const studentName = document.getElementById('distanceStudentNameV7')?.value?.trim();
+    const schoolPoint = window.__SNIPER_RUNTIME__.selectedSchool || null;
+    const universityPoint = window.__SNIPER_RUNTIME__.selectedUniversity || null;
+
+    if (!studentName) return window.showNotification?.('error', 'Name needed', 'Enter your name first.');
+    if (!schoolPoint && !universityPoint) return window.showNotification?.('error', 'No pin selected', 'Open Google Maps, then enter coordinates and confirm them here.');
+
+    try{
+      const res = await fetch(apiUrl('/api/destinations/pin-submit'), {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ studentName, schoolPoint, universityPoint })
+      });
+      const data = await res.json();
+      if (!data.success) return window.showNotification?.('error', 'Could not save', data.error || 'Save failed.');
+      window.showNotification?.('success', 'Saved', 'Your future path is now on the class globe.');
+      loadClassPathsGlobeV7();
+    }catch(e){
+      window.showNotification?.('error', 'Could not save', e.message);
+    }
+  }
+
+  async function loadClassPathsGlobeV7(){
+    try{
+      const res = await fetch(apiUrl('/api/destinations/pin-submissions'));
+      const data = await res.json();
+      if (!data.success) return;
+      renderGlobeV7(data.submissions || []);
+    }catch(_){}
+  }
+
+  function renderGlobeV7(rows){
+    const globe = window.__SNIPER_PATCH_V5__ ? window.__SNIPER_RUNTIME__?.v5GlobeRef || null : null;
+    const runtime = window.__SNIPER_RUNTIME__;
+    const g = (window.__SNIPER_PATCH_V5__ && window.__SNIPER_RUNTIME__ && window.__SNIPER_RUNTIME__.globeRef) || window.__sniperGlobeRef || null;
+
+    const activeGlobe = g || window.__SNIPER_GLOBE__ || null;
+    const schoolOrigin = { lat: 12.9716, lng: 77.5946, label: 'Cornerstone International School' };
+
+    const points = [
+      { ...schoolOrigin, color:'#ffd84d', radius:0.42, alt:0.065, label:schoolOrigin.label }
+    ];
+    const arcs = [];
+
+    rows.forEach(r => {
+      if (r.schoolPoint) {
+        points.push({
+          lat: r.schoolPoint.lat,
+          lng: r.schoolPoint.lng,
+          color: '#55b9ff',
+          radius: 0.28,
+          alt: 0.05,
+          label: `${r.studentName} • 11th / 12th`
+        });
+        arcs.push({
+          startLat: schoolOrigin.lat,
+          startLng: schoolOrigin.lng,
+          endLat: r.schoolPoint.lat,
+          endLng: r.schoolPoint.lng,
+          color: ['#55b9ff']
+        });
+      }
+      if (r.universityPoint) {
+        points.push({
+          lat: r.universityPoint.lat,
+          lng: r.universityPoint.lng,
+          color: '#ff7aa8',
+          radius: 0.28,
+          alt: 0.05,
+          label: `${r.studentName} • University`
+        });
+        arcs.push({
+          startLat: schoolOrigin.lat,
+          startLng: schoolOrigin.lng,
+          endLat: r.universityPoint.lat,
+          endLng: r.universityPoint.lng,
+          color: ['#ff7aa8']
+        });
+      }
+    });
+
+    const s = runtime.selectedSchool;
+    const u = runtime.selectedUniversity;
+    if (s) points.push({ lat:s.lat, lng:s.lng, color:'#8be1ff', radius:0.33, alt:0.055, label:'Unsaved school point' });
+    if (u) points.push({ lat:u.lat, lng:u.lng, color:'#ff9ebd', radius:0.33, alt:0.055, label:'Unsaved university point' });
+
+    if (activeGlobe) {
+      try {
+        activeGlobe.pointsData(points);
+        activeGlobe.arcsData(arcs);
+      } catch(_){}
+    }
+
+    const stats = document.getElementById('distanceOverlayStats');
+    if (stats) {
+      const students = rows.length;
+      const schoolPins = rows.filter(r => r.schoolPoint).length;
+      const uniPins = rows.filter(r => r.universityPoint).length;
+      stats.innerHTML = `
+        <div class="distance-stat-pill">${students} students plotted</div>
+        <div class="distance-stat-pill">${schoolPins} school paths</div>
+        <div class="distance-stat-pill">${uniPins} university dreams</div>
+      `;
+    }
+  }
+
+  function installAdminMusicPanelV7(){
+    const old = window.renderSettingsPanelHtml;
+    if (typeof old !== 'function' || old.__sniperV7Wrapped) return;
+
+    window.renderSettingsPanelHtml = function(){
+      let html = old.apply(this, arguments);
+      if (html.includes('sniperMusicAdminPanelV7')) return html;
+
+      const inject = `
+      <div id="sniperMusicAdminPanelV7" style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+        <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Comprehensive Music Settings</h4>
+        <p class="mini-pill" style="margin-bottom:10px;">Use file names from the root <strong>music</strong> folder. Example: <strong>ambient.mp3</strong>.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Site Ambient Music</label><input class="form-input" id="setMusicAmbientSiteMusicV7" placeholder="ambient.mp3" /></div>
+          <div class="form-group"><label>Lean Back Music</label><input class="form-input" id="setMusicLeanBackMusicV7" placeholder="leanback.mp3" /></div>
+          <div class="form-group"><label>Last Bell Music</label><input class="form-input" id="setMusicLastBellMusicV7" placeholder="lastbell.mp3" /></div>
+          <div class="form-group"><label>Globe Music</label><input class="form-input" id="setMusicGlobeMusicV7" placeholder="globe.mp3" /></div>
+          <div class="form-group"><label>Ghost Cursor Popup Music</label><input class="form-input" id="setMusicGhostPopupMusicV7" placeholder="ghost.mp3" /></div>
+          <div class="form-group"><label>Notes Popup Music</label><input class="form-input" id="setMusicNotesPopupMusicV7" placeholder="notes.mp3" /></div>
+          <div class="form-group"><label>Boombox Graduation Vibes</label><input class="form-input" id="setMusicBoomboxGraduationVibesV7" placeholder="graduation.mp3" /></div>
+          <div class="form-group"><label>Boombox Sad Boi Hours</label><input class="form-input" id="setMusicBoomboxSadBoiHoursV7" placeholder="sadboi.mp3" /></div>
+          <div class="form-group"><label>Boombox Hype</label><input class="form-input" id="setMusicBoomboxHypeV7" placeholder="hype.mp3" /></div>
+          <div class="form-group"><label>Locker Slam Sound</label><input class="form-input" id="setMusicLockerBangV7" placeholder="lockerbang.mp3" /></div>
+        </div>
+      </div>`;
+
+      return html.replace('</div></div></div>', inject + '</div></div></div>');
+    };
+    window.renderSettingsPanelHtml.__sniperV7Wrapped = true;
+
+    const oldRead = window.readSettingsFromEditor;
+    if (typeof oldRead === 'function' && !oldRead.__sniperV7Wrapped){
+      window.readSettingsFromEditor = function(){
+        const s = oldRead.apply(this, arguments);
+        s.music = Object.assign({}, s.music || {}, {
+          ambientSiteMusic: document.getElementById('setMusicAmbientSiteMusicV7')?.value?.trim() || '',
+          leanBackMusic: document.getElementById('setMusicLeanBackMusicV7')?.value?.trim() || '',
+          lastBellMusic: document.getElementById('setMusicLastBellMusicV7')?.value?.trim() || '',
+          globeMusic: document.getElementById('setMusicGlobeMusicV7')?.value?.trim() || '',
+          ghostPopupMusic: document.getElementById('setMusicGhostPopupMusicV7')?.value?.trim() || '',
+          notesPopupMusic: document.getElementById('setMusicNotesPopupMusicV7')?.value?.trim() || '',
+          boomboxGraduationVibes: document.getElementById('setMusicBoomboxGraduationVibesV7')?.value?.trim() || '',
+          boomboxSadBoiHours: document.getElementById('setMusicBoomboxSadBoiHoursV7')?.value?.trim() || '',
+          boomboxHype: document.getElementById('setMusicBoomboxHypeV7')?.value?.trim() || '',
+          lockerBangSound: document.getElementById('setMusicLockerBangV7')?.value?.trim() || ''
+        });
+        return s;
+      };
+      window.readSettingsFromEditor.__sniperV7Wrapped = true;
+    }
+
+    const oldSync = window.syncSettingsEditor;
+    if (typeof oldSync === 'function' && !oldSync.__sniperV7Wrapped){
+      window.syncSettingsEditor = function(){
+        oldSync.apply(this, arguments);
+        const music = (window.state?.settings?.music) || {};
+        const put = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.value = val || '';
+        };
+        put('setMusicAmbientSiteMusicV7', music.ambientSiteMusic);
+        put('setMusicLeanBackMusicV7', music.leanBackMusic);
+        put('setMusicLastBellMusicV7', music.lastBellMusic);
+        put('setMusicGlobeMusicV7', music.globeMusic);
+        put('setMusicGhostPopupMusicV7', music.ghostPopupMusic);
+        put('setMusicNotesPopupMusicV7', music.notesPopupMusic);
+        put('setMusicBoomboxGraduationVibesV7', music.boomboxGraduationVibes);
+        put('setMusicBoomboxSadBoiHoursV7', music.boomboxSadBoiHours);
+        put('setMusicBoomboxHypeV7', music.boomboxHype);
+        put('setMusicLockerBangV7', music.lockerBangSound);
+      };
+      window.syncSettingsEditor.__sniperV7Wrapped = true;
+    }
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>

@@ -1,0 +1,15 @@
+<!-- FRAGMENT: mood -->
+<style data-fragment-style="mood">
+#moodBoardSection{background:var(--navy-medium)}.mood-options{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:28px}.mood-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 22px;clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);border:none;background:rgba(255,255,255,.06);cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1);font-family:var(--font-body);color:#fff;min-width:100px;min-height:100px;position:relative}.mood-btn:hover{transform:translateY(-6px) scale(1.1);background:rgba(212,175,55,.15);filter:drop-shadow(0 0 12px rgba(212,175,55,.5))}.mood-btn.voted{background:rgba(212,175,55,.2);filter:drop-shadow(0 0 16px rgba(212,175,55,.7))}.mood-emoji{font-size:2.2rem}.mood-label{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;opacity:.8}.mood-count{font-size:.85rem;color:var(--primary-gold);font-weight:700}.mood-bar-wrap{max-width:700px;margin:0 auto;display:grid;gap:10px}.mood-bar-row{display:grid;grid-template-columns:100px 1fr 50px;align-items:center;gap:10px}.mood-bar-bg{height:10px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden}.mood-bar-fill{height:100%;border-radius:5px;background:var(--gradient-gold);transition:width .7s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}.mood-bar-fill::after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:barScan 2s linear infinite}
+</style>
+<section class="ff-section-hidden" id="moodBoardSection">
+<div class="container">
+<div class="section-header">
+<span class="section-badge">Class Vibe Check</span>
+<h2 class="section-title">How We <span class="highlight">Feel</span></h2>
+<p class="section-description">One tap — tell the class how you're feeling about Farewell.</p>
+</div>
+<div class="mood-options" id="moodOptions"></div>
+<div class="mood-bar-wrap" id="moodBars"></div>
+</div>
+</section>

@@ -1,0 +1,35 @@
+<!-- FRAGMENT: capsule -->
+<style data-fragment-style="capsule">
+#timeCapsuleSection{background:linear-gradient(180deg,var(--navy-dark) 0%,#0c1525 100%)}.capsule-icon{font-size:5rem;display:inline-block;filter:drop-shadow(0 10px 30px rgba(212,175,55,.35));animation:capsulePulse 3s ease-in-out infinite}.capsule-sealed-list{max-width:680px;margin:30px auto 0;display:grid;gap:12px}.capsule-sealed-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}.capsule-lock{font-size:1.6rem}.capsule-from{font-weight:700;font-size:.95rem}.capsule-open{font-size:.8rem;color:var(--primary-gold);margin-top:3px}
+</style>
+<section class="ff-section-hidden" id="timeCapsuleSection">
+<div class="container">
+<div class="section-header">
+<span class="section-badge">Future You</span>
+<h2 class="section-title">Time <span class="highlight">Capsule</span></h2>
+<p class="section-description">Write a letter to yourself. It will be revealed on the date you choose.</p>
+</div>
+<div style="position:relative;display:inline-block;left:50%;transform:translateX(-50%);margin-bottom:28px;">
+<span class="capsule-icon">📮</span>
+<svg height="200" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;" viewbox="0 0 200 200" width="200">
+<circle cx="100" cy="100" fill="none" r="70" stroke="rgba(212,175,55,.15)" stroke-width="1"></circle>
+<circle cx="100" cy="100" fill="none" r="90" stroke="rgba(212,175,55,.08)" stroke-width="1"></circle>
+<line stroke="rgba(212,175,55,.5)" stroke-width="1.5" style="transform-origin:100px 100px;animation:radarSpin 3s linear infinite;" x1="100" x2="170" y1="100" y2="100"></line>
+<circle cx="100" cy="100" fill="rgba(212,175,55,.6)" r="4"></circle>
+</svg>
+</div>
+<div class="ff-form-box">
+<div class="ff-grid-2">
+<div><label class="ff-label">Your Name</label><input class="ff-input" id="capsuleName" maxlength="60" placeholder="Your name"/></div>
+<div><label class="ff-label">Reveal On</label><input class="ff-input" id="capsuleRevealDate" type="date"/></div>
+</div>
+<label class="ff-label">Letter to Future You</label>
+<textarea class="ff-input" id="capsuleLetter" maxlength="1200" placeholder="Dear future me..." style="min-height:160px;"></textarea>
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+<button class="ff-submit-btn" onclick="submitTimeCapsule()" type="button">Seal &amp; Send 📮</button>
+<span style="font-size:.82rem;color:rgba(255,255,255,.45);">Stays sealed until reveal date</span>
+</div>
+</div>
+<div class="capsule-sealed-list" id="capsuleSealedList"></div>
+</div>
+</section>

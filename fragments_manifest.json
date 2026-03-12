@@ -1,0 +1,30 @@
+{
+  "created": {
+    "navbar": "fragments/navbar.html",
+    "hero": "fragments/hero.html",
+    "countdown": "fragments/countdown.html",
+    "upload": "fragments/upload_ur_memories.html",
+    "memories": "fragments/our_memories.html",
+    "compilations": "fragments/memory_compilations.html",
+    "teachers": "fragments/our_beloved_teachers.html",
+    "timeline": "fragments/through_the_years.html",
+    "quote": "fragments/quote.html",
+    "gratitude": "fragments/gratitudewall.html",
+    "superlatives": "fragments/class_superlatives.html",
+    "wishjar": "fragments/wishjar.html",
+    "dedications": "fragments/songdedications.html",
+    "mood": "fragments/howwefeel.html",
+    "capsule": "fragments/timecapsule.html",
+    "stereodeck": "fragments/cornerstonestereodeck.html",
+    "globe": "fragments/globe.html",
+    "footer": "fragments/footer.html",
+    "admin_nav_top": "fragments/admin/admin_navbar_top.html",
+    "admin_moderation": "fragments/admin/moderation.html",
+    "admin_sitesettings": "fragments/admin/sitesettings.html",
+    "admin_theme": "fragments/admin/theme.html",
+    "admin_users": "fragments/admin/users.html",
+    "admin_compilations": "fragments/admin/compilations.html",
+    "admin_security": "fragments/admin/security.html"
+  },
+  "notes": []
+}

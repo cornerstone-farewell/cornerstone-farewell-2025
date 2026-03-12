@@ -1,0 +1,120 @@
+<!-- FRAGMENT: footer -->
+<style data-fragment-style="footer">
+footer { background: var(--navy-dark); border-top: 1px solid var(--glass-border); padding: 60px 20px 30px; }.footer-content {
+      max-width: var(--container-width);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+      margin-bottom: 40px;
+    }.footer-section h4 { font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 20px; color: var(--primary-gold); }.footer-section p { color: var(--text-muted); line-height: 1.8; }.footer-links { list-style: none; }.footer-links li { margin-bottom: 10px; }.footer-links a { color: var(--text-muted); text-decoration: none; transition: var(--transition-smooth); }.footer-links a:hover { color: var(--primary-gold); }.footer-bottom { text-align: center; padding-top: 30px; border-top: 1px solid var(--glass-border); color: var(--text-muted); font-size: 0.9rem; }@media (max-width: 480px) {
+.footer-content { grid-template-columns: 1fr; text-align: center; }
+}
+</style>
+<footer>
+<div class="footer-content">
+<div class="footer-section">
+<h4 id="uiFooterSchool">Cornerstone</h4>
+<p id="uiFooterDesc">Cornerstone International School - Where futures are built and memories are made.</p>
+</div>
+<div class="footer-section">
+<h4 id="uiFooterQuickLinksTitle">Quick Links</h4>
+<ul class="footer-links">
+<li><a href="#home">Home</a></li>
+<li><a href="#memories">Memory Wall</a></li>
+<li><a href="#compilations">Memory Compilations</a></li>
+<li><a href="#upload">Upload Memory</a></li>
+<li><a href="#teachers">Teachers</a></li>
+</ul>
+</div>
+<div class="footer-section">
+<h4 id="uiFooterContactTitle">Contact</h4>
+<ul class="footer-links">
+<li id="uiFooterLocation">Cornerstone International School</li>
+<li><a href="mailto:farewell2025@cornerstone.edu" id="uiFooterEmailLink">farewell2025@cornerstone.edu</a></li>
+<li id="uiFooterContactNote">Contact School Office</li>
+</ul>
+</div>
+</div>
+<div class="footer-bottom">
+<p id="uiFooterMadeBy">Made with ♥ by the Class of 2025</p>
+<p id="uiFooterCopyright" style="margin-top: 10px; opacity: 0.7;">© 2025 Cornerstone International School. All rights reserved.</p>
+</div>
+</footer>
+<div class="notification" id="notification">
+<span class="notification-icon" id="notificationIcon">✓</span>
+<div class="notification-content">
+<div class="notification-title" id="notificationTitle">Success</div>
+<div class="notification-message" id="notificationMessage">Operation completed successfully.</div>
+</div>
+<button class="notification-close" onclick="hideNotification()">✕</button>
+</div>
+<div class="confetti-container" id="confettiContainer"></div>
+<div class="admin-overlay" id="batchUploadModal">
+<button class="admin-close" onclick="closeBatchUpload()">✕</button>
+<div class="admin-login-card" style="max-width: 500px; padding: 30px; text-align: left;">
+<h2 style="font-family: var(--font-display); color: var(--primary-gold); margin-bottom: 20px; text-align: center;">Batch Upload</h2>
+<div class="form-group">
+<label>Batch Name (Uploader)</label>
+<input class="form-input" id="batchName" placeholder="Admin Team" type="text"/>
+</div>
+<div class="form-group">
+<label>Default Caption</label>
+<input class="form-input" id="batchCaption" placeholder="Memory from event..." type="text"/>
+</div>
+<div class="form-group">
+<label>Category</label>
+<select class="form-select" id="batchType">
+<option value="Friends">Friends</option>
+<option value="Teachers">Teachers</option>
+<option value="Events">Events</option>
+<option value="Fun Moments">Fun Moments</option>
+<option value="Sports">Sports</option>
+<option value="Academics">Academics</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+<input checked="" id="batchAutoApprove" style="transform: scale(1.2);" type="checkbox"/>
+<label style="margin-bottom: 0;">Auto-Approve immediately</label>
+</div>
+<div class="form-group" style="margin-top: 15px;">
+<label class="btn btn-secondary" style="width: 100%; justify-content: center; cursor: pointer; border-style: dashed;">
+<span id="batchFileLabel">Click to select files</span>
+<input accept="image/*,video/*" id="batchFiles" multiple="" onchange="updateBatchFileCount(this)" style="display: none;" type="file"/>
+</label>
+</div>
+<div class="upload-progress" id="batchProgress" style="display:none; margin-top: 15px;">
+<div class="progress-bar"><div class="progress-fill" id="batchProgressFill"></div></div>
+<p class="progress-text" id="batchProgressText" style="text-align: center;">Uploading batch...</p>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 25px;">
+<button class="btn btn-primary" id="btnStartBatch" onclick="submitBatchUpload()" style="flex: 1; justify-content: center;">Start Upload</button>
+</div>
+</div>
+</div>
+<!-- Intro Video Overlay -->
+<!-- Teachers / Timeline / Quote / Footer kept from previous version (rendered from settings) -->
+<!-- GRATITUDE WALL -->
+<!-- SUPERLATIVES -->
+<!-- WISH JAR -->
+<!-- SONG DEDICATIONS -->
+<!-- MOOD BOARD -->
+<!-- TIME CAPSULE -->
+<!-- MEMORY MOSAIC -->
+<section class="ff-section-hidden" id="memoryMosaicSection">
+<div class="container">
+<div class="section-header">
+<span class="section-badge">Contribution Board</span>
+<h2 class="section-title">Memory <span class="highlight">Mosaic</span></h2>
+<p class="section-description">Everyone who contributed to the memory wall — ranked by uploads.</p>
+</div>
+<div class="mosaic-grid" id="mosaicGrid"><div class="ff-empty">Loading contributors...</div></div>
+</div>
+</section>
+<!-- Lightbox -->
+<!-- Admin Login Overlay -->
+<!-- Compilation Creator Modal -->
+<!-- Compilation Player -->
+<!-- Batch Upload Modal -->
+<link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>

@@ -1,0 +1,31 @@
+<!-- FRAGMENT: teachers -->
+<style data-fragment-style="teachers">
+#teachers { background: var(--navy-dark); }.teachers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }.teacher-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 25px; padding: 30px; text-align: center; transition: var(--transition-smooth); }.teacher-card:hover { transform: translateY(-10px); border-color: var(--primary-gold); box-shadow: var(--shadow-gold); }.teacher-image {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      background: var(--gradient-gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem;
+      overflow: hidden;
+      color: var(--navy-dark);
+      font-weight: 800;
+    }.teacher-image img { width: 100%; height: 100%; object-fit: cover; }.teacher-name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; margin-bottom: 5px; }.teacher-subject { color: var(--primary-gold); font-size: 0.95rem; margin-bottom: 15px; }.teacher-quote { font-style: italic; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; }@media (max-width: 480px) {
+.teachers-grid { grid-template-columns: 1fr; }
+}
+
+.teacher-card{position:relative}.teacher-audio-badge{
+  position:absolute; top:12px; right:12px; z-index:3; padding:6px 10px; border-radius:999px;
+  background:rgba(0,0,0,.55); color:var(--primary-gold); font-size:.75rem; border:1px solid rgba(255,255,255,.12);
+}
+</style>
+<section id="teachers">
+<div class="container">
+<div class="section-header">
+<span class="section-badge" id="uiTeachersBadge">Our Guides</span>
+<h2 class="section-title" id="uiTeachersTitle">Beloved <span class="highlight">Teachers</span></h2>
+<p class="section-description" id="uiTeachersDesc">The mentors who shaped our minds and hearts</p>
+</div>
+<div class="teachers-grid" id="teachersGrid"></div>
+</div>
+</section>
