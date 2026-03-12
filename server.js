@@ -601,7 +601,7 @@ app.get('/api/memories', (req, res) => {
     const db = readDB();
 
     const page = Math.max(1, parseInt(req.query.page || '1', 10));
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '20', 10)));
+    const limit = Math.min(500000, Math.max(1, parseInt(req.query.limit || '20', 10)));
     const type = req.query.type || 'all';
     const cursor = req.query.cursor ? new Date(req.query.cursor) : null; // optional
 

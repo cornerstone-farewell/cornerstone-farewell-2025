@@ -996,151 +996,98 @@ document.addEventListener('DOMContentLoaded', async () => {
     <!-- FRAGMENT: hero -->
   <style data-fragment-style="hero">
   .hero {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    background: var(--gradient-navy);
-  }
-  .hero-bg {
-    position: absolute; top:0; left:0; right:0; bottom:0;
-    background:
-      radial-gradient(ellipse at 20% 80%, rgba(212, 175, 55, 0.15) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(123, 45, 142, 0.1) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 50%, rgba(15, 52, 96, 0.3) 0%, transparent 70%);
-  }
-  .hero-content {
-    text-align: center;
-    z-index: 10;
-    padding: 0 20px;
-    max-width: 900px;
-  }
-  .hero-badge {
-    display: inline-block;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    padding: 10px 25px;
-    border-radius: 30px;
-    font-size: 0.9rem;
-    color: var(--primary-gold);
-    margin-bottom: 30px;
-    backdrop-filter: blur(10px);
-    animation: fadeInUp 0.8s ease;
-  }
-  .hero-title {
-    font-family: var(--font-display);
-    font-size: clamp(3rem, 8vw, 6rem);
-    font-weight: 700;
-    line-height: 1.1;
-    margin-bottom: 20px;
-    animation: fadeInUp 0.8s ease 0.2s both;
-  }
-  .hero-title .highlight {
-    background: var(--gradient-gold);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .hero-subtitle {
-    font-family: var(--font-script);
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    color: var(--primary-gold-light);
-    margin-bottom: 20px;
-    animation: fadeInUp 0.8s ease 0.4s both;
-  }
-  .hero-description {
-    font-size: 1.2rem;
-    color: var(--text-muted);
-    max-width: 600px;
-    margin: 0 auto 40px;
-    animation: fadeInUp 0.8s ease 0.6s both;
-  }
-  .hero-buttons {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
-    animation: fadeInUp 0.8s ease 0.8s both;
-  }
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        background: var(--gradient-navy);
+      }.hero-bg {
+        position: absolute; top:0; left:0; right:0; bottom:0;
+        background:
+          radial-gradient(ellipse at 20% 80%, rgba(212, 175, 55, 0.15) 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 20%, rgba(123, 45, 142, 0.1) 0%, transparent 50%),
+          radial-gradient(ellipse at 50% 50%, rgba(15, 52, 96, 0.3) 0%, transparent 70%);
+      }.hero-content {
+        text-align: center;
+        z-index: 10;
+        padding: 0 20px;
+        max-width: 900px;
+      }.hero-badge {
+        display: inline-block;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        padding: 10px 25px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        color: var(--primary-gold);
+        margin-bottom: 30px;
+        backdrop-filter: blur(10px);
+        animation: fadeInUp 0.8s ease;
+      }.hero-title {
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 8vw, 6rem);
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 20px;
+        animation: fadeInUp 0.8s ease 0.2s both;
+      }.hero-title .highlight {
+        background: var(--gradient-gold);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }.hero-subtitle {
+        font-family: var(--font-script);
+        font-size: clamp(1.5rem, 4vw, 2.5rem);
+        color: var(--primary-gold-light);
+        margin-bottom: 20px;
+        animation: fadeInUp 0.8s ease 0.4s both;
+      }.hero-description {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto 40px;
+        animation: fadeInUp 0.8s ease 0.6s both;
+      }.hero-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.8s ease 0.8s both;
+      }
 
-  /* INTRO VIDEO - HIDDEN BY DEFAULT */
-  .intro-video-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: #000;
-    z-index: 9999;
-    display: none; /* HIDDEN BY DEFAULT */
-    align-items: center;
-    justify-content: center;
-  }
-  .intro-video-overlay.active {
-    display: flex; /* Only show when active class is added */
-  }
-  .intro-video-overlay.hidden {
-    display: none !important;
-  }
-  .intro-video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .skip-intro-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    padding: 12px 24px;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: white;
-    border-radius: 25px;
-    cursor: pointer;
-    font-family: var(--font-body);
-    font-size: 0.95rem;
-    backdrop-filter: blur(10px);
-    transition: var(--transition-smooth);
-    z-index: 10;
-  }
-  .skip-intro-btn:hover {
-    background: rgba(255,255,255,0.25);
-    transform: scale(1.05);
-  }
+  .intro-video-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }.intro-video-overlay.hidden { display: none !important; }.intro-video { width: 100%; height: 100%; object-fit: cover; }.skip-intro-btn { position: absolute; top: 20px; right: 20px; padding: 12px 24px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 25px; cursor: pointer; font-family: var(--font-body); font-size: 0.95rem; backdrop-filter: blur(10px); transition: var(--transition-smooth); z-index: 10; }.skip-intro-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
 
   @media (max-width: 480px) {
-    .hero-buttons { flex-direction: column; width: 100%; padding: 0 20px; }
+  .hero-buttons { flex-direction: column; width: 100%; padding: 0 20px; }
   }
   </style>
-
-  <!-- INTRO VIDEO OVERLAY - Hidden by default, shown only if video is configured -->
   <div class="intro-video-overlay" id="introVideoOverlay">
-    <video autoplay class="intro-video" id="introVideo" playsinline muted></video>
-    <div id="unmuteOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 15; display: none; align-items: center; justify-content: center; cursor: pointer; background: rgba(0,0,0,0.3);">
-      <div style="padding: 15px 30px; font-size: 1.5rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none;">🔊 Tap Anywhere for Sound</div>
-    </div>
-    <button class="skip-intro-btn" id="skipIntroBtn" style="z-index: 20;">Skip →</button>
+  <video autoplay="" class="intro-video" id="introVideo" playsinline=""></video>
+  <div id="unmuteOverlay" onclick="forceUnmute()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 15; display: none; align-items: center; justify-content: center; cursor: pointer; background: rgba(0,0,0,0.3);">
+  <div style="padding: 15px 30px; font-size: 1.5rem; background: var(--primary-gold); color: var(--navy-dark); font-weight: bold; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); pointer-events: none;">🔊 Tap Anywhere for Sound</div>
   </div>
-
+  <button class="skip-intro-btn" id="skipIntroBtn" style="z-index: 20;">Skip →</button>
+  <button class="toggle-intro-controls" id="toggleIntroControls" style="display:none;">⚙</button>
+  </div>
   <div id="particles-container"></div>
-
   <section class="hero" id="home">
-    <div class="hero-bg"></div>
-    <div class="hero-content">
-      <div class="hero-badge" id="uiHeroBadge">Class of 2025</div>
-      <h1 class="hero-title" id="uiHeroTitle">Farewell <span class="highlight">2025</span></h1>
-      <p class="hero-subtitle" id="uiHeroSubtitle">Where Memories Become Eternal</p>
-      <p class="hero-description" id="uiHeroDescription">
-        As we close this chapter and begin new journeys, let's celebrate the friendships, lessons, and memories that shaped us.
-      </p>
-      <div class="hero-buttons">
-        <a class="btn btn-primary" href="#upload">Share Your Memory</a>
-        <a class="btn btn-secondary" href="#memories">View Memory Wall</a>
-      </div>
-    </div>
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+  <div class="hero-badge" id="uiHeroBadge">Class of 2025</div>
+  <h1 class="hero-title" id="uiHeroTitle">Farewell <span class="highlight">2025</span></h1>
+  <p class="hero-subtitle" id="uiHeroSubtitle">Where Memories Become Eternal</p>
+  <p class="hero-description" id="uiHeroDescription">
+          As we close this chapter and begin new journeys, let's celebrate the friendships, lessons, and memories that shaped us.
+        </p>
+  <div class="hero-buttons">
+  <a class="btn btn-primary" href="#upload">Share Your Memory</a>
+  <a class="btn btn-secondary" href="#memories">View Memory Wall</a>
+  </div>
+  </div>
   </section>
-
   <script data-fragment-script="hero">
-  // ═══════════════════════════════════════════════════════════════════════════════
   // INTRO VIDEO
   // ═══════════════════════════════════════════════════════════════════════════════
   window.forceUnmute = function() {
@@ -1164,27 +1111,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     const skipBtn = document.getElementById('skipIntroBtn');
     const unmuteOverlay = document.getElementById('unmuteOverlay');
 
-    if (!overlay || !video) {
-      console.log('[Hero] No intro video elements found');
-      return;
-    }
+    try {
+      localStorage.removeItem('introSeen');
+      sessionStorage.removeItem('introSeen');
+    } catch (e) {}
 
-    // Check if intro video is configured
-    const introPath = state?.settings?.introVideoPath;
-  
+    if (!overlay || !video) return;
+
+    const introPath = state.settings?.introVideoPath;
     if (!introPath) {
-      console.log('[Hero] No intro video configured, hiding overlay');
       overlay.style.display = 'none';
       overlay.classList.add('hidden');
-      overlay.classList.remove('active');
       return;
     }
 
-    console.log('[Hero] Intro video configured:', introPath);
-  
-    // Show the overlay
-    overlay.classList.add('active');
+    overlay.style.display = 'flex';
     overlay.classList.remove('hidden');
+    overlay.style.opacity = '1';
 
     if (unmuteOverlay) {
       unmuteOverlay.style.display = 'none';
@@ -1200,17 +1143,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     video.load();
 
     video.onended = () => skipIntro();
-    video.onerror = () => {
-      console.error('[Hero] Video error, skipping');
-      skipIntro();
-    };
+    video.onerror = () => skipIntro();
 
     if (skipBtn) {
       skipBtn.onclick = (e) => {
         e.stopPropagation();
         skipIntro();
       };
-      skipBtn.style.display = state?.settings?.introHideSkip ? 'none' : '';
+      skipBtn.style.display = state.settings?.introHideSkip ? 'none' : '';
     }
 
     try {
@@ -1218,13 +1158,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       await video.play();
       if (unmuteOverlay) unmuteOverlay.style.display = 'none';
     } catch (err) {
-      console.log('[Hero] Autoplay with sound failed, trying muted');
       try {
         video.muted = true;
         await video.play();
         if (unmuteOverlay) unmuteOverlay.style.display = 'flex';
       } catch (err2) {
-        console.log('[Hero] Muted autoplay also failed');
         if (unmuteOverlay) unmuteOverlay.style.display = 'flex';
       }
     }
@@ -1240,7 +1178,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       setTimeout(() => {
         overlay.style.display = 'none';
         overlay.classList.add('hidden');
-        overlay.classList.remove('active');
       }, 500);
     }
 
@@ -1248,280 +1185,738 @@ document.addEventListener('DOMContentLoaded', async () => {
       video.pause();
       video.currentTime = 0;
     }
-  
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // ADMIN FUNCTIONS (Video & Hashes)
+  // MISSING ADMIN FUNCTIONS (Video & Hashes)
   // ═══════════════════════════════════════════════════════════════════════════════
   async function uploadIntroVideoFile(file) {
-    if (!file) return;
-    const status = document.getElementById('currentIntroVideoStatus');
-    if (status) status.textContent = 'Uploading...';
-    const fd = new FormData();
-    fd.append('file', file);
-    try {
-      const res = await fetch(apiUrl('/api/admin/settings/intro-video'), {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + state.adminToken },
-        body: fd
-      });
-      const data = await res.json();
-      if (data.success) {
-        showNotification('success', 'Uploaded', 'Intro video saved.');
-        if (status) status.textContent = 'Video uploaded successfully';
-        state.settings.introVideoPath = data.path;
-      } else {
-        showNotification('error', 'Failed', data.error || 'Upload failed');
-        if (status) status.textContent = 'Upload failed';
+      if (!file) return;
+      const status = document.getElementById('currentIntroVideoStatus');
+      if (status) status.textContent = 'Uploading...';
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+          const res = await fetch(apiUrl('/api/admin/settings/intro-video'), {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + state.adminToken },
+              body: fd
+          });
+          const data = await res.json();
+          if (data.success) {
+              showNotification('success', 'Uploaded', 'Intro video saved.');
+              if (status) status.textContent = 'Video uploaded successfully';
+              state.settings.introVideoPath = data.path;
+          } else {
+              showNotification('error', 'Failed', data.error || 'Upload failed');
+              if (status) status.textContent = 'Upload failed';
+          }
+      } catch (e) {
+          showNotification('error', 'Error', e.message);
+          if (status) status.textContent = 'Upload error';
       }
-    } catch (e) {
-      showNotification('error', 'Error', e.message);
-      if (status) status.textContent = 'Upload error';
-    }
   }
 
   async function removeIntroVideo() {
-    if (!confirm('Remove intro video?')) return;
-    try {
-      const res = await fetch(apiUrl('/api/admin/settings/intro-video'), {
-        method: 'DELETE',
-        headers: { 'Authorization': 'Bearer ' + state.adminToken }
-      });
-      const data = await res.json();
-      if (data.success) {
-        showNotification('success', 'Removed', 'Intro video deleted.');
-        const status = document.getElementById('currentIntroVideoStatus');
-        if (status) status.textContent = 'No video';
-        state.settings.introVideoPath = null;
-      } else showNotification('error', 'Failed', data.error);
-    } catch (e) { showNotification('error', 'Error', e.message); }
+      if (!confirm('Remove intro video?')) return;
+      try {
+          const res = await fetch(apiUrl('/api/admin/settings/intro-video'), {
+              method: 'DELETE',
+              headers: { 'Authorization': 'Bearer ' + state.adminToken }
+          });
+          const data = await res.json();
+          if (data.success) {
+              showNotification('success', 'Removed', 'Intro video deleted.');
+              const status = document.getElementById('currentIntroVideoStatus');
+              if (status) status.textContent = 'No video';
+              state.settings.introVideoPath = null;
+          } else showNotification('error', 'Failed', data.error);
+      } catch (e) { showNotification('error', 'Error', e.message); }
   }
 
   async function resetUploadHashes() {
-    if (!confirm('Are you sure you want to reset all duplicate detection hashes?')) return;
-    try {
-      const res = await fetch(apiUrl('/api/admin/reset-hashes'), {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + state.adminToken }
-      });
-      const data = await res.json();
-      if (data.success) showNotification('success', 'Hashes Reset', 'Duplicate detection cleared.');
-      else showNotification('error', 'Failed', data.error);
-    } catch (e) { showNotification('error', 'Error', e.message); }
+      if (!confirm('Are you sure you want to reset all duplicate detection hashes?')) return;
+      try {
+          const res = await fetch(apiUrl('/api/admin/reset-hashes'), {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + state.adminToken }
+          });
+          const data = await res.json();
+          if (data.success) showNotification('success', 'Hashes Reset', 'Duplicate detection cleared.');
+          else showNotification('error', 'Failed', data.error);
+      } catch (e) { showNotification('error', 'Error', e.message); }
   }
+  // ═══════════════════════════════════════════════════════════════════════════════
+  </script>
+  <script data-fragment-script="hero">
+  /* === SNIPER_PATCH_V6_START === */
+  (function(){
+    if (window.__SNIPER_PATCH_V6__) return;
+    window.__SNIPER_PATCH_V6__ = true;
 
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // INITIALIZE ON SETTINGS LOAD
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // Wait for settings to load, then check intro video
-  document.addEventListener('DOMContentLoaded', () => {
-    // Hide overlay immediately by default
-    const overlay = document.getElementById('introVideoOverlay');
-    if (overlay) {
-      overlay.style.display = 'none';
+    const v6 = {
+      popupTriggered: false,
+      popupBound: false
+    };
+
+    function bootV6(){
+      patchGhostPopupLogic();
+      patchIntroReturnToTop();
+      refineGlobeLayout();
     }
-  
-    // Check after a short delay for settings to load
-    setTimeout(() => {
-      if (typeof initIntroVideo === 'function') {
-        initIntroVideo();
+
+    function introOverlayVisibleV6(){
+      const overlay = document.getElementById('introVideoOverlay');
+      if (!overlay) return false;
+      const cs = getComputedStyle(overlay);
+      if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+      if (overlay.classList.contains('hidden')) return false;
+      return true;
+    }
+
+    function refineGlobeLayout(){
+      const wrap = document.getElementById('distanceMapWrap');
+      const ui = document.getElementById('distanceGlobeUi');
+      const canvas = document.getElementById('distanceGlobeCanvas');
+      const actions = document.getElementById('distanceBottomActions');
+      if (!wrap || !ui || !canvas || !actions) return;
+
+      if (!ui.dataset.v6Fixed){
+        ui.dataset.v6Fixed = '1';
+        if (ui.parentElement === wrap) {
+          wrap.parentNode.insertBefore(ui, wrap);
+        }
       }
-    }, 500);
-  });
+      if (!actions.dataset.v6Fixed){
+        actions.dataset.v6Fixed = '1';
+        if (actions.parentElement === wrap) {
+          wrap.insertAdjacentElement('afterend', actions);
+        }
+      }
+    }
+
+    function patchGhostPopupLogic(){
+      if (v6.popupBound) return;
+      v6.popupBound = true;
+
+      const ghostPopup = document.getElementById('ghostCursorPopup');
+      const paperPopup = document.getElementById('paperTutorial');
+      if (ghostPopup) ghostPopup.classList.remove('active');
+      if (paperPopup) paperPopup.classList.remove('active');
+
+      const originalInstall = window.installScrollTriggeredPopups;
+      if (typeof originalInstall === 'function' && !originalInstall.__v6Wrapped){
+        window.installScrollTriggeredPopups = function(){
+          if (window.__sniperV6PopupInstalled) return;
+          window.__sniperV6PopupInstalled = true;
+
+          const tryShow = () => {
+            if (v6.popupTriggered) return;
+            if (introOverlayVisibleV6()) return;
+
+            const countdown = document.getElementById('countdown');
+            if (!countdown) return;
+
+            const rect = countdown.getBoundingClientRect();
+            const crossed = rect.bottom < window.innerHeight * 0.35;
+            if (!crossed) return;
+
+            v6.popupTriggered = true;
+            setTimeout(() => {
+              if (!introOverlayVisibleV6()) document.getElementById('ghostCursorPopup')?.classList.add('active');
+            }, 500);
+            setTimeout(() => {
+              if (!introOverlayVisibleV6()) document.getElementById('paperTutorial')?.classList.add('active');
+            }, 1700);
+
+            window.removeEventListener('scroll', tryShow);
+          };
+
+          window.addEventListener('scroll', tryShow, { passive: true });
+        };
+        window.installScrollTriggeredPopups.__v6Wrapped = true;
+      }
+
+      const oldSetupGhost = window.setupGhostCursors;
+      if (typeof oldSetupGhost === 'function' && !oldSetupGhost.__v6Wrapped){
+        window.setupGhostCursors = function(){
+          const out = oldSetupGhost.apply(this, arguments);
+          document.getElementById('ghostCursorPopup')?.classList.remove('active');
+          document.getElementById('paperTutorial')?.classList.remove('active');
+          return out;
+        };
+        window.setupGhostCursors.__v6Wrapped = true;
+      }
+
+      const oldInitPaper = window.initPaperAirplanes;
+      if (typeof oldInitPaper === 'function' && !oldInitPaper.__v6Wrapped){
+        window.initPaperAirplanes = function(){
+          const out = oldInitPaper.apply(this, arguments);
+          document.getElementById('paperTutorial')?.classList.remove('active');
+          return out;
+        };
+        window.initPaperAirplanes.__v6Wrapped = true;
+      }
+    }
+
+    function patchIntroReturnToTop(){
+      const oldSkip = window.skipIntro;
+      if (typeof oldSkip === 'function' && !oldSkip.__v6Wrapped){
+        window.skipIntro = function(){
+          const out = oldSkip.apply(this, arguments);
+          setTimeout(() => {
+            try{
+              window.scrollTo({ top: 0, behavior: 'auto' });
+              location.hash = '#home';
+            }catch(_){}
+          }, 620);
+          setTimeout(() => {
+            if (typeof window.installScrollTriggeredPopups === 'function') {
+              try { window.installScrollTriggeredPopups(); } catch(_){}
+            }
+          }, 900);
+          return out;
+        };
+        window.skipIntro.__v6Wrapped = true;
+      }
+
+      const introVideo = document.getElementById('introVideo');
+      if (introVideo && !introVideo.dataset.v6Bound){
+        introVideo.dataset.v6Bound = '1';
+        introVideo.addEventListener('ended', () => {
+          setTimeout(() => {
+            try{
+              window.scrollTo({ top: 0, behavior: 'auto' });
+              location.hash = '#home';
+            }catch(_){}
+          }, 650);
+        });
+      }
+    }
+
+    if (document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', bootV6);
+    } else {
+      bootV6();
+    }
+  })();
   </script>
 
     <!-- FRAGMENT: countdown -->
   <style data-fragment-style="countdown">
-  #countdown { 
-    background: linear-gradient(180deg, var(--navy-dark) 0%, var(--navy-medium) 100%); 
-  }
-  .countdown-container { 
-    display: flex; 
-    justify-content: center; 
-    gap: 30px; 
-    flex-wrap: wrap; 
-  }
-  .countdown-item {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 30px 40px;
-    text-align: center;
-    backdrop-filter: blur(10px);
-    min-width: 140px;
-    transition: var(--transition-smooth);
-  }
-  .countdown-item:hover { 
-    transform: translateY(-10px); 
-    border-color: var(--primary-gold); 
-    box-shadow: var(--shadow-gold); 
-  }
-  .countdown-number {
-    font-family: var(--font-display);
-    font-size: 4rem;
-    font-weight: 700;
-    background: var(--gradient-gold);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
-  }
-  .countdown-label { 
-    font-size: 0.9rem; 
-    color: var(--text-muted); 
-    text-transform: uppercase; 
-    letter-spacing: 2px; 
-    margin-top: 10px; 
+  #countdown { background: linear-gradient(180deg, var(--navy-dark) 0%, var(--navy-medium) 100%); }.countdown-container { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }.countdown-item {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 30px 40px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        min-width: 140px;
+        transition: var(--transition-smooth);
+      }.countdown-item:hover { transform: translateY(-10px); border-color: var(--primary-gold); box-shadow: var(--shadow-gold); }.countdown-number {
+        font-family: var(--font-display);
+        font-size: 4rem;
+        font-weight: 700;
+        background: var(--gradient-gold);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+      }.countdown-label { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; }@media (max-width: 768px) {
+  .countdown-container { gap: 15px; }
+  .countdown-item { padding: 20px 30px; min-width: 100px; }
+  .countdown-number { font-size: 2.5rem; }
   }
 
-  @media (max-width: 768px) {
-    .countdown-container { gap: 15px; }
-    .countdown-item { padding: 20px 30px; min-width: 100px; }
-    .countdown-number { font-size: 2.5rem; }
+  #countdownSuspense{
+    max-width:860px;
+    margin:34px auto 0;
+    display:grid;
+    gap:12px;
+  }.countdown-suspense-card{
+    padding:16px 18px;
+    border-radius:18px;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.12);
+    text-align:center;
+  }.countdown-suspense-card strong{
+    color:var(--primary-gold-light);
+  }#countdownSurpriseTease{
+    font-size:1rem;
+    color:var(--text-muted);
+  }#countdownSurpriseBanner{
+    display:none;
+    margin-top:18px;
+    padding:14px 16px;
+    border-radius:16px;
+    background:linear-gradient(135deg, rgba(212,175,55,.14), rgba(123,45,142,.18));
+    border:1px solid rgba(212,175,55,.35);
+    color:#fff;
+    text-align:center;
+  }#countdownSurpriseBanner.active{
+    display:block;
+    animation:fadeInUp .7s ease;
   }
   </style>
-
   <section id="countdown">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-badge" id="uiCountdownBadge">Mark Your Calendar</span>
-        <h2 class="section-title" id="uiCountdownTitle">Countdown to <span class="highlight">Farewell</span></h2>
-        <p class="section-description" id="uiCountdownDesc">The moment we've all been waiting for is almost here</p>
-      </div>
-      <div class="countdown-container">
-        <div class="countdown-item">
-          <div class="countdown-number" id="days">00</div>
-          <div class="countdown-label">Days</div>
-        </div>
-        <div class="countdown-item">
-          <div class="countdown-number" id="hours">00</div>
-          <div class="countdown-label">Hours</div>
-        </div>
-        <div class="countdown-item">
-          <div class="countdown-number" id="minutes">00</div>
-          <div class="countdown-label">Minutes</div>
-        </div>
-        <div class="countdown-item">
-          <div class="countdown-number" id="seconds">00</div>
-          <div class="countdown-label">Seconds</div>
-        </div>
-      </div>
-      <div class="event-date-display">
-        <p id="uiEventDateLine"><span>March 15, 2026</span> at <span>6:00 PM</span> IST</p>
-      </div>
-    </div>
+  <div class="container">
+  <div class="section-header">
+  <span class="section-badge" id="uiCountdownBadge">Mark Your Calendar</span>
+  <h2 class="section-title" id="uiCountdownTitle">Countdown to <span class="highlight">Farewell</span></h2>
+  <p class="section-description" id="uiCountdownDesc">The moment we've all been waiting for is almost here</p>
+  </div>
+  <div class="countdown-container">
+  <div class="countdown-item"><div class="countdown-number" id="days">00</div><div class="countdown-label">Days</div></div>
+  <div class="countdown-item"><div class="countdown-number" id="hours">00</div><div class="countdown-label">Hours</div></div>
+  <div class="countdown-item"><div class="countdown-number" id="minutes">00</div><div class="countdown-label">Minutes</div></div>
+  <div class="countdown-item"><div class="countdown-number" id="seconds">00</div><div class="countdown-label">Seconds</div></div>
+  </div>
+  <div class="event-date-display">
+  <p id="uiEventDateLine"><span>March 15, 2026</span> at <span>6:00 PM</span> IST</p>
+  </div>
+  </div>
   </section>
-
   <script data-fragment-script="countdown">
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // COUNTDOWN TIMER
-  // ═══════════════════════════════════════════════════════════════════════════════
-  (function() {
-    'use strict';
-  
-    let countdownInterval = null;
+  /* === SNIPER_PATCH_V4_START === */
+  (function(){
+    if (window.__SNIPER_PATCH_V4__) return;
+    window.__SNIPER_PATCH_V4__ = true;
 
-    function initCountdown() {
-      console.log('[Countdown] Initializing...');
-    
-      // Clear any existing interval
-      if (countdownInterval) {
-        clearInterval(countdownInterval);
-      }
-    
-      // Run immediately
-      updateCountdown();
-    
-      // Then every second
-      countdownInterval = setInterval(updateCountdown, 1000);
-    
-      console.log('[Countdown] Started');
+    const v4State = {
+      popupsArmed: false,
+      popupsShown: false,
+      countdownLockInstalled: false,
+      countdownTimerHandle: null,
+      destinationDataLoaded: false
+    };
+
+    function v4Boot(){
+      installCountdownEnhancements();
+      moveAndUpgradeDistanceSection();
+      installScrollTriggeredPopups();
+      hardenButtonsAndNotes();
+      patchDestinationFlow();
+      patchAdminDestinationPanel();
     }
 
-    function updateCountdown() {
-      const daysEl = document.getElementById('days');
-      const hoursEl = document.getElementById('hours');
-      const minutesEl = document.getElementById('minutes');
-      const secondsEl = document.getElementById('seconds');
-    
-      if (!daysEl || !hoursEl || !minutesEl || !secondsEl) {
-        return;
+    function installCountdownEnhancements(){
+      const section = document.getElementById('countdown');
+      const container = section?.querySelector('.container');
+      if (!section || !container || document.getElementById('countdownSuspense')) return;
+
+      const block = document.createElement('div');
+      block.id = 'countdownSuspense';
+      block.innerHTML = `
+        <div class="countdown-suspense-card">
+          <div id="countdownSurpriseTease"><strong>Wait for it.</strong> When this clock hits zero, the site does not just end. It transforms.</div>
+        </div>
+        <div class="countdown-suspense-card">
+          A final bell. A surprise goodbye. One last shared moment for everyone still here together.
+        </div>
+        <div id="countdownSurpriseBanner">
+          Stay till the very end. Something unforgettable is waiting at zero.
+        </div>
+      `;
+      container.appendChild(block);
+
+      setTimeout(() => {
+        const banner = document.getElementById('countdownSurpriseBanner');
+        if (banner) banner.classList.add('active');
+      }, 1400);
+
+      patchCountdownLock();
+    }
+
+    function patchCountdownLock(){
+      if (v4State.countdownLockInstalled) return;
+      v4State.countdownLockInstalled = true;
+
+      const originalInitCountdown = window.initCountdown;
+      if (typeof originalInitCountdown === 'function' && !originalInitCountdown.__v4Wrapped){
+        window.initCountdown = function(){
+          if (v4State.countdownTimerHandle) clearInterval(v4State.countdownTimerHandle);
+          if (typeof window.updateCountdown === 'function') window.updateCountdown();
+          v4State.countdownTimerHandle = setInterval(() => {
+            try { window.updateCountdown(); } catch(_){}
+          }, 1000);
+        };
+        window.initCountdown.__v4Wrapped = true;
       }
 
-      // Get target date from settings or use default
-      let target = null;
-    
-      if (typeof state !== 'undefined' && state.settings?.farewellIST) {
-        target = parseISTLocalToDate(state.settings.farewellIST);
+      const originalUpdate = window.updateCountdown;
+      if (typeof originalUpdate === 'function' && !originalUpdate.__v4Wrapped){
+        window.updateCountdown = function(){
+          const target = window.parseISTLocalToDate?.(window.state?.settings?.farewellIST);
+          if (!target) return originalUpdate.apply(this, arguments);
+          const now = new Date();
+          let diff = target.getTime() - now.getTime();
+          if (diff < 0) diff = 0;
+
+          const daysEl = document.getElementById('days');
+          const hoursEl = document.getElementById('hours');
+          const minutesEl = document.getElementById('minutes');
+          const secondsEl = document.getElementById('seconds');
+          if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+
+          if (diff <= 0){
+            daysEl.textContent = '00';
+            hoursEl.textContent = '00';
+            minutesEl.textContent = '00';
+            secondsEl.textContent = '00';
+            try {
+              if (window.triggerLastBell && !window.__v4LastBellTriggered) {
+                window.__v4LastBellTriggered = true;
+                window.triggerLastBell();
+              }
+            } catch(_){}
+            return;
+          }
+
+          const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+          daysEl.textContent = String(d).padStart(2, '0');
+          hoursEl.textContent = String(h).padStart(2, '0');
+          minutesEl.textContent = String(m).padStart(2, '0');
+          secondsEl.textContent = String(s).padStart(2, '0');
+        };
+        window.updateCountdown.__v4Wrapped = true;
       }
-    
-      // Fallback to a default date if not configured
-      if (!target) {
-        target = new Date('2026-03-15T12:30:00Z'); // March 15, 2026 6:00 PM IST
+    }
+
+    function moveAndUpgradeDistanceSection(){
+      const sec = document.getElementById('distanceMapSection');
+      const footer = document.querySelector('footer');
+      if (!sec || !footer || sec.dataset.v4Done === '1') return;
+      sec.dataset.v4Done = '1';
+
+      footer.parentNode.insertBefore(sec, footer);
+
+      const header = sec.querySelector('.section-header');
+      if (header && !document.getElementById('distanceBriefCard')){
+        const brief = document.createElement('div');
+        brief.id = 'distanceBriefCard';
+        brief.innerHTML = `
+          <strong>No matter where everyone goes next, every line begins here.</strong>
+          Choose where your <strong>11th / 12th</strong> path may continue, and where your <strong>university dream</strong> might take you.
+          Then launch the map and watch the class spread across the world while still staying connected to one starting point.
+        `;
+        header.insertAdjacentElement('afterend', brief);
       }
 
-      const now = new Date();
-      let diff = target.getTime() - now.getTime();
+      const controls = document.getElementById('distanceControls');
+      if (controls && !document.getElementById('distanceStudentName')){
+        controls.innerHTML = `
+          <div class="form-group">
+            <label>Your Name</label>
+            <input class="form-input" id="distanceStudentName" placeholder="Enter your name" maxlength="80" />
+          </div>
+          <div class="form-group">
+            <label>Future place for 11th / 12th</label>
+            <select class="form-select" id="destinationSelectSchool">
+              <option value="">Choose a place</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Your university dream place</label>
+            <select class="form-select" id="destinationSelectUniversity">
+              <option value="">Choose a place</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Map Focus</label>
+            <select class="form-select" id="distanceMapMode">
+              <option value="globe">Class Globe View</option>
+              <option value="maps">Open Google Maps Search</option>
+            </select>
+          </div>
+          <div id="distanceLaunchWrap">
+            <button class="btn btn-primary" type="button" id="destinationLaunchBtn">Launch the Future Map</button>
+            <button class="btn btn-secondary" type="button" id="distanceRefreshBtn">Refresh Class Paths</button>
+          </div>
+        `;
+      }
 
-      // If countdown is over
-      if (diff <= 0) {
-        daysEl.textContent = '00';
-        hoursEl.textContent = '00';
-        minutesEl.textContent = '00';
-        secondsEl.textContent = '00';
-      
-        // Optionally trigger something when countdown ends
-        if (typeof triggerLastBell === 'function' && !window.__lastBellTriggered) {
-          window.__lastBellTriggered = true;
-          triggerLastBell();
+      const wrap = document.getElementById('distanceMapWrap');
+      if (wrap && !document.getElementById('distanceRealMapFrame')){
+        wrap.innerHTML = `
+          <div id="distanceOverlayStats"></div>
+          <iframe
+            id="distanceRealMapFrame"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.openstreetmap.org/export/embed.html?bbox=-180%2C-60%2C180%2C85&layer=mapnik"
+            allowfullscreen>
+          </iframe>
+        `;
+      }
+    }
+
+    function installScrollTriggeredPopups(){
+      if (v4State.popupsArmed) return;
+      v4State.popupsArmed = true;
+
+      const openMaybe = () => {
+        if (v4State.popupsShown) return;
+        const countdown = document.getElementById('countdown');
+        if (!countdown) return;
+        const rect = countdown.getBoundingClientRect();
+        const crossed = rect.bottom < (window.innerHeight * 0.35);
+        const introVisible = document.getElementById('introVideoOverlay') && getComputedStyle(document.getElementById('introVideoOverlay')).display !== 'none';
+        if (!crossed || introVisible) return;
+
+        v4State.popupsShown = true;
+        setTimeout(() => document.getElementById('ghostCursorPopup')?.classList.add('active'), 450);
+        setTimeout(() => document.getElementById('paperTutorial')?.classList.add('active'), 1800);
+        window.removeEventListener('scroll', openMaybe);
+      };
+
+      window.addEventListener('scroll', openMaybe, { passive: true });
+      setTimeout(openMaybe, 2500);
+    }
+
+    function hardenButtonsAndNotes(){
+      const noteBtn = document.getElementById('sendNoteBtn');
+      if (noteBtn) noteBtn.textContent = 'Memory Note';
+      const ghostBtn = document.getElementById('ghostCursorToggle');
+      if (ghostBtn) ghostBtn.textContent = 'Ghost';
+
+      const oldInitPaper = window.initPaperAirplanes;
+      if (typeof oldInitPaper === 'function' && !oldInitPaper.__v4Wrapped){
+        window.initPaperAirplanes = function(){
+          const out = oldInitPaper.apply(this, arguments);
+          const btn = document.getElementById('sendNoteBtn');
+          if (btn) btn.onclick = null;
+          return out;
+        };
+        window.initPaperAirplanes.__v4Wrapped = true;
+      }
+    }
+
+    async function patchDestinationFlow(){
+      await loadDestinationListsV4();
+
+      const launch = document.getElementById('destinationLaunchBtn');
+      if (launch && !launch.dataset.v4Bound){
+        launch.dataset.v4Bound = '1';
+        launch.addEventListener('click', submitDestinationV4);
+      }
+
+      const refresh = document.getElementById('distanceRefreshBtn');
+      if (refresh && !refresh.dataset.v4Bound){
+        refresh.dataset.v4Bound = '1';
+        refresh.addEventListener('click', loadClassPathsV4);
+      }
+    }
+
+    async function loadDestinationListsV4(){
+      if (v4State.destinationDataLoaded) return;
+      v4State.destinationDataLoaded = true;
+      try{
+        const res = await fetch(apiUrl('/api/destinations'));
+        const data = await res.json();
+        const items = data.success ? (data.destinations || []) : [];
+        const school = document.getElementById('destinationSelectSchool');
+        const uni = document.getElementById('destinationSelectUniversity');
+        const build = (arr) => '<option value="">Choose a place</option>' + arr.map(x => {
+          const place = x.place || x.name || '';
+          return `<option value="${escapeAttr(place)}">${escapeHtml(place)}</option>`;
+        }).join('');
+        if (school) school.innerHTML = build(items);
+        if (uni) uni.innerHTML = build(items);
+      }catch(_){}
+      await loadClassPathsV4();
+    }
+
+    async function submitDestinationV4(){
+      const name = document.getElementById('distanceStudentName')?.value?.trim();
+      const schoolPlace = document.getElementById('destinationSelectSchool')?.value?.trim();
+      const universityPlace = document.getElementById('destinationSelectUniversity')?.value?.trim();
+      const mode = document.getElementById('distanceMapMode')?.value || 'globe';
+
+      if (!name){
+        return window.showNotification?.('error', 'Name needed', 'Enter your name first.');
+      }
+      if (!schoolPlace && !universityPlace){
+        return window.showNotification?.('error', 'Choose a place', 'Pick at least one future place.');
+      }
+
+      try{
+        const res = await fetch(apiUrl('/api/destinations/submit-v2'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentName: name,
+            schoolPlace,
+            universityPlace
+          })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          return window.showNotification?.('error', 'Could not save', data.error || 'Submission failed.');
         }
-        return;
+      }catch(e){
+        return window.showNotification?.('error', 'Could not save', e.message);
       }
 
-      // Calculate time components
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      if (mode === 'maps'){
+        const query = encodeURIComponent(universityPlace || schoolPlace);
+        window.open('https://www.google.com/maps/search/?api=1&query=' + query, '_blank');
+      } else {
+        await loadClassPathsV4(true);
+      }
 
-      // Update display
-      daysEl.textContent = String(days).padStart(2, '0');
-      hoursEl.textContent = String(hours).padStart(2, '0');
-      minutesEl.textContent = String(minutes).padStart(2, '0');
-      secondsEl.textContent = String(seconds).padStart(2, '0');
+      if (window.showNotification) {
+        showNotification('success', 'Locked in', 'Your future path has been added to the class map.');
+      }
     }
 
-    // Helper function to parse IST datetime string
-    function parseISTLocalToDate(istLocal) {
-      if (!istLocal) return null;
-    
-      // Handle format: "2026-03-15T18:00"
-      const match = istLocal.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
-      if (!match) return null;
-    
-      const [, year, month, day, hour, minute] = match.map(Number);
-    
-      // IST is UTC+5:30
-      // Convert IST to UTC by subtracting 5 hours 30 minutes
-      return new Date(Date.UTC(year, month - 1, day, hour - 5, minute - 30, 0));
+    async function loadClassPathsV4(excite){
+      try{
+        const res = await fetch(apiUrl('/api/destinations/submissions'));
+        const data = await res.json();
+        if (!data.success) return;
+        renderClassPathStats(data.submissions || []);
+        renderMapFromSubmissions(data.submissions || [], !!excite);
+      }catch(_){}
     }
 
-    // Expose globally for other scripts
-    window.initCountdown = initCountdown;
-    window.updateCountdown = updateCountdown;
-    window.parseISTLocalToDate = parseISTLocalToDate;
+    function renderClassPathStats(rows){
+      const box = document.getElementById('distanceOverlayStats');
+      if (!box) return;
+      const total = rows.length;
+      const uni = rows.filter(r => r.universityPlace).length;
+      const school = rows.filter(r => r.schoolPlace).length;
+      box.innerHTML = `
+        <div class="distance-stat-pill">${total} class paths shown</div>
+        <div class="distance-stat-pill">${school} school destinations</div>
+        <div class="distance-stat-pill">${uni} university dreams</div>
+      `;
+    }
 
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        // Wait a bit for settings to load
-        setTimeout(initCountdown, 600);
-      });
+    function renderMapFromSubmissions(rows, excite){
+      const frame = document.getElementById('distanceRealMapFrame');
+      if (!frame) return;
+
+      let focus = 'world';
+      if (rows.length){
+        const latest = rows[rows.length - 1];
+        focus = latest.universityPlace || latest.schoolPlace || 'world';
+      }
+
+      const q = encodeURIComponent(focus);
+      frame.src = 'https://www.google.com/maps?q=' + q + '&z=2&output=embed';
+
+      if (excite && window.showNotification){
+        showNotification('info', 'The map is lighting up', 'Watch the class spread out from one beginning to many futures.');
+      }
+    }
+
+    function patchAdminDestinationPanel(){
+      const original = window.renderSettingsPanelHtml;
+      if (typeof original !== 'function' || original.__v4Wrapped) return;
+
+      window.renderSettingsPanelHtml = function(){
+        const html = original.apply(this, arguments);
+        if (html.includes('distanceDestinationsV4Admin')) return html;
+
+        const inject = `
+        <div id="distanceDestinationsV4Admin" style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
+          <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">Future Places for Map</h4>
+          <p class="mini-pill" style="margin-bottom:10px;">One place per line. Use real place names only, like <strong>Delhi</strong>, <strong>Bangalore</strong>, <strongLondon</strong>, <strong>Toronto</strong>.</p>
+          <textarea class="form-textarea" id="destinationsAdminTextV4" style="min-height:150px;" placeholder="Delhi&#10;Bangalore&#10;Mumbai&#10;London&#10;Toronto"></textarea>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+            <button class="admin-btn admin-btn-primary" type="button" onclick="saveDestinationsFromPanelV4()">Save Places</button>
+            <button class="admin-btn admin-btn-secondary" type="button" onclick="loadDestinationSubmissionsAdminV4()">View Student Choices</button>
+          </div>
+          <div id="destinationSubmissionsAdminV4" style="margin-top:12px;"></div>
+        </div>`;
+        return html.replace('</div></div></div>', inject + '</div></div></div>');
+      };
+      window.renderSettingsPanelHtml.__v4Wrapped = true;
+
+      const oldSync = window.syncSettingsEditor;
+      if (typeof oldSync === 'function' && !oldSync.__v4Wrapped){
+        window.syncSettingsEditor = function(){
+          oldSync.apply(this, arguments);
+          syncDestinationsAdminV4();
+        };
+        window.syncSettingsEditor.__v4Wrapped = true;
+      }
+
+      window.saveDestinationsFromPanelV4 = async function(){
+        const text = document.getElementById('destinationsAdminTextV4')?.value || '';
+        const places = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean).slice(0, 600);
+        try{
+          const res = await fetch(apiUrl('/api/admin/destinations-v2'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + (window.state?.adminToken || '')
+            },
+            body: JSON.stringify({ places })
+          });
+          const data = await res.json();
+          if (!data.success) return showNotification('error', 'Save failed', data.error || 'Could not save places.');
+          showNotification('success', 'Saved', 'Future places updated.');
+          v4State.destinationDataLoaded = false;
+          loadDestinationListsV4();
+        }catch(e){
+          showNotification('error', 'Save failed', e.message);
+        }
+      };
+
+      window.loadDestinationSubmissionsAdminV4 = async function(){
+        const box = document.getElementById('destinationSubmissionsAdminV4');
+        if (!box) return;
+        box.innerHTML = '<div class="mini-pill">Loading student choices...</div>';
+        try{
+          const res = await fetch(apiUrl('/api/destinations/submissions'));
+          const data = await res.json();
+          if (!data.success) {
+            box.innerHTML = '<div class="mini-pill">Could not load student choices.</div>';
+            return;
+          }
+          const rows = data.submissions || [];
+          if (!rows.length) {
+            box.innerHTML = '<div class="mini-pill">No student choices yet.</div>';
+            return;
+          }
+          box.innerHTML = rows.slice().reverse().map(r => `
+            <div class="admin-memory-card" style="padding:12px; margin-bottom:10px;">
+              <div style="font-weight:800;">${escapeHtml(r.studentName || 'Student')}</div>
+              <div style="color:var(--text-muted); font-size:.9rem; margin-top:6px;">
+                11th / 12th: <strong style="color:var(--text-light);">${escapeHtml(r.schoolPlace || '—')}</strong>
+              </div>
+              <div style="color:var(--text-muted); font-size:.9rem; margin-top:4px;">
+                University: <strong style="color:var(--text-light);">${escapeHtml(r.universityPlace || '—')}</strong>
+              </div>
+            </div>
+          `).join('');
+        }catch(e){
+          box.innerHTML = '<div class="mini-pill">Error loading student choices.</div>';
+        }
+      };
+
+      async function syncDestinationsAdminV4(){
+        const ta = document.getElementById('destinationsAdminTextV4');
+        if (!ta) return;
+        try{
+          const res = await fetch(apiUrl('/api/destinations'));
+          const data = await res.json();
+          if (data.success){
+            ta.value = (data.destinations || []).map(x => x.place || x.name || '').join('\n');
+          }
+        }catch(_){}
+      }
+    }
+
+    if (document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', v4Boot);
     } else {
-      setTimeout(initCountdown, 600);
+      v4Boot();
     }
   })();
   </script>
