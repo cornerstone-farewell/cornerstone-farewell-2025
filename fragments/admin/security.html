@@ -177,9 +177,9 @@
 
 // ── In-memory store for ban list & audit log (persisted via API when available) ──
 const _sec = {
-  auditLog: [],      // [{ts, action, detail, level}]
-  sessions: [],      // [{token, userId, role, loginAt, ip, isCurrent}]
-  bans: [],          // [{type, value, reason, bannedAt}]
+  auditLog: [],
+  sessions: [],
+  bans: [],
   maintenanceOn: false,
   _auditLoaded: false,
   _sessionsLoaded: false,
@@ -211,9 +211,15 @@ function _secEl(id) { return document.getElementById(id); }
 // ── Panel entry-point (called by switchAdminTab) ──────────────────────────────
 
 async function initSecurityPanelContent() {
-  const panel = _secEl('panelSecurity');
-  if (!panel) return;
+  console.log('initSecurityPanelContent called');
 
+  const panel = _secEl('panelSecurity');
+  if (!panel) {
+    console.error('panelSecurity not found');
+    return;
+  }
+
+  // Always re-render to get fresh data
   panel.innerHTML = `
     <div class="sec-section-header">
       <div>
@@ -232,6 +238,8 @@ async function initSecurityPanelContent() {
       ${_secCardExport()}
       ${_secCardWipeMemories()}
     </div>`;
+
+  panel.dataset.initialized = 'true';
 
   // Wire up dynamic sections
   await Promise.all([
@@ -372,7 +380,7 @@ function _secCardSessions() {
     </div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="admin-btn admin-btn-secondary" onclick="_secLoadSessions()" style="flex:1; justify-content:center;">🔄 Refresh</button>
-      <button class="admin-btn admin-btn-danger"    onclick="secForceLogoutAll()" style="flex:1; justify-content:center;">🚪 Logout All Others</button>
+      <button class="admin-btn admin-btn-danger" onclick="secForceLogoutAll()" style="flex:1; justify-content:center;">🚪 Logout All Others</button>
     </div>
   </div>`;
 }
@@ -387,7 +395,6 @@ async function _secLoadSessions() {
       const data = await res.json();
       _sec.sessions = data.sessions || [];
     } else {
-      // API may not exist yet; show a synthetic "current" session
       _sec.sessions = [{
         tokenHint: '…' + (state.adminToken || '').slice(-6),
         userId: state.adminUser?.userId || 'you',
@@ -506,7 +513,6 @@ async function _secLoadAuditLog() {
     if (res.ok) {
       const data = await res.json();
       if (data.log && data.log.length) {
-        // Merge server log with local (server takes precedence, keep local recents)
         const serverEntries = data.log.map(e => ({ ts: e.ts || e.createdAt || '', action: e.action || e.event || '', detail: e.detail || e.meta || '', level: e.level || 'ok' }));
         _sec.auditLog = [..._sec.auditLog, ...serverEntries].slice(0, 200);
       }
@@ -622,7 +628,6 @@ async function secAddBan() {
       showNotification('error', 'Failed', data.error || 'Could not add ban.');
     }
   } catch (e) {
-    // API might not exist; store locally
     _sec.bans.unshift({ value, reason, bannedAt: _secTimestamp() });
     _secRenderBans();
     showNotification('info', 'Stored Locally', 'Ban added (API endpoint not available; stored in session).');
@@ -729,7 +734,6 @@ async function secToggleMaintenance() {
       showNotification('error', 'Failed', data.error || 'Could not toggle maintenance mode.');
     }
   } catch (e) {
-    // Fallback: persist in settings
     _sec.maintenanceOn = newVal;
     _secRenderMaintenanceStatus();
     showNotification('info', 'Stored Locally', 'Maintenance state saved locally (API endpoint not available).');
@@ -760,7 +764,7 @@ function _secCardExport() {
     </div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="admin-btn admin-btn-secondary" onclick="secExportJSON()" style="flex:1; justify-content:center;">📄 Export JSON</button>
-      <button class="admin-btn admin-btn-primary"   onclick="secExportZIP()"  style="flex:1; justify-content:center;">📦 Export ZIP</button>
+      <button class="admin-btn admin-btn-primary" onclick="secExportZIP()" style="flex:1; justify-content:center;">📦 Export ZIP</button>
     </div>
   </div>`;
 }
@@ -884,6 +888,8 @@ window.secExportZIP              = secExportZIP;
 window.secWipeAllMemories        = secWipeAllMemories;
 window._secLoadSessions          = _secLoadSessions;
 window._secLoadAuditLog          = _secLoadAuditLog;
+window._secLoadBans              = _secLoadBans;
+window._secLoadMaintenanceStatus = _secLoadMaintenanceStatus;
 
 // Record this admin session start in audit log
 document.addEventListener('DOMContentLoaded', () => {
@@ -891,4 +897,6 @@ document.addEventListener('DOMContentLoaded', () => {
     _secPushAudit('Admin session active', `Token: …${state.adminToken.slice(-6)}`, 'ok');
   }
 });
+
+console.log('✅ Admin Security loaded');
 </script>

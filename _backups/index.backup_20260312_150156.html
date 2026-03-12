@@ -9501,21 +9501,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function initCompilationsPanelContent() {
     console.log('initCompilationsPanelContent called');
-
+  
     const panel = document.getElementById('panelCompilations');
     if (!panel) {
       console.error('panelCompilations not found');
       return;
     }
-
-    // Use data attribute instead of length check
-    if (panel.dataset.initialized !== 'true') {
+  
+    const hasContent = panel.innerHTML.trim().length > 100;
+  
+    if (!hasContent) {
       console.log('Rendering compilations panel HTML...');
       panel.innerHTML = renderCompilationsPanelHtml();
-      panel.dataset.initialized = 'true';
     }
-
-    // Always load fresh data
+  
+    // Load compilations after rendering
     setTimeout(() => {
       loadCompilationsAdmin();
     }, 50);
@@ -9528,23 +9528,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function loadCompilationsAdmin() {
     const list = document.getElementById('compilationsListAdmin');
     if (list) list.innerHTML = '<div class="mini-pill">Loading...</div>';
-
+  
     try {
       const res = await fetch(apiUrl('/api/compilations'));
       const data = await res.json();
-
+    
       if (!data.success) {
         if (list) list.innerHTML = '<div class="mini-pill">Failed to load compilations</div>';
         return;
       }
-
+    
       if (!list) return;
-
+    
       if (!data.compilations || !data.compilations.length) {
         list.innerHTML = '<div class="mini-pill">No compilations yet. Create your first one!</div>';
         return;
       }
-
+    
       list.innerHTML = data.compilations.map(c => {
         const slideCount = c.slides?.length || 0;
         return `
@@ -9564,7 +9564,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
           </div>`;
       }).join('');
-
+    
     } catch (e) {
       console.error('Load compilations error:', e);
       if (list) list.innerHTML = '<div class="mini-pill">Error loading compilations</div>';
@@ -9575,37 +9575,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await fetch(apiUrl('/api/compilations/' + id));
       const data = await res.json();
-
+    
       if (!data.success || !data.compilation) {
         showNotification('error', 'Error', 'Could not load compilation');
         return;
       }
-
+    
       compEditingId = id;
       compSelectedSlides = (data.compilation.slides || []).map(s => ({
         memoryId: s.memoryId,
         caption: s.caption || '',
         duration: s.duration || 5
       }));
-
+    
       const nameInput = document.getElementById('compName');
       const modeInput = document.getElementById('compDisplayMode');
       const transInput = document.getElementById('compTransition');
-
+    
       if (nameInput) nameInput.value = data.compilation.name || '';
       if (modeInput) modeInput.value = data.compilation.displayMode || 'auto';
       if (transInput) transInput.value = data.compilation.transitionType || 'fade';
-
+    
       await loadCompPhotoGrid();
-
+    
       setTimeout(() => {
         updateCompPhotoSelection();
         renderCompSlidesPreview();
       }, 300);
-
+    
       const modal = document.getElementById('compilationCreatorModal');
       if (modal) modal.classList.add('active');
-
+    
     } catch (e) {
       showNotification('error', 'Error', e.message);
     }
@@ -9613,14 +9613,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function deleteCompilationAdmin(id) {
     if (!confirm('Delete this compilation?')) return;
-
+  
     try {
       const res = await fetch(apiUrl('/api/admin/compilations/' + id), {
         method: 'DELETE',
         headers: { 'Authorization': 'Bearer ' + state.adminToken }
       });
       const data = await res.json();
-
+    
       if (data.success) {
         showNotification('success', 'Deleted', 'Compilation removed');
         loadCompilationsAdmin();
@@ -9641,16 +9641,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await fetch(apiUrl('/api/compilations/' + compilationId));
       const data = await res.json();
-
+    
       if (!data.success || !data.compilation) {
         return showNotification('error', 'Error', 'Could not load compilation');
       }
-
+    
       currentCompilation = data.compilation;
       currentSlideIndex = 0;
-
+    
       renderCompilationSlides();
-
+    
       const player = document.getElementById('compilationPlayer');
       if (player) {
         player.classList.add('active');
@@ -9667,9 +9667,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderCompilationSlides() {
     const container = document.getElementById('compilationSlides');
     const progress = document.getElementById('compilationProgress');
-
+  
     if (!container || !currentCompilation) return;
-
+  
     const transClass = 'trans-' + (currentCompilation.transitionType || 'fade');
 
     container.innerHTML = currentCompilation.slides.map((slide, i) => {
@@ -9677,7 +9677,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         || (state.memories || []).find(m => m.id === slide.memoryId);
       const rawUrl = slide.file_url || (memory ? memory.file_url : '');
       const imgUrl = rawUrl ? mediaUrl(rawUrl) : '';
-
+    
       return `
         <div class="compilation-slide ${transClass}" data-index="${i}">
           <img src="${imgUrl}" alt="Memory" onerror="this.style.display='none'"/>
@@ -9694,19 +9694,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function showCompilationSlide(index) {
     if (!currentCompilation) return;
-
+  
     currentSlideIndex = index;
-
+  
     document.querySelectorAll('.compilation-slide').forEach((s, i) => {
       s.classList.toggle('active', i === index);
     });
-
+  
     document.querySelectorAll('.compilation-dot').forEach((d, i) => {
       d.classList.toggle('active', i === index);
     });
-
+  
     if (compilationTimer) clearTimeout(compilationTimer);
-
+  
     if (currentCompilation.displayMode === 'auto') {
       const duration = (currentCompilation.slides[index]?.duration || 5) * 1000;
       compilationTimer = setTimeout(() => {
@@ -9737,10 +9737,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function closeCompilationPlayer() {
     if (compilationTimer) clearTimeout(compilationTimer);
-
+  
     const player = document.getElementById('compilationPlayer');
     if (player) player.classList.remove('active');
-
+  
     document.body.style.overflow = '';
     currentCompilation = null;
   }
@@ -9752,20 +9752,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   function openCompilationCreator(editId = null) {
     compEditingId = editId;
     compSelectedSlides = [];
-
+  
     const nameInput = document.getElementById('compName');
     const modeInput = document.getElementById('compDisplayMode');
     const transInput = document.getElementById('compTransition');
     const durInput = document.getElementById('compDefaultDuration');
-
+  
     if (nameInput) nameInput.value = '';
     if (modeInput) modeInput.value = 'auto';
     if (transInput) transInput.value = 'fade';
     if (durInput) durInput.value = '5';
-
+  
     loadCompPhotoGrid();
     renderCompSlidesPreview();
-
+  
     const modal = document.getElementById('compilationCreatorModal');
     if (modal) {
       modal.classList.add('active');
@@ -9777,7 +9777,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function closeCompilationCreator() {
     const modal = document.getElementById('compilationCreatorModal');
     if (modal) modal.classList.remove('active');
-
+  
     compSelectedSlides = [];
     compEditingId = null;
   }
@@ -9785,35 +9785,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function loadCompPhotoGrid() {
     const grid = document.getElementById('compPhotoGrid');
     if (!grid) return;
-
+  
     grid.innerHTML = '<div class="mini-pill">Loading photos...</div>';
-
+  
     try {
       const res = await fetch(apiUrl('/api/admin/memories?limit=5000&filter=approved'), {
         headers: { 'Authorization': 'Bearer ' + state.adminToken }
       });
       const data = await res.json();
-
+    
       if (!data.success) {
         grid.innerHTML = '<div class="mini-pill">Failed to load photos</div>';
         return;
       }
-
+    
       const memories = (data.memories || []).filter(m => m.file_type === 'image');
       compAvailableMemories = memories;
-
+    
       if (!memories.length) {
         grid.innerHTML = '<div class="mini-pill">No photos available</div>';
         return;
       }
-
+    
       grid.innerHTML = memories.map(m =>
         `<div class="compilation-photo-item" data-id="${m.id}" onclick="toggleCompPhoto(${m.id})">
            <img src="${mediaUrl(m.file_url)}" alt="" />
            <div class="photo-check">✓</div>
          </div>`
       ).join('');
-
+    
     } catch (e) {
       grid.innerHTML = '<div class="mini-pill">Error loading photos</div>';
     }
@@ -9821,7 +9821,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function toggleCompPhoto(memoryId) {
     const idx = compSelectedSlides.findIndex(s => s.memoryId === memoryId);
-
+  
     if (idx >= 0) {
       compSelectedSlides.splice(idx, 1);
     } else {
@@ -9832,7 +9832,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         duration: parseInt(durInput?.value) || 5
       });
     }
-
+  
     updateCompPhotoSelection();
     renderCompSlidesPreview();
   }
@@ -9847,23 +9847,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderCompSlidesPreview() {
     const preview = document.getElementById('compSlidesPreview');
     if (!preview) return;
-
+  
     if (compSelectedSlides.length === 0) {
       preview.innerHTML = '<div class="mini-pill" style="margin:auto;">No slides selected yet</div>';
       return;
     }
-
+  
     preview.innerHTML = compSelectedSlides.map((slide, i) => {
       const mem = compAvailableMemories.find(m => m.id === slide.memoryId)
         || (state.memories || []).find(m => m.id === slide.memoryId);
       const imgUrl = mem ? mediaUrl(mem.file_url) : '';
-
+    
       return `
         <div class="compilation-slide-preview" data-index="${i}">
           <img src="${imgUrl}" alt="" />
-          <input type="text" placeholder="Caption..." value="${escapeAttr(slide.caption)}"
+          <input type="text" placeholder="Caption..." value="${escapeAttr(slide.caption)}" 
                  onchange="updateSlideCaption(${i}, this.value)" />
-          <input type="number" min="1" max="60" value="${slide.duration}"
+          <input type="number" min="1" max="60" value="${slide.duration}" 
                  onchange="updateSlideDuration(${i}, this.value)" style="margin-top:4px;" />
           <button class="remove-slide" onclick="removeCompSlide(${i})">✕ Remove</button>
         </div>`;
@@ -9891,30 +9891,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function saveCompilation() {
     const nameInput = document.getElementById('compName');
     const name = nameInput?.value?.trim();
-
+  
     if (!name) {
       return showNotification('error', 'Name required', 'Enter a compilation name');
     }
-
+  
     if (compSelectedSlides.length < 2) {
       return showNotification('error', 'Need slides', 'Select at least 2 photos');
     }
-
+  
     const modeInput = document.getElementById('compDisplayMode');
     const transInput = document.getElementById('compTransition');
-
+  
     const payload = {
       name,
       slides: compSelectedSlides,
       displayMode: modeInput?.value || 'auto',
       transitionType: transInput?.value || 'fade'
     };
-
+  
     try {
       const url = compEditingId
         ? apiUrl('/api/admin/compilations/' + compEditingId)
         : apiUrl('/api/admin/compilations');
-
+      
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -9923,9 +9923,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         body: JSON.stringify(payload)
       });
-
+    
       const data = await res.json();
-
+    
       if (data.success) {
         showNotification('success', 'Saved', compEditingId ? 'Compilation updated' : 'Compilation created');
         closeCompilationCreator();
@@ -10143,9 +10143,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── In-memory store for ban list & audit log (persisted via API when available) ──
   const _sec = {
-    auditLog: [],
-    sessions: [],
-    bans: [],
+    auditLog: [],      // [{ts, action, detail, level}]
+    sessions: [],      // [{token, userId, role, loginAt, ip, isCurrent}]
+    bans: [],          // [{type, value, reason, bannedAt}]
     maintenanceOn: false,
     _auditLoaded: false,
     _sessionsLoaded: false,
@@ -10177,15 +10177,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ── Panel entry-point (called by switchAdminTab) ──────────────────────────────
 
   async function initSecurityPanelContent() {
-    console.log('initSecurityPanelContent called');
-
     const panel = _secEl('panelSecurity');
-    if (!panel) {
-      console.error('panelSecurity not found');
-      return;
-    }
+    if (!panel) return;
 
-    // Always re-render to get fresh data
     panel.innerHTML = `
       <div class="sec-section-header">
         <div>
@@ -10204,8 +10198,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         ${_secCardExport()}
         ${_secCardWipeMemories()}
       </div>`;
-
-    panel.dataset.initialized = 'true';
 
     // Wire up dynamic sections
     await Promise.all([
@@ -10346,7 +10338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="admin-btn admin-btn-secondary" onclick="_secLoadSessions()" style="flex:1; justify-content:center;">🔄 Refresh</button>
-        <button class="admin-btn admin-btn-danger" onclick="secForceLogoutAll()" style="flex:1; justify-content:center;">🚪 Logout All Others</button>
+        <button class="admin-btn admin-btn-danger"    onclick="secForceLogoutAll()" style="flex:1; justify-content:center;">🚪 Logout All Others</button>
       </div>
     </div>`;
   }
@@ -10361,6 +10353,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await res.json();
         _sec.sessions = data.sessions || [];
       } else {
+        // API may not exist yet; show a synthetic "current" session
         _sec.sessions = [{
           tokenHint: '…' + (state.adminToken || '').slice(-6),
           userId: state.adminUser?.userId || 'you',
@@ -10479,6 +10472,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (res.ok) {
         const data = await res.json();
         if (data.log && data.log.length) {
+          // Merge server log with local (server takes precedence, keep local recents)
           const serverEntries = data.log.map(e => ({ ts: e.ts || e.createdAt || '', action: e.action || e.event || '', detail: e.detail || e.meta || '', level: e.level || 'ok' }));
           _sec.auditLog = [..._sec.auditLog, ...serverEntries].slice(0, 200);
         }
@@ -10594,6 +10588,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showNotification('error', 'Failed', data.error || 'Could not add ban.');
       }
     } catch (e) {
+      // API might not exist; store locally
       _sec.bans.unshift({ value, reason, bannedAt: _secTimestamp() });
       _secRenderBans();
       showNotification('info', 'Stored Locally', 'Ban added (API endpoint not available; stored in session).');
@@ -10700,6 +10695,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showNotification('error', 'Failed', data.error || 'Could not toggle maintenance mode.');
       }
     } catch (e) {
+      // Fallback: persist in settings
       _sec.maintenanceOn = newVal;
       _secRenderMaintenanceStatus();
       showNotification('info', 'Stored Locally', 'Maintenance state saved locally (API endpoint not available).');
@@ -10730,7 +10726,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="admin-btn admin-btn-secondary" onclick="secExportJSON()" style="flex:1; justify-content:center;">📄 Export JSON</button>
-        <button class="admin-btn admin-btn-primary" onclick="secExportZIP()" style="flex:1; justify-content:center;">📦 Export ZIP</button>
+        <button class="admin-btn admin-btn-primary"   onclick="secExportZIP()"  style="flex:1; justify-content:center;">📦 Export ZIP</button>
       </div>
     </div>`;
   }
@@ -10854,8 +10850,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.secWipeAllMemories        = secWipeAllMemories;
   window._secLoadSessions          = _secLoadSessions;
   window._secLoadAuditLog          = _secLoadAuditLog;
-  window._secLoadBans              = _secLoadBans;
-  window._secLoadMaintenanceStatus = _secLoadMaintenanceStatus;
 
   // Record this admin session start in audit log
   document.addEventListener('DOMContentLoaded', () => {
@@ -10863,8 +10857,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       _secPushAudit('Admin session active', `Token: …${state.adminToken.slice(-6)}`, 'ok');
     }
   });
-
-  console.log('✅ Admin Security loaded');
   </script>
 
 </body>

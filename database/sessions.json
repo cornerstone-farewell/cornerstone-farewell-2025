@@ -129,6 +129,11 @@
       "token": "admin-1773306869447-g12093iy0o",
       "expiresAt": "2026-03-13T09:14:29.447Z",
       "userId": "techteam"
+    },
+    {
+      "token": "admin-1773307705395-hmp81u6yf5o",
+      "expiresAt": "2026-03-13T09:28:25.395Z",
+      "userId": "super"
     }
   ]
 }
