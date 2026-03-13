@@ -1,39 +1,102 @@
 <!-- FRAGMENT: admin_destinations -->
-
 <script data-fragment-script="admin_destinations">
 // ═══════════════════════════════════════════════════════════════════════════════
-// DESTINATIONS / GLOBE ADMIN PANEL
+// DESTINATIONS / GLOBE ADMIN PANEL - FIXED VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER FUNCTIONS (These were missing - causing functions not to execute!)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Escape HTML to prevent XSS attacks
+ */
+function escapeHtml(text) {
+  if (!text) return '';
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+/**
+ * Build API URL
+ */
+function apiUrl(endpoint) {
+  const baseUrl = window.API_BASE_URL || '/';
+  return baseUrl.replace(/\/$/, '') + endpoint;
+}
+
+/**
+ * Show notification to user
+ */
+function showNotification(type, title, message) {
+  console.log(`[${type}] ${title}: ${message}`);
+  // Integration with your notification system
+  if (window.showToast) {
+    window.showToast(type, `${title}: ${message}`);
+  } else if (window.showNotification) {
+    window.showNotification(type, title, message);
+  } else {
+    alert(`${title}\n${message}`);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE & DATA
+// ─────────────────────────────────────────────────────────────────────────────
 
 let destData = {
   approved: [],
   pending: []
 };
 
+// Ensure global state exists
+if (!window.state) {
+  window.state = {
+    adminToken: null
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INITIALIZATION
+// ─────────────────────────────────────────────────────────────────────────────
+
 function initDestinationsPanelContent() {
-  console.log('initDestinationsPanelContent called');
-
+  console.log('✓ initDestinationsPanelContent called');
+  
   const panel = document.getElementById('panelDestinations');
-  if (!panel) return;
-
+  if (!panel) {
+    console.error('❌ Panel element #panelDestinations not found!');
+    return;
+  }
+  
   if (panel.dataset.initialized !== 'true') {
     panel.innerHTML = renderDestinationsPanelHtml();
     panel.dataset.initialized = 'true';
+    console.log('✓ Panel HTML rendered');
   }
-
+  
   loadDestinationsData();
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HTML RENDERING
+// ─────────────────────────────────────────────────────────────────────────────
 
 function renderDestinationsPanelHtml() {
   return `
     <div class="stat-card" style="text-align:left; margin-bottom:20px;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">🌍 Destinations Manager</h3>
-        <button class="admin-btn admin-btn-secondary" onclick="loadDestinationsData()">🔄 Refresh</button>
+        <button class="admin-btn admin-btn-secondary" onclick="window.loadDestinationsData()">🔄 Refresh</button>
       </div>
       <p style="color:var(--text-muted); margin-top:10px;">Manage where students are headed after graduation.</p>
     </div>
-
     <!-- Stats -->
     <div class="admin-stats" style="margin-bottom:20px;">
       <div class="stat-card">
@@ -45,20 +108,18 @@ function renderDestinationsPanelHtml() {
         <div class="stat-label">Pending Approval</div>
       </div>
     </div>
-
     <!-- Pending Submissions -->
     <div class="ff-admin-card">
       <div class="ff-admin-card-header">
         <div class="ff-admin-card-title">⏳ Pending Submissions</div>
         <div class="ff-admin-card-actions">
-          <button class="admin-btn admin-btn-primary" onclick="approveAllDestinations()">✓ Approve All</button>
+          <button class="admin-btn admin-btn-primary" onclick="window.approveAllDestinations()">✓ Approve All</button>
         </div>
       </div>
       <div class="ff-admin-list" id="destPendingList">
         <div class="ff-empty">Loading...</div>
       </div>
     </div>
-
     <!-- Approved Destinations -->
     <div class="ff-admin-card">
       <div class="ff-admin-card-header">
@@ -71,31 +132,53 @@ function renderDestinationsPanelHtml() {
   `;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// DATA LOADING
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function loadDestinationsData() {
   try {
+    console.log('↻ Loading destinations data...');
+    
     // Load approved
     const approvedRes = await fetch(apiUrl('/api/destinations'));
+    if (!approvedRes.ok) {
+      throw new Error(`HTTP ${approvedRes.status}: Failed to fetch approved destinations`);
+    }
     const approvedData = await approvedRes.json();
-    destData.approved = approvedData.success ? approvedData.destinations || [] : [];
-
+    destData.approved = approvedData.success ? (approvedData.destinations || []) : [];
+    console.log(`✓ Loaded ${destData.approved.length} approved destinations`);
+    
     // Load pending
     const pendingRes = await fetch(apiUrl('/api/destinations/pin-submissions'));
+    if (!pendingRes.ok) {
+      throw new Error(`HTTP ${pendingRes.status}: Failed to fetch pending submissions`);
+    }
     const pendingData = await pendingRes.json();
-    destData.pending = pendingData.success ? pendingData.submissions || [] : [];
-
+    destData.pending = pendingData.success ? (pendingData.submissions || []) : [];
+    console.log(`✓ Loaded ${destData.pending.length} pending submissions`);
+    
     renderDestinations();
   } catch (e) {
-    console.error('Load destinations error:', e);
+    console.error('❌ Load destinations error:', e);
+    showNotification('error', 'Load Error', `Failed to load destinations: ${e.message}`);
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// RENDERING LOGIC
+// ─────────────────────────────────────────────────────────────────────────────
+
 function renderDestinations() {
+  console.log('↻ Rendering destinations...');
+  
   // Update counts
   const approvedCount = document.getElementById('destApprovedCount');
   const pendingCount = document.getElementById('destPendingCount');
+  
   if (approvedCount) approvedCount.textContent = destData.approved.length;
   if (pendingCount) pendingCount.textContent = destData.pending.length;
-
+  
   // Pending list
   const pendingList = document.getElementById('destPendingList');
   if (pendingList) {
@@ -111,14 +194,14 @@ function renderDestinations() {
             <div class="ff-admin-item-meta">Type: ${escapeHtml(d.type || 'university')} • Coords: ${d.lat?.toFixed(2)}, ${d.lng?.toFixed(2)}</div>
           </div>
           <div class="ff-admin-item-actions">
-            <button class="admin-btn admin-btn-primary" style="padding:6px 12px; font-size:0.8rem;" onclick="approveDestination(${d.id})">✓</button>
-            <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteDestination(${d.id})">🗑️</button>
+            <button class="admin-btn admin-btn-primary" style="padding:6px 12px; font-size:0.8rem;" onclick="window.approveDestination(${d.id})">✓</button>
+            <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="window.deleteDestination(${d.id})">🗑️</button>
           </div>
         </div>
       `).join('');
     }
   }
-
+  
   // Approved list
   const approvedList = document.getElementById('destApprovedList');
   if (approvedList) {
@@ -133,84 +216,145 @@ function renderDestinations() {
             <div class="ff-admin-item-meta">Type: ${escapeHtml(d.type || 'university')}</div>
           </div>
           <div class="ff-admin-item-actions">
-            <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteDestination(${d.id})">🗑️</button>
+            <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="window.deleteDestination(${d.id})">🗑️</button>
           </div>
         </div>
       `).join('');
     }
   }
+  
+  console.log('✓ Destinations rendered');
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN ACTIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function approveDestination(id) {
+  console.log(`→ Approving destination ${id}...`);
+  
+  if (!window.state?.adminToken) {
+    showNotification('error', 'Error', 'Admin token not found. Please log in again.');
+    return;
+  }
+  
   try {
     const res = await fetch(apiUrl('/api/admin/destinations'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${state.adminToken}`
+        'Authorization': `Bearer ${window.state.adminToken}`
       },
       body: JSON.stringify({ action: 'approve', id })
     });
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const data = await res.json();
     if (data.success) {
+      console.log(`✓ Destination ${id} approved`);
       showNotification('success', 'Approved', 'Destination approved.');
       loadDestinationsData();
     } else {
-      showNotification('error', 'Error', data.error);
+      console.error(`✗ Approval failed:`, data.error);
+      showNotification('error', 'Error', data.error || 'Unknown error occurred.');
     }
   } catch (e) {
+    console.error(`❌ Approve error:`, e);
     showNotification('error', 'Error', e.message);
   }
 }
 
 async function approveAllDestinations() {
+  console.log('→ Approving all pending destinations...');
+  
   if (!destData.pending.length) {
     showNotification('info', 'Info', 'No pending destinations.');
     return;
   }
-  if (!confirm(`Approve all ${destData.pending.length} pending destinations?`)) return;
-
+  
+  if (!confirm(`Approve all ${destData.pending.length} pending destinations?`)) {
+    console.log('✗ Approval cancelled by user');
+    return;
+  }
+  
+  if (!window.state?.adminToken) {
+    showNotification('error', 'Error', 'Admin token not found. Please log in again.');
+    return;
+  }
+  
   try {
     const ids = destData.pending.map(d => d.id);
+    console.log(`Processing ${ids.length} IDs:`, ids);
+    
     const res = await fetch(apiUrl('/api/admin/destinations'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${state.adminToken}`
+        'Authorization': `Bearer ${window.state.adminToken}`
       },
       body: JSON.stringify({ action: 'approve', ids })
     });
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const data = await res.json();
     if (data.success) {
+      console.log(`✓ Approved ${data.changed} destinations`);
       showNotification('success', 'Approved', `Approved ${data.changed} destinations.`);
       loadDestinationsData();
     } else {
-      showNotification('error', 'Error', data.error);
+      console.error(`✗ Batch approval failed:`, data.error);
+      showNotification('error', 'Error', data.error || 'Unknown error occurred.');
     }
   } catch (e) {
+    console.error(`❌ Approve all error:`, e);
     showNotification('error', 'Error', e.message);
   }
 }
 
 async function deleteDestination(id) {
-  if (!confirm('Delete this destination?')) return;
+  console.log(`→ Deleting destination ${id}...`);
+  
+  if (!confirm('Delete this destination?')) {
+    console.log('✗ Deletion cancelled by user');
+    return;
+  }
+  
+  if (!window.state?.adminToken) {
+    showNotification('error', 'Error', 'Admin token not found. Please log in again.');
+    return;
+  }
+  
   try {
     const res = await fetch(apiUrl('/api/admin/destinations'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${state.adminToken}`
+        'Authorization': `Bearer ${window.state.adminToken}`
       },
       body: JSON.stringify({ action: 'delete', id })
     });
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const data = await res.json();
     if (data.success) {
+      console.log(`✓ Destination ${id} deleted`);
       showNotification('success', 'Deleted', 'Destination removed.');
       loadDestinationsData();
     } else {
-      showNotification('error', 'Error', data.error);
+      console.error(`✗ Deletion failed:`, data.error);
+      showNotification('error', 'Error', data.error || 'Unknown error occurred.');
     }
   } catch (e) {
+    console.error(`❌ Delete error:`, e);
     showNotification('error', 'Error', e.message);
   }
 }
@@ -225,5 +369,5 @@ window.approveDestination = approveDestination;
 window.approveAllDestinations = approveAllDestinations;
 window.deleteDestination = deleteDestination;
 
-console.log('✅ Admin Destinations loaded');
+console.log('✅ Admin Destinations loaded and ready');
 </script>

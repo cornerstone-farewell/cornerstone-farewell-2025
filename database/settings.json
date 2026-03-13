@@ -30,7 +30,7 @@
         "name": "Mr.Solomon",
         "subject": "Chairman.",
         "quote": ".",
-        "imageUrl": ""
+        "imageUrl": "https://kommodo.ai/i/rDYmHgvrpyH0jmCoxS3X"
       },
       {
         "name": "Mrs.Sharmila Solomon",
@@ -83,7 +83,7 @@
       {
         "name": "Mrs.Pragya",
         "subject": "Hindi HOD.",
-        "quote": ".",
+        "quote": "जीवन आपको चाहे जहाँ भी ले जाए, याद रखें कि आपके शिक्षक आप पर विश्वास करते हैं। अपना हौसला बुलंद रखें और अपने सपनों को देखना कभी न छोड़ें!\n \"चलते-चलते मेरे ये गीत याद रखना, कभी अलविदा ना कहना!\"",
         "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-30.png"
       },
       {
@@ -102,13 +102,13 @@
         "name": "Mr.Chandramohan",
         "subject": "Chemistry.",
         "quote": "\"Focus on the subject.\"",
-        "imageUrl": ""
+        "imageUrl": "https://kommodo.ai/i/WIM2HDV4cdawEX6DDYs2"
       },
       {
         "name": "Mrs.Binu",
         "subject": "Biology",
         "quote": "\"Open your textbook and notebook.\"",
-        "imageUrl": ""
+        "imageUrl": "https://kommodo.ai/i/Vao4LLOgWxjrfKptR6CT"
       },
       {
         "name": "Mrs.Uma",
@@ -120,7 +120,7 @@
         "name": "Mrs.Praveena",
         "subject": "Chemistry",
         "quote": "\"Children! please listen.\"",
-        "imageUrl": ""
+        "imageUrl": "https://kommodo.ai/i/x5AavEpsrBiJa2rUvas6"
       },
       {
         "name": "Mrs.Smitha",
@@ -133,6 +133,18 @@
         "subject": "Social Science.",
         "quote": "\"I'm just giving an example.\"",
         "imageUrl": ""
+      },
+      {
+        "name": "Mrs. Rashmi",
+        "subject": "Hindi",
+        "quote": "हमें आप पर गर्व है।\nआपकी मेहनत, अनुशासन और सपने आपको नई ऊँचाइयों तक ले जाएँगे।\nहमेशा सीखते रहिए, अच्छे इंसान बनिए और अपने माता-पिता व स्कूल का नाम रोशन कीजिए।\nआप सभी के उज्ज्वल भविष्य के लिए मेरी ढेर सारी शुभकामनाएँ",
+        "imageUrl": "https://kommodo.ai/i/8sKEQ8dhrl5o0inastZ9"
+      },
+      {
+        "name": "Mrs. Ushabharati",
+        "subject": "Social science",
+        "quote": "",
+        "imageUrl": "https://kommodo.ai/i/dztyt03qdiMqu3GuxH35"
       }
     ],
     "timeline": [
