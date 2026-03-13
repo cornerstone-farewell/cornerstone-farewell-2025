@@ -2287,8 +2287,8 @@ function writeDest(data) {
 // SERVE FRONTEND
 // ═══════════════════════════════════════════════════════════════════════════════
 
-
-
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ERROR HANDLING
@@ -2706,13 +2706,6 @@ app.use((err, req, res, next) => {
 })();
 
 
-
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SERVE FRONTEND
-// ═══════════════════════════════════════════════════════════════════════════════
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log('');

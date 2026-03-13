@@ -19,7 +19,7 @@ let ffData = {
 function initFunfeaturesPanelContent() {
   console.log('initFunfeaturesPanelContent called');
 
-  const panel = document.getElementById('panelFunFeatures');
+  const panel = document.getElementById('panelFunfeatures');
   if (!panel) return;
 
   if (panel.dataset.initialized !== 'true') {

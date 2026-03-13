@@ -1,5 +1,34 @@
 {
-  "destinations": [],
+  "pins": [
+    {
+      "id": 1,
+      "name": "b vn g",
+      "school": "Ranjhi",
+      "city": "Narmadapuram",
+      "country": "Madhya Pradesh",
+      "lat": 22.43637260156422,
+      "lng": 77.69534831197028,
+      "type": "school",
+      "note": "Itarsi Tahsil, Narmadapuram, Madhya Pradesh",
+      "approved": false,
+      "deletedAt": null,
+      "createdAt": "2026-03-13T05:19:52.207Z"
+    },
+    {
+      "id": 2,
+      "name": "b vn g",
+      "school": "MDR052",
+      "city": "MDR052",
+      "country": "Kotauratla",
+      "lat": 17.562727030371633,
+      "lng": 82.7071552192769,
+      "type": "university",
+      "note": "Venkatapuram, Ramannapalem, Kotauratla",
+      "approved": false,
+      "deletedAt": null,
+      "createdAt": "2026-03-13T05:19:52.273Z"
+    }
+  ],
   "submissions": [],
-  "nextId": 1
+  "nextId": 3
 }

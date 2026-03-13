@@ -505,7 +505,7 @@ html.hard-refresh-top, body.hard-refresh-top { scroll-behavior: auto !important;
 // UNIFIED CONFIG
 // =========================
 const CONFIG = {
-  API_BASE: localStorage.getItem('farewell_api_base') || "https://wildlife-stopped-invisible-spouse.trycloudflare.com",
+  API_BASE: localStorage.getItem('farewell_api_base') || "https://counsel-polyester-unknown-monthly.trycloudflare.com",
   REFRESH_INTERVAL: 60000,
   MAX_FILE_SIZE: 100 * 1024 * 1024,
   MAX_TOTAL_SIZE: 200 * 1024 * 1024,
@@ -3055,6 +3055,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   <script data-fragment-script="compilations">
   // COMPILATION PLAYER
     // ═══════════════════════════════════════════════════════════════════════════════
+    let currentCompilation = null; let currentSlideIndex = 0; let compilationTimer = null;
   
     async function playCompilation(compilationId) {
       try {
@@ -12159,7 +12160,7 @@ Details
 // Supports manual edit + CSV/Excel bulk import + photo mapping
 // ═══════════════════════════════════════════════════════════════════════════════
 
-
+let studentDirectoryData = [];
 
 function initStudentsPanelContent() {
   const panel = document.getElementById('panelStudents');

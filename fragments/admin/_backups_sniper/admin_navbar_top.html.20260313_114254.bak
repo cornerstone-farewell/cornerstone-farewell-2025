@@ -143,6 +143,11 @@
  min-height: calc(100vh - 52px);
 }
 
+.admin-content {
+ padding: 20px;
+ background: #1a1a2e;
+ min-height: calc(100vh - 70px);
+}
 .admin-btn-primary {
   background: var(--gradient-gold);
   color: var(--navy-dark);
@@ -471,47 +476,48 @@ function can(permission) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function switchAdminTab(tab) {
- console.log('switchAdminTab:', tab);
- document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
- document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  console.log('switchAdminTab:', tab);
 
- const tabMap = {
-  moderation: { panelId: 'panelModeration', init: 'initModerationPanelContent' },
-  settings: { panelId: 'panelSettings', init: 'initSettingsPanelContent' },
-  theme: { panelId: 'panelTheme', init: 'initThemePanelContent' },
-  users: { panelId: 'panelUsers', init: 'initUsersPanelContent' },
-  compilations: { panelId: 'panelCompilations', init: 'initCompilationsPanelContent' },
-  funfeatures: { panelId: 'panelFunFeatures', init: 'initFunfeaturesPanelContent' },
-  destinations: { panelId: 'panelDestinations', init: 'initDestinationsPanelContent' },
-  advice: { panelId: 'panelAdvice', init: 'initAdvicePanelContent' },
-  papernotes: { panelId: 'panelPapernotes', init: 'initPapernotesPanelContent' },
-  students: { panelId: 'panelStudents', init: 'initStudentsPanelContent' },
-  security: { panelId: 'panelSecurity', init: 'initSecurityPanelContent' }
- };
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
 
- const cfg = tabMap[tab];
- if (!cfg) {
-  console.warn('Unknown admin tab:', tab);
-  return;
- }
+  const tabMap = {
+    moderation: { panelId: 'panelModeration', init: 'initModerationPanelContent' },
+    settings: { panelId: 'panelSettings', init: 'initSettingsPanelContent' },
+    theme: { panelId: 'panelTheme', init: 'initThemePanelContent' },
+    users: { panelId: 'panelUsers', init: 'initUsersPanelContent' },
+    compilations: { panelId: 'panelCompilations', init: 'initCompilationsPanelContent' },
+    funfeatures: { panelId: 'panelFunFeatures', init: 'initFunfeaturesPanelContent' },
+    destinations: { panelId: 'panelDestinations', init: 'initDestinationsPanelContent' },
+    advice: { panelId: 'panelAdvice', init: 'initAdvicePanelContent' },
+    papernotes: { panelId: 'panelPapernotes', init: 'initPapernotesPanelContent' },
+    students: { panelId: 'panelStudents', init: 'initStudentsPanelContent' },
+    security: { panelId: 'panelSecurity', init: 'initSecurityPanelContent' }
+  };
 
- document.querySelectorAll('.admin-tab').forEach(t => {
-  const onclick = t.getAttribute('onclick') || '';
-  if (onclick.includes(`'${tab}'`)) t.classList.add('active');
- });
+  const cfg = tabMap[tab];
+  if (!cfg) {
+    console.warn('Unknown admin tab:', tab);
+    return;
+  }
 
- const panel = document.getElementById(cfg.panelId);
- if (panel) {
-  panel.classList.add('active');
- } else {
-  console.warn('Panel not found:', cfg.panelId);
- }
+  document.querySelectorAll('.admin-tab').forEach(t => {
+    const onclick = t.getAttribute('onclick') || '';
+    if (onclick.includes(`'${tab}'`)) t.classList.add('active');
+  });
 
- if (typeof window[cfg.init] === 'function') {
-  window[cfg.init]();
- } else {
-  console.warn('Init function not found:', cfg.init);
- }
+  const panel = document.getElementById(cfg.panelId);
+  if (panel) {
+    panel.classList.add('active');
+  } else {
+    console.warn('Panel not found:', cfg.panelId);
+  }
+
+  if (typeof window[cfg.init] === 'function') {
+    window[cfg.init]();
+  } else {
+    console.warn('Init function not found:', cfg.init);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

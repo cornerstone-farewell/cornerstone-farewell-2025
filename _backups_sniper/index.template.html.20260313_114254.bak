@@ -916,6 +916,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 <!-- @include: fragments/admin/destinations.html -->
 <!-- @include: fragments/admin/advice.html -->
 <!-- @include: fragments/admin/papernotes.html -->
+<!-- @include: fragments/admin/teachers.html -->
 <!-- @include: fragments/admin/students.html -->
 <!-- @include: fragments/admin/security.html -->
 </body>

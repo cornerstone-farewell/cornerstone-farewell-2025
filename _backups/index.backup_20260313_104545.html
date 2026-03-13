@@ -505,7 +505,7 @@ html.hard-refresh-top, body.hard-refresh-top { scroll-behavior: auto !important;
 // UNIFIED CONFIG
 // =========================
 const CONFIG = {
-  API_BASE: localStorage.getItem('farewell_api_base') || "https://wildlife-stopped-invisible-spouse.trycloudflare.com",
+  API_BASE: localStorage.getItem('farewell_api_base') || "https://counsel-polyester-unknown-monthly.trycloudflare.com",
   REFRESH_INTERVAL: 60000,
   MAX_FILE_SIZE: 100 * 1024 * 1024,
   MAX_TOTAL_SIZE: 200 * 1024 * 1024,
@@ -3055,6 +3055,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   <script data-fragment-script="compilations">
   // COMPILATION PLAYER
     // ═══════════════════════════════════════════════════════════════════════════════
+    let currentCompilation = null; let currentSlideIndex = 0; let compilationTimer = null;
   
     async function playCompilation(compilationId) {
       try {
@@ -7020,18 +7021,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         // Save school location
         if (S.schoolLoc) {
-          const parts = (S.schoolLoc.addr || '').split(',').map(x => x.trim()).filter(Boolean);
-
-  const payload = {
-    name: name,
-    type: 'school',
-    school: S.schoolLoc.name || '',
-    city: parts[parts.length - 2] || S.schoolLoc.name || 'Unknown',
-    country: parts[parts.length - 1] || 'Unknown',
-    lat: S.schoolLoc.lat,
-    lng: S.schoolLoc.lng,
-    note: S.schoolLoc.addr || ''
-  };
+          const payload = {
+            name: name,
+            type: 'school',
+            lat: S.schoolLoc.lat,
+            lng: S.schoolLoc.lng,
+            placeName: S.schoolLoc.name || '',
+            address: S.schoolLoc.addr || ''
+          };
           console.log('[Globe] Saving school:', payload);
           const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
           const d = await r.json();
@@ -7353,74 +7350,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     display: block;
   }
   .admin-header {
-   background: #16213e !important;
-   padding: 8px 12px;
-   display: flex;
-   justify-content: space-between;
-   align-items: center;
-   gap: 10px;
-   flex-wrap: nowrap;
-   position: sticky;
-   top: 0;
-   z-index: 1000;
-   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-   min-height: 48px;
+    background: #16213e !important;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   }
-
   .admin-title {
-   font-family: var(--font-display);
-   font-size: 0.95rem;
-   line-height: 1;
-   color: var(--primary-gold);
-   margin: 0;
-   white-space: nowrap;
-   flex-shrink: 0;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--primary-gold);
   }
-
   .admin-actions {
-   display: flex;
-   gap: 6px;
-   flex-wrap: nowrap;
-   align-items: center;
-   justify-content: flex-end;
-   overflow-x: auto;
-   overflow-y: hidden;
-   flex: 1;
-   scrollbar-width: none;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
   }
-
-  .admin-actions::-webkit-scrollbar {
-   display: none;
-  }
-
   .admin-btn {
-   padding: 6px 10px;
-   border-radius: 16px;
-   font-size: 0.72rem;
-   font-weight: 600;
-   cursor: pointer;
-   transition: var(--transition-smooth);
-   font-family: var(--font-body);
-   display: inline-flex;
-   align-items: center;
-   justify-content: center;
-   gap: 5px;
-   border: none;
-   white-space: nowrap;
-   flex-shrink: 0;
-   line-height: 1;
-  }
-
-  .admin-content {
-   padding: 14px;
-   background: #1a1a2e;
-   min-height: calc(100vh - 52px);
-  }
-
-  .admin-content {
-   padding: 20px;
-   background: #1a1a2e;
-   min-height: calc(100vh - 70px);
+    padding: 10px 16px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    font-family: var(--font-body);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
   }
   .admin-btn-primary {
     background: var(--gradient-gold);
@@ -7439,7 +7402,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   .admin-btn:hover {
     transform: translateY(-2px);
   }
-
+  .admin-content {
+    padding: 40px;
+    background: #1a1a2e;
+    min-height: calc(100vh - 100px);
+  }
   .admin-tabs {
     display: flex;
     gap: 8px;
@@ -7633,34 +7600,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   @media (max-width: 768px) {
-   .admin-header {
-    padding: 7px 10px;
-    gap: 8px;
-    min-height: 44px;
-   }
-
-   .admin-title {
-    font-size: 0.85rem;
-   }
-
-   .admin-content {
-    padding: 12px;
-   }
-
-   .admin-tabs {
-    gap: 6px;
-   }
-
-   .admin-tab {
-    padding: 6px 9px;
-    font-size: 0.74rem;
-   }
-
-   .admin-btn {
-    padding: 5px 8px;
-    font-size: 0.68rem;
-    border-radius: 14px;
-   }
+    .admin-header { padding: 15px 20px; }
+    .admin-content { padding: 20px; }
+    .admin-tabs { gap: 6px; }
+    .admin-tab { padding: 8px 12px; font-size: 0.8rem; }
   }
   </style>
 
@@ -7718,10 +7661,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="admin-panel" id="panelTheme" data-initialized="false"></div>
       <div class="admin-panel" id="panelUsers" data-initialized="false"></div>
       <div class="admin-panel" id="panelCompilations" data-initialized="false"></div>
-      <div class="admin-panel" id="panelFunFeatures" data-initialized="false"></div>
+      <div class="admin-panel" id="panelFunfeatures" data-initialized="false"></div>
       <div class="admin-panel" id="panelDestinations" data-initialized="false"></div>
       <div class="admin-panel" id="panelAdvice" data-initialized="false"></div>
       <div class="admin-panel" id="panelPapernotes" data-initialized="false"></div>
+      <div class="admin-panel" id="panelTeachers" data-initialized="false"></div>
       <div class="admin-panel" id="panelStudents" data-initialized="false"></div>
       <div class="admin-panel" id="panelSecurity" data-initialized="false"></div>
     </div>
@@ -7752,45 +7696,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   function switchAdminTab(tab) {
     console.log('switchAdminTab:', tab);
 
+    // Remove active from all
     document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
 
-    const tabMap = {
-      moderation: { panelId: 'panelModeration', init: 'initModerationPanelContent' },
-      settings: { panelId: 'panelSettings', init: 'initSettingsPanelContent' },
-      theme: { panelId: 'panelTheme', init: 'initThemePanelContent' },
-      users: { panelId: 'panelUsers', init: 'initUsersPanelContent' },
-      compilations: { panelId: 'panelCompilations', init: 'initCompilationsPanelContent' },
-      funfeatures: { panelId: 'panelFunFeatures', init: 'initFunfeaturesPanelContent' },
-      destinations: { panelId: 'panelDestinations', init: 'initDestinationsPanelContent' },
-      advice: { panelId: 'panelAdvice', init: 'initAdvicePanelContent' },
-      papernotes: { panelId: 'panelPapernotes', init: 'initPapernotesPanelContent' },
-      students: { panelId: 'panelStudents', init: 'initStudentsPanelContent' },
-      security: { panelId: 'panelSecurity', init: 'initSecurityPanelContent' }
-    };
-
-    const cfg = tabMap[tab];
-    if (!cfg) {
-      console.warn('Unknown admin tab:', tab);
-      return;
-    }
-
-    document.querySelectorAll('.admin-tab').forEach(t => {
-      const onclick = t.getAttribute('onclick') || '';
-      if (onclick.includes(`'${tab}'`)) t.classList.add('active');
+    // Find and activate tab
+    const tabs = document.querySelectorAll('.admin-tab');
+    tabs.forEach(t => {
+      if (t.textContent.toLowerCase().includes(tab.toLowerCase()) || 
+          t.getAttribute('onclick')?.includes(`'${tab}'`)) {
+        t.classList.add('active');
+      }
     });
 
-    const panel = document.getElementById(cfg.panelId);
-    if (panel) {
-      panel.classList.add('active');
-    } else {
-      console.warn('Panel not found:', cfg.panelId);
-    }
+    // Capitalize for panel ID
+    const panelId = 'panel' + tab.charAt(0).toUpperCase() + tab.slice(1);
+    const panel = document.getElementById(panelId);
+    if (panel) panel.classList.add('active');
 
-    if (typeof window[cfg.init] === 'function') {
-      window[cfg.init]();
+    // Initialize panel content
+    const initFnName = `init${tab.charAt(0).toUpperCase() + tab.slice(1)}PanelContent`;
+    if (typeof window[initFnName] === 'function') {
+      window[initFnName]();
     } else {
-      console.warn('Init function not found:', cfg.init);
+      console.warn(`Init function not found: ${initFnName}`);
     }
   }
 
@@ -7912,581 +7841,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log('✅ Admin Nav Top loaded');
   </script>
 
-
-
-Skip to content
-Using Gmail with screen readers
-
-Get professional email like '@your-company.com'
-Plus 2 TB of storage per user, longer video calls and more with Google Workspace
-Conversations
-65% of 15 GB used
-Terms · Privacy · Programme Policies
-Last account activity: 1 hour ago
-Details
-<!-- ENHANCED ADMIN MODERATION - PRODUCTION MODULE -->
+<!-- FRAGMENT: admin_moderation -->
 <style data-fragment-style="admin_moderation">
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* COLOR & THEME VARIABLES */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-:root {
-  --primary-gold: #d4af37;
-  --primary-dark: #1a1a2e;
-  --secondary-dark: #16213e;
-  --accent-blue: #0f3460;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --pending: #ec4899;
-  --text-light: #e4e4e7;
-  --text-muted: #9ca3af;
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --transition-fast: 0.15s ease;
-  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* STATS SECTION */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.admin-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.stat-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  padding: 24px;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  transition: all var(--transition-smooth);
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.stat-card:hover {
-  border-color: var(--primary-gold);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(212, 175, 55, 0.1);
-}
-
-.stat-number {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--primary-gold);
-  margin-bottom: 8px;
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 500;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* FILTERS & CONTROLS */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.admin-controls {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(212, 175, 55, 0.1);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 32px;
-  backdrop-filter: blur(10px);
-}
-
-.admin-search {
-  margin-bottom: 20px;
-}
-
-.admin-search input {
-  width: 100%;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  border-radius: 8px;
-  color: var(--text-light);
-  font-size: 1rem;
-  transition: all var(--transition-smooth);
-}
-
-.admin-search input::placeholder {
-  color: var(--text-muted);
-}
-
-.admin-search input:focus {
-  outline: none;
-  border-color: var(--primary-gold);
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
-}
-
-.admin-filter-group {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  color: var(--text-light);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-}
-
-.filter-btn:hover {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: var(--primary-gold);
-  transform: translateY(-2px);
-}
-
-.filter-btn.active {
-  background: var(--primary-gold);
-  border-color: var(--primary-gold);
-  color: var(--bg-primary);
-  font-weight: 600;
-}
-
-.control-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-
-.form-select {
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  color: var(--text-light);
-  border-radius: 6px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all var(--transition-smooth);
-}
-
-.form-select:focus {
-  outline: none;
-  border-color: var(--primary-gold);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* ACTION BUTTONS */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.admin-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.admin-btn {
-  padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: all var(--transition-smooth);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.admin-btn-primary {
-  background: var(--primary-gold);
-  color: var(--bg-primary);
-}
-
-.admin-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(212, 175, 55, 0.3);
-}
-
-.admin-btn-secondary {
-  background: rgba(212, 175, 55, 0.1);
-  color: var(--primary-gold);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-}
-
-.admin-btn-secondary:hover {
-  background: rgba(212, 175, 55, 0.2);
-  border-color: var(--primary-gold);
-  transform: translateY(-2px);
-}
-
-.admin-btn-success {
-  background: var(--success);
-  color: white;
-}
-
-.admin-btn-success:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
-}
-
-.admin-btn-danger {
-  background: var(--danger);
-  color: white;
-}
-
-.admin-btn-danger:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
-}
-
-.admin-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* MEMORY GRID & CARD LAYOUT */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.admin-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.admin-memory-card {
-  background: var(--bg-secondary);
-  border: 1px solid rgba(212, 175, 55, 0.1);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all var(--transition-smooth);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  position: relative;
-}
-
-.admin-memory-card:hover {
-  border-color: var(--primary-gold);
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(212, 175, 55, 0.15);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* IMAGE/MEDIA CONTAINER - PROPERLY STRUCTURED */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.admin-memory-media {
-  position: relative;
-  width: 100%;
-  padding-bottom: 100%; /* 1:1 aspect ratio - prevents layout shift */
-  background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1));
-  overflow: hidden;
-}
-
-.admin-memory-media img,
-.admin-memory-media video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  transition: transform var(--transition-smooth);
-  display: block;
-}
-
-/* Smooth zoom on hover */
-.admin-memory-card:hover .admin-memory-media img,
-.admin-memory-card:hover .admin-memory-media video {
-  transform: scale(1.05);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* STATUS BADGE */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.admin-memory-status {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  backdrop-filter: blur(8px);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.status-approved {
-  background: rgba(16, 185, 129, 0.9);
-  color: white;
-}
-
-.status-pending {
-  background: rgba(236, 72, 153, 0.9);
-  color: white;
-}
-
-.status-trash {
-  background: rgba(239, 68, 68, 0.9);
-  color: white;
-}
-
-.status-featured {
-  background: rgba(212, 175, 55, 0.9);
-  color: var(--bg-primary);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* BULK SELECT CHECKBOX */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.bulk-checkbox-wrapper {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 20;
-  background: rgba(0,0,0,0.4);
-  padding: 4px;
-  border-radius: 4px;
-  backdrop-filter: blur(4px);
-}
-
-.bulk-checkbox-wrapper input {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--primary-gold);
-  cursor: pointer;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* CARD INFO SECTION */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.admin-memory-info {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  flex-grow: 1;
-}
-
-.admin-memory-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-light);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.admin-memory-caption {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 2.8em;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* METADATA DISPLAY */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.admin-memory-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-}
-
-.admin-memory-meta span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* ACTION BUTTONS IN CARD */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.admin-memory-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 12px 16px;
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.admin-memory-actions button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.approve-btn {
-  background: var(--success);
-  color: white;
-}
-
-.approve-btn:hover:not(:disabled) {
-  filter: brightness(1.1);
-  transform: scale(1.02);
-}
-
-.delete-btn {
-  background: var(--danger);
-  color: white;
-}
-
-.delete-btn:hover:not(:disabled) {
-  filter: brightness(1.1);
-  transform: scale(1.02);
-}
-
-.restore-btn {
-  background: var(--warning);
-  color: white;
-}
-
-.restore-btn:hover:not(:disabled) {
-  filter: brightness(1.1);
-  transform: scale(1.02);
-}
-
-.download-btn {
-  background: var(--accent-blue);
-  color: var(--text-light);
-}
-
-.download-btn:hover {
-  background: rgba(15, 52, 96, 0.8);
-  transform: scale(1.02);
-}
-
-.edit-btn {
-  background: rgba(212, 175, 55, 0.2);
-  color: var(--primary-gold);
-}
-
-.edit-btn:hover:not(:disabled) {
-  background: rgba(212, 175, 55, 0.3);
-  transform: scale(1.02);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* LOAD MORE & PAGINATION */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.load-more-wrap {
-  text-align: center;
-  padding: 20px;
-  margin-top: 25px;
-}
-
-.load-more-btn {
-  padding: 12px 32px;
-  background: linear-gradient(135deg, var(--primary-gold), #f59e0b);
-  color: var(--bg-primary);
-  border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition-smooth);
-  font-size: 1rem;
-}
-
-.load-more-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(212, 175, 55, 0.3);
-}
-
-.load-more-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* INLINE EDITING */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
+/* Additional moderation-specific styles */
 .inline-editable {
   cursor: pointer;
   border: 1px dashed transparent;
   padding: 2px 4px;
   border-radius: 4px;
-  transition: all var(--transition-smooth);
+  transition: var(--transition-smooth);
 }
-
 .inline-editable:hover {
   border-color: var(--primary-gold);
   background: rgba(212, 175, 55, 0.1);
 }
-
 .inline-editable.editing {
   background: rgba(255,255,255,0.1);
   border-color: var(--primary-gold);
 }
-
 .inline-edit-input {
   background: rgba(255,255,255,0.1);
   border: 1px solid var(--primary-gold);
@@ -8497,77 +7869,14 @@ Details
   font-size: inherit;
   width: 100%;
 }
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* EMPTY STATE */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-.admin-grid-empty {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--text-muted);
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-/* RESPONSIVE DESIGN */
-/* ═══════════════════════════════════════════════════════════════════════════════ */
-
-@media (max-width: 768px) {
-  .admin-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-  }
-
-  .admin-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .admin-memory-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-filter-group {
-    flex-direction: column;
-  }
-
-  .filter-btn {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .admin-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stat-number {
-    font-size: 2rem;
-  }
-
-  .admin-memory-actions {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
 </style>
 
 <script data-fragment-script="admin_moderation">
 // ═══════════════════════════════════════════════════════════════════════════════
-// MODERATION PANEL - STATE MANAGEMENT
+// MODERATION PANEL - STATE
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// Extend state object safely
 if (typeof state !== 'undefined') {
   Object.assign(state, {
     adminFilter: state.adminFilter || 'all',
@@ -8582,7 +7891,7 @@ if (typeof state !== 'undefined') {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// RENDER MODERATION PANEL HTML
+// MODERATION PANEL HTML
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function renderModerationPanelHtml() {
@@ -8602,47 +7911,46 @@ function renderModerationPanelHtml() {
       </div>
       <div class="stat-card">
         <div class="stat-number" id="statStorage">0 MB</div>
-        <div class="stat-label">Storage Used</div>
+        <div class="stat-label">Storage</div>
       </div>
     </div>
     
-    <div class="admin-controls">
+    <div class="admin-filters">
       <div class="admin-search">
-        <input type="text" id="adminSearch" placeholder="🔍 Search by name, caption, type..." />
+        <input type="text" id="adminSearch" placeholder="Search by name/caption/type..." />
       </div>
       <div class="admin-filter-group" id="adminFilterGroup">
         <button class="filter-btn active" data-admin-filter="all">All</button>
-        <button class="filter-btn" data-admin-filter="approved">✓ Approved</button>
-        <button class="filter-btn" data-admin-filter="pending">⏳ Pending</button>
-        <button class="filter-btn" data-admin-filter="featured">⭐ Featured</button>
-        <button class="filter-btn" data-admin-filter="trash">🗑 Trash</button>
+        <button class="filter-btn" data-admin-filter="approved">Approved</button>
+        <button class="filter-btn" data-admin-filter="pending">Pending</button>
+        <button class="filter-btn" data-admin-filter="featured">Featured</button>
+        <button class="filter-btn" data-admin-filter="trash">Trash</button>
       </div>
-      <div class="control-row">
-        <select class="form-select" id="adminSort">
-          <option value="newest">📅 Newest First</option>
-          <option value="oldest">📅 Oldest First</option>
-          <option value="likes">❤️ Most Liked</option>
-        </select>
-        <select class="form-select" id="adminPageSize">
-          <option value="30">30 per page</option>
-          <option value="60">60 per page</option>
-        </select>
-      </div>
-      <div class="admin-actions">
-        <button class="admin-btn admin-btn-secondary" id="bulkSelectToggle" onclick="toggleBulkSelect()">☐ Bulk Select: OFF</button>
-        <button class="admin-btn admin-btn-success" onclick="bulkActionPrompt('approve')">✓ Approve</button>
-        <button class="admin-btn admin-btn-danger" onclick="bulkActionPrompt('trash')">🗑 Trash</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('restore')">↩ Restore</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('setType')">📁 Category</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('feature')">⭐ Feature</button>
-        <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('unfeature')">☆ Unfeature</button>
-      </div>
+      <select class="form-select" id="adminSort" style="width:auto; padding:10px 40px 10px 15px; background:#2a2a4a; color:#fff;">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="likes">Most Liked</option>
+      </select>
+      <select class="form-select" id="adminPageSize" style="width:auto; padding:10px 40px 10px 15px; background:#2a2a4a; color:#fff;">
+        <option value="30">30/page</option>
+        <option value="60">60/page</option>
+      </select>
+    </div>
+    
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+      <button class="admin-btn admin-btn-secondary" id="bulkSelectToggle" onclick="toggleBulkSelect()">☐ Bulk Select: OFF</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('approve')">✓ Bulk Approve</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('trash')">🗑 Bulk Trash</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('restore')">↩ Bulk Restore</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('setType')">📁 Change Category</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('feature')">⭐ Feature</button>
+      <button class="admin-btn admin-btn-secondary" onclick="bulkActionPrompt('unfeature')">☆ Unfeature</button>
     </div>
     
     <div class="admin-grid" id="adminGrid"></div>
     
-    <div class="load-more-wrap">
-      <button class="load-more-btn" id="adminLoadMoreBtn" onclick="adminLoadMore()">Load More</button>
+    <div class="load-more-wrap" style="margin-top:25px;">
+      <button class="btn btn-secondary load-more-btn" id="adminLoadMoreBtn" type="button" onclick="adminLoadMore()">Load More</button>
     </div>
   `;
 }
@@ -8652,20 +7960,23 @@ function renderModerationPanelHtml() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function initModerationPanelContent() {
-  console.log('✅ Initializing Moderation Panel...');
+  console.log('initModerationPanelContent called');
   
   const panel = document.getElementById('panelModeration');
   if (!panel) {
-    console.error('❌ panelModeration element not found');
+    console.error('panelModeration not found');
     return;
   }
   
+  // Check if already has content
   const hasContent = panel.innerHTML.trim().length > 100;
   
   if (!hasContent) {
+    console.log('Rendering moderation panel HTML...');
     panel.innerHTML = renderModerationPanelHtml();
   }
   
+  // Setup event listeners after a small delay
   setTimeout(() => {
     setupModerationEventListeners();
     loadAdminMemories(true);
@@ -8673,9 +7984,9 @@ function initModerationPanelContent() {
 }
 
 function setupModerationEventListeners() {
-  console.log('✅ Setting up event listeners...');
+  console.log('Setting up moderation event listeners...');
   
-  // Search
+  // Search input
   const searchInput = document.getElementById('adminSearch');
   if (searchInput && !searchInput.dataset.listenerAdded) {
     searchInput.dataset.listenerAdded = '1';
@@ -8685,7 +7996,7 @@ function setupModerationEventListeners() {
     }, 300));
   }
   
-  // Filters
+  // Filter buttons
   const filterGroup = document.getElementById('adminFilterGroup');
   if (filterGroup && !filterGroup.dataset.listenerAdded) {
     filterGroup.dataset.listenerAdded = '1';
@@ -8701,7 +8012,7 @@ function setupModerationEventListeners() {
     });
   }
   
-  // Sort
+  // Sort select
   const sortSelect = document.getElementById('adminSort');
   if (sortSelect && !sortSelect.dataset.listenerAdded) {
     sortSelect.dataset.listenerAdded = '1';
@@ -8711,7 +8022,7 @@ function setupModerationEventListeners() {
     });
   }
   
-  // Page size
+  // Page size select
   const pageSizeSelect = document.getElementById('adminPageSize');
   if (pageSizeSelect && !pageSizeSelect.dataset.listenerAdded) {
     pageSizeSelect.dataset.listenerAdded = '1';
@@ -8728,7 +8039,7 @@ function setupModerationEventListeners() {
 
 async function loadAdminMemories(reset = false, preserveBulk = false) {
   if (!state.adminToken) {
-    console.warn('⚠️ No admin token');
+    console.warn('No admin token, cannot load memories');
     return;
   }
   
@@ -8753,6 +8064,8 @@ async function loadAdminMemories(reset = false, preserveBulk = false) {
       limit: String(state.adminLimit)
     });
     
+    console.log('Loading admin memories with params:', params.toString());
+    
     const res = await fetch(apiUrl(`/api/admin/memories?${params}`), {
       headers: { 'Authorization': `Bearer ${state.adminToken}` }
     });
@@ -8760,8 +8073,11 @@ async function loadAdminMemories(reset = false, preserveBulk = false) {
     const data = await res.json();
     
     if (!data.success) {
-      if (res.status === 401) adminLogout();
-      console.error('❌ Failed:', data.error);
+      if (res.status === 401) {
+        adminLogout();
+        return;
+      }
+      console.error('Failed to load memories:', data.error);
       return;
     }
     
@@ -8771,7 +8087,7 @@ async function loadAdminMemories(reset = false, preserveBulk = false) {
     state.adminPage += 1;
     
   } catch (e) {
-    console.error('❌ Error:', e);
+    console.error('Error loading admin memories:', e);
     showNotification('error', 'Error', 'Failed to load memories');
   }
 }
@@ -8786,10 +8102,12 @@ function adminLoadMore() {
 
 function updateAdminStats(stats) {
   if (!stats) return;
+  
   const setContent = (id, val) => {
     const el = document.getElementById(id);
     if (el) el.textContent = val ?? '0';
   };
+  
   setContent('statTotal', stats.total);
   setContent('statApproved', stats.approved);
   setContent('statPending', stats.pending);
@@ -8797,7 +8115,7 @@ function updateAdminStats(stats) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// RENDER ADMIN GRID WITH PROPER IMAGE STRUCTURE
+// RENDER ADMIN GRID
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function renderAdminGrid(memories, reset) {
@@ -8812,7 +8130,7 @@ function renderAdminGrid(memories, reset) {
   if (reset) grid.innerHTML = '';
   
   if (!items.length && reset) {
-    grid.innerHTML = `<div class="admin-grid-empty">📭 No memories found</div>`;
+    grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:var(--text-muted);">No memories found.</p>`;
     return;
   }
   
@@ -8821,55 +8139,55 @@ function renderAdminGrid(memories, reset) {
                        (memory.deletedAt ? 'status-trash' : 
                        (memory.approved ? 'status-approved' : 'status-pending'));
     const statusText = memory.deletedAt ? 'TRASH' : (memory.approved ? 'APPROVED' : 'PENDING');
-    const statusIcon = memory.deletedAt ? '🗑' : (memory.approved ? '✓' : '⏳');
     
-    const bulkCheckbox = state.adminBulkMode ? `
-      <div class="bulk-checkbox-wrapper">
-        <input type="checkbox" class="bulk-checkbox"
+    const bulkBox = state.adminBulkMode ? `
+      <div style="position:absolute;left:10px;top:10px;z-index:2;">
+        <input type="checkbox" style="transform:scale(1.3);" 
                onchange="toggleSelectId(${memory.id}, this.checked)" 
                ${state.adminSelectedIds.has(memory.id) ? 'checked' : ''}/>
       </div>` : '';
     
     const canMod = can('moderation');
     const canEdit = can('editMemory');
+    const canReplace = can('replaceFile');
+    const isSuperAdmin = state.adminUser?.role === 'superadmin';
     
     return `
       <div class="admin-memory-card" data-id="${memory.id}">
-        <!-- PROPERLY STRUCTURED MEDIA SECTION -->
         <div class="admin-memory-media">
-          ${bulkCheckbox}
+          ${bulkBox}
           ${memory.file_type === 'video' 
             ? `<video src="${memory.file_url}" preload="metadata"></video>` 
-            : `<img src="${memory.file_url}" alt="${escapeHtml(memory.student_name || 'Memory')}" loading="lazy">`}
-          <span class="admin-memory-status ${statusClass}">${statusIcon} ${statusText}</span>
+            : `<img src="${memory.file_url}" alt="">`}
+          <span class="admin-memory-status ${statusClass}">${statusText}</span>
         </div>
-        
-        <!-- INFO SECTION -->
         <div class="admin-memory-info">
-          <div class="admin-memory-name">${escapeHtml(memory.student_name || 'Unknown')}</div>
-          <div class="admin-memory-caption">${escapeHtml(memory.caption || 'No caption')}</div>
+          <div class="admin-memory-name">${escapeHtml(memory.student_name || '')}</div>
+          <div class="admin-memory-caption">${escapeHtml(memory.caption || '')}</div>
           <div class="admin-memory-meta">
-            <span>📁 ${escapeHtml(memory.memory_type || 'General')}</span>
-            <span>📦 ${escapeHtml(memory.file_size_formatted || 'N/A')}</span>
+            <span>${escapeHtml(memory.memory_type || '')}</span>
+            <span>${escapeHtml(memory.file_size_formatted || '')}</span>
           </div>
           <div class="admin-memory-meta">
-            <span>❤️ ${memory.likes || 0} likes</span>
-            <span>📅 ${escapeHtml(timeAgo(memory.created_at))}</span>
+            <span>${memory.likes || 0} likes</span>
+            <span>${escapeHtml(timeAgo(memory.created_at))}</span>
           </div>
-        </div>
-        
-        <!-- ACTION BUTTONS -->
-        <div class="admin-memory-actions">
-          ${(!memory.approved && !memory.deletedAt && canMod) 
-            ? `<button class="approve-btn" onclick="approveMemory(${memory.id})">✓ Approve</button>` 
-            : `<button class="approve-btn" style="opacity:0.5;" disabled>✓ Approve</button>`}
-          <button class="download-btn" onclick="window.open('${memory.file_url}', '_blank')">⬇ Download</button>
-          ${!memory.deletedAt 
-            ? `<button class="delete-btn" onclick="trashMemory(${memory.id})">🗑 Trash</button>` 
-            : `<button class="restore-btn" onclick="restoreMemory(${memory.id})">↩ Restore</button>`}
-          ${canEdit 
-            ? `<button class="edit-btn" onclick="openEditMemory(${memory.id})">✏ Edit</button>` 
-            : `<button class="edit-btn" style="opacity:0.5;" disabled>✏ Edit</button>`}
+          <div class="admin-memory-actions">
+            ${(!memory.approved && !memory.deletedAt && canMod) 
+              ? `<button class="approve-btn" onclick="approveMemory(${memory.id})">✓ Approve</button>` 
+              : `<button class="approve-btn" style="opacity:0.5;" disabled>✓ Approve</button>`}
+            <button class="download-btn" onclick="window.open('${memory.file_url}', '_blank')">⬇ Download</button>
+            ${!memory.deletedAt 
+              ? `<button class="delete-btn" onclick="trashMemory(${memory.id})">🗑 Trash</button>` 
+              : `<button class="restore-btn" onclick="restoreMemory(${memory.id})">↩ Restore</button>`}
+            ${canEdit 
+              ? `<button class="edit-btn" onclick="openEditMemory(${memory.id})">✏ Edit</button>` 
+              : `<button class="edit-btn" style="opacity:0.5;" disabled>✏ Edit</button>`}
+          </div>
+          ${isSuperAdmin && memory.deletedAt ? `
+            <button class="btn btn-danger" style="margin-top:12px; width:100%; justify-content:center; padding:12px 16px;" 
+                    onclick="purgeMemory(${memory.id})">⚠ Purge Permanently</button>
+          ` : ''}
         </div>
       </div>`;
   }).join(''));
@@ -8892,6 +8210,26 @@ async function approveMemory(id) {
       if (typeof loadMemories === 'function') loadMemories(true);
     } else {
       showNotification('error', 'Failed', data.error || 'Could not approve.');
+    }
+  } catch (e) {
+    showNotification('error', 'Failed', e.message);
+  }
+}
+
+async function approveAllPending() {
+  if (!confirm('Approve all pending memories?')) return;
+  try {
+    const res = await fetch(apiUrl(`/api/admin/approve-all`), {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${state.adminToken}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('success', 'Approved All', `${data.count} approved.`);
+      loadAdminMemories(true);
+      if (typeof loadMemories === 'function') loadMemories(true);
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not approve all.');
     }
   } catch (e) {
     showNotification('error', 'Failed', e.message);
@@ -8938,7 +8276,7 @@ async function restoreMemory(id) {
 }
 
 async function purgeMemory(id) {
-  if (!confirm('Purge permanently? This cannot be undone.')) return;
+  if (!confirm('Purge permanently? This deletes the file and cannot be undone.')) return;
   try {
     const res = await fetch(apiUrl(`/api/admin/purge/${id}`), {
       method: 'DELETE',
@@ -8999,11 +8337,11 @@ async function bulkActionPrompt(action) {
   
   let memoryType = undefined;
   if (action === 'setType') {
-    memoryType = prompt('Enter new category:', 'Friends');
+    memoryType = prompt('Enter new category/type:', 'Friends');
     if (!memoryType) return;
   }
   
-  if (!confirm(`Run "${action}" on ${ids.length} item(s)?`)) return;
+  if (!confirm(`Run bulk action "${action}" on ${ids.length} item(s)?`)) return;
   
   try {
     const res = await fetch(apiUrl(`/api/admin/bulk`), {
@@ -9033,14 +8371,20 @@ async function bulkActionPrompt(action) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function openEditMemory(id) {
-  const name = prompt('Student name:');
-  const caption = prompt('Caption:');
-  const type = prompt('Category:');
+  const name = prompt('Student name (leave blank to keep):');
+  const caption = prompt('Caption (leave blank to keep):');
+  const type = prompt('Category/type (leave blank to keep):');
+  const featuredStr = prompt('Featured? (yes/no/blank keep):');
+  
+  let featured = undefined;
+  if (featuredStr && featuredStr.toLowerCase().startsWith('y')) featured = 1;
+  if (featuredStr && featuredStr.toLowerCase().startsWith('n')) featured = 0;
   
   const payload = {};
-  if (name !== null && name.trim()) payload.student_name = name;
-  if (caption !== null && caption.trim()) payload.caption = caption;
-  if (type !== null && type.trim()) payload.memory_type = type;
+  if (name !== null && name.trim() !== '') payload.student_name = name;
+  if (caption !== null && caption.trim() !== '') payload.caption = caption;
+  if (type !== null && type.trim() !== '') payload.memory_type = type;
+  if (featured !== undefined) payload.featured = featured;
   
   if (!Object.keys(payload).length) return;
   
@@ -9067,6 +8411,90 @@ async function openEditMemory(id) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// DOWNLOAD & EXPORT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function downloadAllApproved() {
+  window.location.href = apiUrl(`/api/admin/download-all?token=${encodeURIComponent(state.adminToken || '')}`);
+  showNotification('info', 'Downloading', 'Preparing ZIP...');
+}
+
+function exportCSV() {
+  fetch(apiUrl(`/api/admin/export/csv`), {
+    headers: { 'Authorization': `Bearer ${state.adminToken}` }
+  })
+  .then(async r => {
+    if (!r.ok) throw new Error('Export failed');
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `memories-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showNotification('success', 'Exported', 'CSV downloaded.');
+  })
+  .catch(e => showNotification('error', 'Failed', e.message));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INLINE EDITING
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function startInlineEdit(element) {
+  if (element.classList.contains('editing')) return;
+  
+  const originalText = element.textContent;
+  element.classList.add('editing');
+  
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'inline-edit-input';
+  input.value = originalText;
+  element.textContent = '';
+  element.appendChild(input);
+  input.focus();
+  input.select();
+  
+  const save = async () => {
+    const newValue = input.value.trim();
+    element.classList.remove('editing');
+    element.textContent = newValue || originalText;
+    
+    if (newValue && newValue !== originalText) {
+      try {
+        const res = await fetch(apiUrl('/api/admin/memory/edit/' + element.getAttribute('data-memory-id')), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + state.adminToken
+          },
+          body: JSON.stringify({ [element.getAttribute('data-field')]: newValue })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showNotification('success', 'Saved', 'Updated ' + element.getAttribute('data-field'));
+        } else {
+          element.textContent = originalText;
+          showNotification('error', 'Failed', data.error);
+        }
+      } catch (e) {
+        element.textContent = originalText;
+        showNotification('error', 'Error', e.message);
+      }
+    }
+  };
+  
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') save();
+    if (e.key === 'Escape') {
+      element.classList.remove('editing');
+      element.textContent = originalText;
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // EXPOSE FUNCTIONS GLOBALLY
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -9074,6 +8502,7 @@ window.initModerationPanelContent = initModerationPanelContent;
 window.loadAdminMemories = loadAdminMemories;
 window.adminLoadMore = adminLoadMore;
 window.approveMemory = approveMemory;
+window.approveAllPending = approveAllPending;
 window.trashMemory = trashMemory;
 window.restoreMemory = restoreMemory;
 window.purgeMemory = purgeMemory;
@@ -9081,11 +8510,12 @@ window.toggleBulkSelect = toggleBulkSelect;
 window.toggleSelectId = toggleSelectId;
 window.bulkActionPrompt = bulkActionPrompt;
 window.openEditMemory = openEditMemory;
+window.downloadAllApproved = downloadAllApproved;
+window.exportCSV = exportCSV;
+window.startInlineEdit = startInlineEdit;
 
-console.log('✅ Admin Moderation Module Loaded');
+console.log('✅ Admin Moderation loaded');
 </script>
-moderations.html
-Displaying moderations.html.
 
 
 <!-- FRAGMENT: admin_sitesettings -->
@@ -10606,22 +10036,7 @@ console.log('✅ Admin Users loaded');
       } else showNotification('error', 'Failed', data.error);
     } catch (e) { showNotification('error', 'Error', e.message); }
   }
-function initCompilationsPanelContent() {
-  const panel = document.getElementById('panelCompilations');
-  if (!panel) {
-    console.error('panelCompilations not found');
-    return;
-  }
 
-  if (panel.dataset.initialized !== 'true') {
-    panel.innerHTML = renderCompilationsPanelHtml();
-    panel.dataset.initialized = 'true';
-  }
-
-  loadCompilationsAdmin();
-}
-
-window.initCompilationsPanelContent = initCompilationsPanelContent;
 </script>
 
 <!-- FRAGMENT: admin_funfeatures -->
@@ -12137,21 +11552,7 @@ window.saveStudentDirectory = saveStudentDirectory;
 console.log('✅ Admin Students loaded');
 </script>
 
-
-
-Skip to content
-Using Gmail with screen readers
-
-Get professional email like '@your-company.com'
-Plus 2 TB of storage per user, longer video calls and more with Google Workspace
-Conversations
-65% of 15 GB used
-Terms · Privacy · Programme Policies
-Last account activity: 0 minutes ago
-Details
 <!-- FRAGMENT: admin_students -->
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
 
 <script data-fragment-script="admin_students">
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -12159,7 +11560,7 @@ Details
 // Supports manual edit + CSV/Excel bulk import + photo mapping
 // ═══════════════════════════════════════════════════════════════════════════════
 
-
+let studentDirectoryData = [];
 
 function initStudentsPanelContent() {
   const panel = document.getElementById('panelStudents');
@@ -12186,7 +11587,7 @@ function renderStudentsPanelHtml() {
         </div>
       </div>
       <p style="color:var(--text-muted); margin-top:10px;">
-        Manage class members for sections 10A, 10B, 10C, 10D. Supports bulk import from CSV and Excel files.
+        Manage class members for sections 10A, 10B, 10C, 10D. Supports bulk import and image mapping.
       </p>
     </div>
 
@@ -12219,51 +11620,29 @@ function renderStudentsPanelHtml() {
       </div>
 
       <div class="callout" style="margin-bottom:14px;">
-        <strong>Expected Columns:</strong> name, section, photo, quote, destination
+        <strong>Expected CSV columns:</strong> name, section, photo, quote, destination
         <br>
-        <strong>Valid Sections:</strong> 10A, 10B, 10C, 10D
-        <br>
-        <strong>Supported Formats:</strong> CSV (.csv), Excel (.xlsx, .xls)
+        <strong>Valid sections:</strong> 10A, 10B, 10C, 10D
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:14px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
         <div>
-          <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:.85rem;">📄 Import CSV File</label>
+          <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:.85rem;">Import CSV / Excel-exported CSV</label>
           <input type="file" id="studentsCsvFile" class="form-input" accept=".csv,text/csv" style="padding:12px;">
         </div>
         <div>
-          <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:.85rem;">📊 Import Excel File</label>
-          <input type="file" id="studentsExcelFile" class="form-input" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style="padding:12px;">
-        </div>
-        <div>
-          <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:.85rem;">🖼️ Bulk Upload Photos</label>
+          <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:.85rem;">Bulk Upload Photos</label>
           <input type="file" id="studentsPhotoFiles" class="form-input" accept="image/*" multiple style="padding:12px;">
         </div>
       </div>
 
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
         <button class="admin-btn admin-btn-primary" onclick="importStudentsCsv()">📥 Import CSV</button>
-        <button class="admin-btn admin-btn-primary" onclick="importStudentsExcel()">📊 Import Excel</button>
         <button class="admin-btn admin-btn-secondary" onclick="uploadStudentPhotosBulk()">🖼️ Upload & Map Photos</button>
         <button class="admin-btn admin-btn-danger" onclick="replaceStudentsFromImported()">⚠️ Replace All With Imported</button>
       </div>
 
       <div id="studentsImportStatus" style="margin-top:14px; color:var(--text-muted); font-size:.9rem;"></div>
-
-      <!-- Excel Sheet Preview -->
-      <div id="excelPreviewContainer" style="margin-top:14px; display:none;">
-        <h4 style="color:var(--primary-gold); margin-bottom:10px;">📋 Sheet Preview</h4>
-        <select id="excelSheetSelect" onchange="previewExcelSheet()" style="margin-bottom:10px; padding:8px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(212,175,55,0.2); color:#fff;">
-          <!-- Options will be added dynamically -->
-        </select>
-        <div id="excelPreview" style="max-height:400px; overflow-y:auto; padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-          <table style="width:100%; border-collapse:collapse; font-size:.85rem;">
-            <tbody id="excelPreviewTable">
-              <!-- Preview rows will be added here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
 
     <div class="ff-admin-card">
@@ -12526,7 +11905,7 @@ async function importStudentsCsv() {
 
     if (status) {
       status.innerHTML = `
-        <span style="color:#8ff09a;">✅ Imported ${students.length} students from CSV into buffer.</span>
+        <span style="color:#8ff09a;">Imported ${students.length} students into buffer.</span>
         <br>
         Use <strong>Replace All With Imported</strong> to overwrite current list.
       `;
@@ -12538,139 +11917,10 @@ async function importStudentsCsv() {
   }
 }
 
-async function importStudentsExcel() {
-  const input = document.getElementById('studentsExcelFile');
-  const status = document.getElementById('studentsImportStatus');
-  const file = input?.files?.[0];
-
-  if (!file) {
-    return showNotification('error', 'Missing file', 'Please choose an Excel file (.xlsx or .xls).');
-  }
-
-  try {
-    // Check if XLSX library is loaded
-    if (typeof XLSX === 'undefined') {
-      return showNotification('error', 'Error', 'Excel library not loaded. Please refresh the page.');
-    }
-
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-
-    // Store sheets list for preview
-    window.__excelSheets = [];
-    const sheetSelect = document.getElementById('excelSheetSelect');
-    if (sheetSelect) {
-      sheetSelect.innerHTML = '';
-      workbook.SheetNames.forEach((name, idx) => {
-        const option = document.createElement('option');
-        option.value = idx;
-        option.textContent = name;
-        sheetSelect.appendChild(option);
-      });
-    }
-
-    // Process first sheet by default
-    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(firstSheet);
-
-    if (!rows.length) {
-      return showNotification('error', 'Empty sheet', 'No data found in the first sheet.');
-    }
-
-    // Store all sheets data for later
-    window.__excelData = {};
-    workbook.SheetNames.forEach((name, idx) => {
-      window.__excelData[idx] = XLSX.utils.sheet_to_json(workbook.Sheets[name]);
-    });
-
-    // Convert and validate students from first sheet
-    const students = rows.map(row => normalizeStudent({
-      name: row.name || row.Name || row.student_name || row.Student_Name || '',
-      section: row.section || row.Section || row.class || row.Class || '',
-      photo: row.photo || row.Photo || row.image || row.Image || '',
-      quote: row.quote || row.Quote || row.motivation || row.Motivation || '',
-      destination: row.destination || row.Destination || row.dream || row.Dream || ''
-    })).filter(s => s.name);
-
-    if (!students.length) {
-      return showNotification('error', 'No valid students', 'Excel sheet did not contain usable student rows.');
-    }
-
-    window.__importedStudentsBuffer = students;
-
-    // Show preview container
-    const previewContainer = document.getElementById('excelPreviewContainer');
-    if (previewContainer) {
-      previewContainer.style.display = 'block';
-      previewExcelSheet();
-    }
-
-    if (status) {
-      status.innerHTML = `
-        <span style="color:#8ff09a;">✅ Loaded ${students.length} students from Excel (${workbook.SheetNames[0]}).</span>
-        <br>
-        Review the preview above, then use <strong>Replace All With Imported</strong> to apply.
-      `;
-    }
-
-    showNotification('success', 'Excel loaded', `${students.length} students from Excel loaded into buffer. Review preview below.`);
-  } catch (e) {
-    console.error('Excel import error:', e);
-    showNotification('error', 'Import failed', `Excel error: ${e.message}`);
-  }
-}
-
-function previewExcelSheet() {
-  const sheetSelect = document.getElementById('excelSheetSelect');
-  const previewTable = document.getElementById('excelPreviewTable');
-  
-  if (!sheetSelect || !previewTable) return;
-
-  const sheetIdx = parseInt(sheetSelect.value);
-  const sheetData = window.__excelData?.[sheetIdx] || [];
-
-  if (!sheetData.length) {
-    previewTable.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No data in this sheet</td></tr>';
-    return;
-  }
-
-  // Get column keys from first row
-  const keys = Object.keys(sheetData[0]);
-  const columns = ['name', 'section', 'photo', 'quote', 'destination']
-    .filter(col => keys.some(k => k.toLowerCase().includes(col)));
-
-  // Build table header
-  let html = '<tr style="background:rgba(212,175,55,0.2); border-bottom:1px solid rgba(212,175,55,0.3);">';
-  columns.forEach(col => {
-    html += `<th style="padding:8px; text-align:left; color:var(--primary-gold); font-weight:600; border-right:1px solid rgba(255,255,255,0.1);">${col}</th>`;
-  });
-  html += '</tr>';
-
-  // Add preview rows (max 10)
-  sheetData.slice(0, 10).forEach((row, idx) => {
-    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.08); ${idx % 2 === 0 ? 'background:rgba(0,0,0,0.2);' : ''} ">`;
-    columns.forEach(col => {
-      const value = String(row[col] || row[col.charAt(0).toUpperCase() + col.slice(1)] || '').substring(0, 50);
-      html += `<td style="padding:8px; border-right:1px solid rgba(255,255,255,0.08);">${escapeHtml(value)}</td>`;
-    });
-    html += '</tr>';
-  });
-
-  if (sheetData.length > 10) {
-    html += `<tr style="background:rgba(0,0,0,0.3);">
-      <td colspan="${columns.length}" style="padding:8px; text-align:center; color:var(--text-muted); font-size:.85rem;">
-        ... and ${sheetData.length - 10} more rows
-      </td>
-    </tr>`;
-  }
-
-  previewTable.innerHTML = html;
-}
-
 function replaceStudentsFromImported() {
   const imported = window.__importedStudentsBuffer || [];
   if (!imported.length) {
-    return showNotification('error', 'No import buffer', 'Import a CSV or Excel file first.');
+    return showNotification('error', 'No import buffer', 'Import a CSV first.');
   }
 
   if (!confirm(`Replace current student directory with ${imported.length} imported students?`)) return;
@@ -12678,11 +11928,6 @@ function replaceStudentsFromImported() {
   studentDirectoryData = imported.map(normalizeStudent);
   renderStudentStats();
   renderStudentDirectoryEditor();
-  
-  // Hide preview
-  const previewContainer = document.getElementById('excelPreviewContainer');
-  if (previewContainer) previewContainer.style.display = 'none';
-  
   showNotification('success', 'Replaced', 'Student directory replaced with imported data.');
 }
 
@@ -12790,14 +12035,12 @@ window.removeStudentRow = removeStudentRow;
 window.updateStudentField = updateStudentField;
 window.saveStudentDirectory = saveStudentDirectory;
 window.importStudentsCsv = importStudentsCsv;
-window.importStudentsExcel = importStudentsExcel;
-window.previewExcelSheet = previewExcelSheet;
 window.replaceStudentsFromImported = replaceStudentsFromImported;
 window.uploadStudentPhotosBulk = uploadStudentPhotosBulk;
 window.exportStudentDirectoryCsv = exportStudentDirectoryCsv;
 window.renderStudentDirectoryEditor = renderStudentDirectoryEditor;
 
-console.log('✅ Admin Students loaded (with Excel support)');
+console.log('✅ Admin Students loaded');
 </script>
 
 <!-- FRAGMENT: admin_security -->

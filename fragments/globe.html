@@ -957,14 +957,18 @@
     try {
       // Save school location
       if (S.schoolLoc) {
-        const payload = {
-          name: name,
-          type: 'school',
-          lat: S.schoolLoc.lat,
-          lng: S.schoolLoc.lng,
-          placeName: S.schoolLoc.name || '',
-          address: S.schoolLoc.addr || ''
-        };
+        const parts = (S.schoolLoc.addr || '').split(',').map(x => x.trim()).filter(Boolean);
+
+const payload = {
+  name: name,
+  type: 'school',
+  school: S.schoolLoc.name || '',
+  city: parts[parts.length - 2] || S.schoolLoc.name || 'Unknown',
+  country: parts[parts.length - 1] || 'Unknown',
+  lat: S.schoolLoc.lat,
+  lng: S.schoolLoc.lng,
+  note: S.schoolLoc.addr || ''
+};
         console.log('[Globe] Saving school:', payload);
         const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         const d = await r.json();
