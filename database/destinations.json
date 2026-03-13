@@ -27,8 +27,36 @@
       "approved": false,
       "deletedAt": null,
       "createdAt": "2026-03-13T05:19:52.273Z"
+    },
+    {
+      "id": 3,
+      "name": "jklk,gbmvm v vn",
+      "school": "Dollungmukh Circle",
+      "city": "Arunachal Pradesh",
+      "country": "India",
+      "lat": 27.644606381943326,
+      "lng": 94.21875,
+      "type": "school",
+      "note": "Kamle, Arunachal Pradesh, India",
+      "approved": false,
+      "deletedAt": null,
+      "createdAt": "2026-03-13T07:16:51.061Z"
+    },
+    {
+      "id": 4,
+      "name": "jklk,gbmvm v vn",
+      "school": "Upper Tashigang",
+      "city": "Upper Tashigang",
+      "country": "Himachal Pradesh",
+      "lat": 31.840232667909365,
+      "lng": 78.66210937500001,
+      "type": "university",
+      "note": "Poo district, Kinnaur, Himachal Pradesh",
+      "approved": false,
+      "deletedAt": null,
+      "createdAt": "2026-03-13T07:16:51.130Z"
     }
   ],
   "submissions": [],
-  "nextId": 3
+  "nextId": 5
 }

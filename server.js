@@ -62,9 +62,24 @@ app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files
-app.use(express.static(__dirname));
+// Block access to private server folders BEFORE static middleware
+app.use((req, res, next) => {
+  let p = '';
+  try { p = decodeURIComponent(req.path || ''); } catch { p = req.path || ''; }
+  if (
+    p.startsWith('/database') ||
+    p.startsWith('/logs') ||
+    p === '/server.js' ||
+    p === '/package.json' ||
+    p === '/package-lock.json' ||
+    p === '/yarn.lock'
+  ) {
+    return res.status(404).end();
+  }
+  next();
+});
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(__dirname, { index: 'index.html' }));
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CREATE REQUIRED DIRECTORIES
@@ -236,7 +251,8 @@ const storage = multer.diskStorage({
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname).toLowerCase();
     const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
-    cb(null, `${uniqueSuffix}-${safeName}${ext && safeName.endsWith(ext) ? '' : ''}`);
+    const finalName = safeName.toLowerCase().endsWith(ext) ? safeName : (safeName + ext);
+cb(null, `${uniqueSuffix}-${finalName}`);
   }
 });
 
@@ -306,7 +322,12 @@ function getSession(token) {
 }
 
 function requireAdmin(req, res) {
-  const token = req.headers.authorization?.replace('Bearer ', '');
+  const token =
+  (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')
+    ? req.headers.authorization.slice(7)
+    : null) ||
+  req.query.token ||
+  req.body?.token;
   const session = getSession(token);
   if (!session) {
     res.status(401).json({ success: false, error: 'Unauthorized' });
@@ -811,7 +832,15 @@ app.post('/api/admin/login', (req, res) => {
 
     const sessions = readSessions();
     sessions.sessions = sessions.sessions.filter(s => new Date(s.expiresAt) > new Date());
-    sessions.sessions.push({ token, expiresAt: expiresAt.toISOString(), userId: user.id });
+    const sid = crypto.createHash('sha256').update(String(token)).digest('hex').slice(0, 16);
+   sessions.sessions.push({
+    sid, token,
+    expiresAt: expiresAt.toISOString(),
+    userId: user.id,
+    createdAt: nowIso(),
+    ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || req.ip || '---',
+    ua: req.headers['user-agent'] || ''
+});
     writeSessions(sessions);
 
     audit(user.id, 'login', {});
@@ -1068,7 +1097,9 @@ app.delete('/api/admin/purge/:id', (req, res) => {
       }
 
       // Profanity filter
-      const settings = getEffectiveSettings();
+      const settings = getEffectiveSettings(); if (settings.maintenanceMode) {
+  return res.status(403).json({ success: false, error: 'Site is in maintenance mode. Uploads are paused.' });
+}
       if (settings.profanityFilterEnabled) {
         if (containsProfanity(name) || containsProfanity(text)) {
           return res.status(400).json({ success: false, error: 'Content rejected by profanity filter.' });
@@ -1424,11 +1455,17 @@ app.post('/api/admin/upload-intro-video', upload.single('video'), (req, res) => 
       if (fs.existsSync(oldFile)) fs.unlinkSync(oldFile);
     }
     data.settings = data.settings || {};
-    data.settings.introVideoPath = `/uploads/${file.filename}`;
-    writeSettings(data);
+    data.settings.introVideoPath = file.filename;
+   writeSettings(data);
+   audit(auth.user.id, 'upload-intro-video', {});
+   broadcast('settings:update', {});
     audit(auth.user.id, 'upload-intro-video', {});
     broadcast('settings:update', {});
-    res.json({ success: true, introVideoPath: data.settings.introVideoPath });
+    res.json({
+  success: true,
+  introVideoPath: data.settings.introVideoPath,
+  introVideoUrl: `/uploads/${file.filename}`
+});
   } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
@@ -1456,7 +1493,7 @@ app.delete('/api/admin/settings/intro-video', (req, res) => {
     if (!hasPerm(auth.user, 'settings')) return res.status(403).json({ success: false, error: 'Forbidden' });
     const data = readSettings();
     if (data.settings?.introVideoPath) {
-      const oldFile = path.join(uploadsDir, path.basename(data.settings.introVideoPath));
+      const oldFile = path.join(uploadsDir, path.basename(String(data.settings.introVideoPath || '')));
       if (fs.existsSync(oldFile)) fs.unlinkSync(oldFile);
       delete data.settings.introVideoPath;
       writeSettings(data);
@@ -1649,7 +1686,7 @@ app.get('/api/admin/export/csv', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// COMPILATIONS
+// COMPILATIONS (v2 - matches frontend)
 // ═══════════════════════════════════════════════════════════════════════════════
 (() => {
   const compilationsPath = path.join(databaseDir, 'compilations.json');
@@ -1658,82 +1695,124 @@ app.get('/api/admin/export/csv', (req, res) => {
   function readComp() { return safeReadJson(compilationsPath, { compilations: [], nextId: 1 }); }
   function writeComp(d) { safeWriteJson(compilationsPath, d); }
 
+  function enrichSlidesWithFileUrl(comp) {
+    const db = readDB();
+    const memById = new Map(db.memories.map(m => [m.id, m]));
+    const slides = (comp.slides || []).map(s => {
+      const mem = memById.get(Number(s.memoryId));
+      const file_url = mem && !mem.purgedAt ? `/uploads/${mem.file_path}` : null;
+      return {
+        memoryId: Number(s.memoryId),
+        caption: String(s.caption || ''),
+        duration: Math.max(1, Math.min(60, Number(s.duration) || 5)),
+        file_url
+      };
+    });
+    return { ...comp, slides };
+  }
+
+  // Public list
   app.get('/api/compilations', (req, res) => {
     try {
       const db = readComp();
-      res.json({ success: true, compilations: db.compilations });
+      const comps = (db.compilations || []).map(enrichSlidesWithFileUrl);
+      res.json({ success: true, compilations: comps });
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
   });
 
+  // Public single
   app.get('/api/compilations/:id', (req, res) => {
     try {
+      const id = Number(req.params.id);
       const db = readComp();
-      const comp = db.compilations.find(c => c.id === parseInt(req.params.id, 10));
+      const comp = (db.compilations || []).find(c => c.id === id);
       if (!comp) return res.status(404).json({ success: false, error: 'Compilation not found' });
-      res.json({ success: true, compilation: comp });
+      res.json({ success: true, compilation: enrichSlidesWithFileUrl(comp) });
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
   });
 
+  // Admin create
   app.post('/api/admin/compilations', (req, res) => {
     try {
       const auth = requireAdmin(req, res); if (!auth) return;
-      const { title, description, memoryIds, transition, settings: compSettings } = req.body || {};
-      if (!title?.trim()) return res.status(400).json({ success: false, error: 'title required' });
-
+      if (!hasPerm(auth.user, 'moderation') && !hasPerm(auth.user, 'settings')) {
+        return res.status(403).json({ success: false, error: 'Forbidden' });
+      }
+      const { name, slides, displayMode, transitionType } = req.body || {};
+      if (!name?.trim()) return res.status(400).json({ success: false, error: 'name required' });
+      if (!Array.isArray(slides) || slides.length < 2) {
+        return res.status(400).json({ success: false, error: 'slides must be an array with at least 2 items' });
+      }
       const db = readComp();
       const comp = {
         id: db.nextId++,
-        title: String(title).trim().substring(0, 120),
-        description: String(description || '').trim().substring(0, 500),
-        memoryIds: Array.isArray(memoryIds) ? memoryIds.map(Number) : [],
-        transition: String(transition || 'fade'),
-        settings: compSettings || {},
+        name: String(name).trim().substring(0, 120),
+        slides: slides.map(s => ({
+          memoryId: Number(s.memoryId),
+          caption: String(s.caption || '').substring(0, 250),
+          duration: Math.max(1, Math.min(60, Number(s.duration) || 5))
+        })),
+        displayMode: displayMode === 'manual' ? 'manual' : 'auto',
+        transitionType: String(transitionType || 'fade').substring(0, 20),
         createdAt: nowIso(),
         updatedAt: nowIso()
       };
       db.compilations.push(comp);
       writeComp(db);
       audit(auth.user.id, 'create-compilation', { id: comp.id });
-      res.json({ success: true, compilation: comp });
+      res.json({ success: true, compilation: enrichSlidesWithFileUrl(comp) });
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
   });
 
+  // Admin update
   app.post('/api/admin/compilations/:id', (req, res) => {
     try {
       const auth = requireAdmin(req, res); if (!auth) return;
+      if (!hasPerm(auth.user, 'moderation') && !hasPerm(auth.user, 'settings')) {
+        return res.status(403).json({ success: false, error: 'Forbidden' });
+      }
+      const id = Number(req.params.id);
       const db = readComp();
-      const comp = db.compilations.find(c => c.id === parseInt(req.params.id, 10));
+      const comp = db.compilations.find(c => c.id === id);
       if (!comp) return res.status(404).json({ success: false, error: 'Compilation not found' });
-
-      const { title, description, memoryIds, transition, settings: compSettings } = req.body || {};
-      if (typeof title === 'string') comp.title = title.trim().substring(0, 120);
-      if (typeof description === 'string') comp.description = description.trim().substring(0, 500);
-      if (Array.isArray(memoryIds)) comp.memoryIds = memoryIds.map(Number);
-      if (typeof transition === 'string') comp.transition = transition;
-      if (compSettings && typeof compSettings === 'object') comp.settings = compSettings;
+      const { name, slides, displayMode, transitionType } = req.body || {};
+      if (typeof name === 'string' && name.trim()) comp.name = name.trim().substring(0, 120);
+      if (Array.isArray(slides) && slides.length >= 2) {
+        comp.slides = slides.map(s => ({
+          memoryId: Number(s.memoryId),
+          caption: String(s.caption || '').substring(0, 250),
+          duration: Math.max(1, Math.min(60, Number(s.duration) || 5))
+        }));
+      }
+      if (displayMode) comp.displayMode = displayMode === 'manual' ? 'manual' : 'auto';
+      if (transitionType) comp.transitionType = String(transitionType).substring(0, 20);
       comp.updatedAt = nowIso();
       writeComp(db);
-      audit(auth.user.id, 'update-compilation', { id: comp.id });
-      res.json({ success: true, compilation: comp });
+      audit(auth.user.id, 'update-compilation', { id });
+      res.json({ success: true, compilation: enrichSlidesWithFileUrl(comp) });
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
   });
 
+  // Admin delete
   app.delete('/api/admin/compilations/:id', (req, res) => {
     try {
       const auth = requireAdmin(req, res); if (!auth) return;
+      if (!hasPerm(auth.user, 'moderation') && !hasPerm(auth.user, 'settings')) {
+        return res.status(403).json({ success: false, error: 'Forbidden' });
+      }
+      const id = Number(req.params.id);
       const db = readComp();
-      const idx = db.compilations.findIndex(c => c.id === parseInt(req.params.id, 10));
+      const idx = db.compilations.findIndex(c => c.id === id);
       if (idx === -1) return res.status(404).json({ success: false, error: 'Compilation not found' });
       db.compilations.splice(idx, 1);
       writeComp(db);
-      audit(auth.user.id, 'delete-compilation', { id: req.params.id });
+      audit(auth.user.id, 'delete-compilation', { id });
       res.json({ success: true });
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
   });
 
-  console.log('✅ Compilations API loaded.');
+  console.log('✅ Compilations API (v2) loaded.');
 })();
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // DESTINATIONS (Future Map / Globe pins)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1741,17 +1820,8 @@ app.get('/api/admin/export/csv', (req, res) => {
   const destinationsPath = path.join(databaseDir, 'destinations.json');
   if (!fs.existsSync(destinationsPath)) safeWriteJson(destinationsPath, { pins: [], submissions: [], nextId: 1 });
 
-  function readDest() {
-  const raw = safeReadJson(destinationsPath, {});
-  return {
-    pins: Array.isArray(raw.pins) ? raw.pins : [],
-    submissions: Array.isArray(raw.submissions) ? raw.submissions : [],
-    nextId: Number.isInteger(raw.nextId) ? raw.nextId : 1
-  };
-}
-function writeDest(data) {
-  safeWriteJson(destinationsPath, data);
-}
+  function readDest() { return safeReadJson(destinationsPath, { pins: [], submissions: [], nextId: 1 }); }
+  function writeDest(d) { safeWriteJson(destinationsPath, d); }
 
   // GET approved pins for the globe
   app.get('/api/destinations', (req, res) => {
@@ -1781,47 +1851,32 @@ function writeDest(data) {
 
   // POST submit a destination (v1)
   app.post('/api/destinations/submit', (req, res) => {
-  try {
-    console.log('DEST SUBMIT BODY:', req.body);
+    try {
+      const { name, school, city, country, lat, lng, type, note } = req.body || {};
+      if (!name?.trim() || !city?.trim() || !country?.trim())
+        return res.status(400).json({ success: false, error: 'name, city, and country are required' });
 
-    const { name, school, city, country, lat, lng, type, note } = req.body || {};
-
-    if (!name?.trim() || !city?.trim() || !country?.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: 'name, city, and country are required'
-      });
-    }
-
-    const db = readDest();
-    if (!Array.isArray(db.pins)) db.pins = [];
-    if (!Number.isInteger(db.nextId)) db.nextId = 1;
-
-    const pin = {
-      id: db.nextId++,
-      name: String(name).trim().substring(0, 80),
-      school: String(school || '').trim().substring(0, 120),
-      city: String(city).trim().substring(0, 80),
-      country: String(country).trim().substring(0, 80),
-      lat: parseFloat(lat) || 0,
-      lng: parseFloat(lng) || 0,
-      type: String(type || 'university').trim(),
-      note: String(note || '').trim().substring(0, 300),
-      approved: false,
-      deletedAt: null,
-      createdAt: nowIso()
-    };
-
-    db.pins.push(pin);
-    writeDest(db);
-    broadcast('destination:new', { id: pin.id });
-
-    res.json({ success: true, pin });
-  } catch (e) {
-    console.error('DEST SUBMIT ERROR:', e);
-    res.status(500).json({ success: false, error: e.message });
-  }
-});
+      const db = readDest();
+      const pin = {
+        id: db.nextId++,
+        name: String(name).trim().substring(0, 80),
+        school: String(school || '').trim().substring(0, 120),
+        city: String(city).trim().substring(0, 80),
+        country: String(country).trim().substring(0, 80),
+        lat: parseFloat(lat) || 0,
+        lng: parseFloat(lng) || 0,
+        type: String(type || 'university').trim(),
+        note: String(note || '').trim().substring(0, 300),
+        approved: false,
+        deletedAt: null,
+        createdAt: nowIso()
+      };
+      db.pins.push(pin);
+      writeDest(db);
+      broadcast('destination:new', { id: pin.id });
+      res.json({ success: true, pin });
+    } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+  });
 
   // POST submit a destination (v2 — same shape, kept separate for frontend compat)
   app.post('/api/destinations/submit-v2', (req, res) => {
@@ -2287,8 +2342,8 @@ function writeDest(data) {
 // SERVE FRONTEND
 // ═══════════════════════════════════════════════════════════════════════════════
 
-
-
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ERROR HANDLING
@@ -2706,13 +2761,6 @@ app.use((err, req, res, next) => {
 })();
 
 
-
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SERVE FRONTEND
-// ═══════════════════════════════════════════════════════════════════════════════
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log('');
