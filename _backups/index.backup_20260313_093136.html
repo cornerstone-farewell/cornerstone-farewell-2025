@@ -3055,6 +3055,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   <script data-fragment-script="compilations">
   // COMPILATION PLAYER
     // ═══════════════════════════════════════════════════════════════════════════════
+    let currentCompilation = null; let currentSlideIndex = 0; let compilationTimer = null;
+  
     async function playCompilation(compilationId) {
       try {
         const res = await fetch(apiUrl('/api/compilations/' + compilationId));
@@ -3123,6 +3125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   </script>
   <script data-fragment-script="compilations">
   // COMPILATION CREATOR
+    // ═══════════════════════════════════════════════════════════════════════════════
   
     function openCompilationCreator(editId = null) {
       compEditingId = editId; compSelectedSlides = [];
@@ -11515,7 +11518,7 @@ console.log('✅ Admin Paper Notes loaded');
 // STUDENT DIRECTORY ADMIN PANEL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-
+let studentDirectoryData = [];
 
 function initStudentsPanelContent() {
   console.log('initStudentsPanelContent called');
