@@ -602,9 +602,24 @@ function adminLogout() {
 // PLACEHOLDER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function approveAllPending() {
-  if (typeof _approveAllPending === 'function') _approveAllPending();
-  else showNotification('info', 'Info', 'Function not loaded yet.');
+async function approveAllPending() {
+  if (!state.adminToken) return showNotification('error', 'Login required', 'Please log in again.');
+  try {
+    const res = await fetch(apiUrl('/api/admin/approve-all'), {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${state.adminToken}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('success', 'Approved', `Approved ${data.count || 0} memories.`);
+      if (typeof loadAdminMemories === 'function') loadAdminMemories(true);
+      if (typeof loadMemories === 'function') loadMemories(true);
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not approve all.');
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
 }
 
 function downloadAllApproved() {

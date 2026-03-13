@@ -34,15 +34,15 @@ function renderAdvicePanelHtml() {
     <!-- Stats -->
     <div class="admin-stats" style="margin-bottom:20px;">
       <div class="stat-card">
-        <div class="stat-number" id="adviceTotalCount">0</div>
+        <div class="stat-number" id="adminAdviceTotalCount">0</div>
         <div class="stat-label">Total Advice</div>
       </div>
       <div class="stat-card">
-        <div class="stat-number" id="adviceFeaturedCount">0</div>
+        <div class="stat-number" id="adminAdviceFeaturedCount">0</div>
         <div class="stat-label">Featured</div>
       </div>
       <div class="stat-card">
-        <div class="stat-number" id="adviceTotalLikes">0</div>
+        <div class="stat-number" id="adminAdviceTotalLikes">0</div>
         <div class="stat-label">Total Likes</div>
       </div>
     </div>
@@ -74,9 +74,9 @@ async function loadAdviceData() {
 
 function renderAdviceList() {
   // Update counts
-  const totalCount = document.getElementById('adviceTotalCount');
-  const featuredCount = document.getElementById('adviceFeaturedCount');
-  const totalLikes = document.getElementById('adviceTotalLikes');
+  const totalCount = document.getElementById('adminAdviceTotalCount');
+  const featuredCount = document.getElementById('adminAdviceFeaturedCount');
+  const totalLikes = document.getElementById('adminAdviceTotalLikes');
 
   if (totalCount) totalCount.textContent = adviceData.length;
   if (featuredCount) featuredCount.textContent = adviceData.filter(a => a.featured).length;

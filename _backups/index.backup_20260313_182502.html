@@ -505,7 +505,7 @@ html.hard-refresh-top, body.hard-refresh-top { scroll-behavior: auto !important;
 // UNIFIED CONFIG
 // =========================
 const CONFIG = {
-  API_BASE: localStorage.getItem('farewell_api_base') || "https://counsel-polyester-unknown-monthly.trycloudflare.com",
+  API_BASE: localStorage.getItem('farewell_api_base') || "https://wildlife-stopped-invisible-spouse.trycloudflare.com",
   REFRESH_INTERVAL: 60000,
   MAX_FILE_SIZE: 100 * 1024 * 1024,
   MAX_TOTAL_SIZE: 200 * 1024 * 1024,
@@ -1548,9 +1548,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       unmuteOverlay.style.display = 'none';
     }
 
-    const p = String(introPath || '');
-    const normalized = p.startsWith('/uploads/') ? p : ('/uploads/' + p);
-    const src = mediaUrl(normalized.replace(/\/+/g, '/'));
+    const src = mediaUrl(('/uploads/' + introPath).replace(/\/+/g, '/'));
 
     video.pause();
     video.removeAttribute('src');
@@ -3057,7 +3055,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   <script data-fragment-script="compilations">
   // COMPILATION PLAYER
     // ═══════════════════════════════════════════════════════════════════════════════
-    let currentCompilation = null; let currentSlideIndex = 0; let compilationTimer = null;
   
     async function playCompilation(compilationId) {
       try {
@@ -7420,6 +7417,11 @@ document.addEventListener('DOMContentLoaded', async () => {
    min-height: calc(100vh - 52px);
   }
 
+  .admin-content {
+   padding: 20px;
+   background: #1a1a2e;
+   min-height: calc(100vh - 70px);
+  }
   .admin-btn-primary {
     background: var(--gradient-gold);
     color: var(--navy-dark);
@@ -7748,47 +7750,48 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ═══════════════════════════════════════════════════════════════════════════════
 
   function switchAdminTab(tab) {
-   console.log('switchAdminTab:', tab);
-   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-   document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+    console.log('switchAdminTab:', tab);
 
-   const tabMap = {
-    moderation: { panelId: 'panelModeration', init: 'initModerationPanelContent' },
-    settings: { panelId: 'panelSettings', init: 'initSettingsPanelContent' },
-    theme: { panelId: 'panelTheme', init: 'initThemePanelContent' },
-    users: { panelId: 'panelUsers', init: 'initUsersPanelContent' },
-    compilations: { panelId: 'panelCompilations', init: 'initCompilationsPanelContent' },
-    funfeatures: { panelId: 'panelFunFeatures', init: 'initFunfeaturesPanelContent' },
-    destinations: { panelId: 'panelDestinations', init: 'initDestinationsPanelContent' },
-    advice: { panelId: 'panelAdvice', init: 'initAdvicePanelContent' },
-    papernotes: { panelId: 'panelPapernotes', init: 'initPapernotesPanelContent' },
-    students: { panelId: 'panelStudents', init: 'initStudentsPanelContent' },
-    security: { panelId: 'panelSecurity', init: 'initSecurityPanelContent' }
-   };
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
 
-   const cfg = tabMap[tab];
-   if (!cfg) {
-    console.warn('Unknown admin tab:', tab);
-    return;
-   }
+    const tabMap = {
+      moderation: { panelId: 'panelModeration', init: 'initModerationPanelContent' },
+      settings: { panelId: 'panelSettings', init: 'initSettingsPanelContent' },
+      theme: { panelId: 'panelTheme', init: 'initThemePanelContent' },
+      users: { panelId: 'panelUsers', init: 'initUsersPanelContent' },
+      compilations: { panelId: 'panelCompilations', init: 'initCompilationsPanelContent' },
+      funfeatures: { panelId: 'panelFunFeatures', init: 'initFunfeaturesPanelContent' },
+      destinations: { panelId: 'panelDestinations', init: 'initDestinationsPanelContent' },
+      advice: { panelId: 'panelAdvice', init: 'initAdvicePanelContent' },
+      papernotes: { panelId: 'panelPapernotes', init: 'initPapernotesPanelContent' },
+      students: { panelId: 'panelStudents', init: 'initStudentsPanelContent' },
+      security: { panelId: 'panelSecurity', init: 'initSecurityPanelContent' }
+    };
 
-   document.querySelectorAll('.admin-tab').forEach(t => {
-    const onclick = t.getAttribute('onclick') || '';
-    if (onclick.includes(`'${tab}'`)) t.classList.add('active');
-   });
+    const cfg = tabMap[tab];
+    if (!cfg) {
+      console.warn('Unknown admin tab:', tab);
+      return;
+    }
 
-   const panel = document.getElementById(cfg.panelId);
-   if (panel) {
-    panel.classList.add('active');
-   } else {
-    console.warn('Panel not found:', cfg.panelId);
-   }
+    document.querySelectorAll('.admin-tab').forEach(t => {
+      const onclick = t.getAttribute('onclick') || '';
+      if (onclick.includes(`'${tab}'`)) t.classList.add('active');
+    });
 
-   if (typeof window[cfg.init] === 'function') {
-    window[cfg.init]();
-   } else {
-    console.warn('Init function not found:', cfg.init);
-   }
+    const panel = document.getElementById(cfg.panelId);
+    if (panel) {
+      panel.classList.add('active');
+    } else {
+      console.warn('Panel not found:', cfg.panelId);
+    }
+
+    if (typeof window[cfg.init] === 'function') {
+      window[cfg.init]();
+    } else {
+      console.warn('Init function not found:', cfg.init);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -7879,24 +7882,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // PLACEHOLDER FUNCTIONS
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  async function approveAllPending() {
-    if (!state.adminToken) return showNotification('error', 'Login required', 'Please log in again.');
-    try {
-      const res = await fetch(apiUrl('/api/admin/approve-all'), {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${state.adminToken}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        showNotification('success', 'Approved', `Approved ${data.count || 0} memories.`);
-        if (typeof loadAdminMemories === 'function') loadAdminMemories(true);
-        if (typeof loadMemories === 'function') loadMemories(true);
-      } else {
-        showNotification('error', 'Failed', data.error || 'Could not approve all.');
-      }
-    } catch (e) {
-      showNotification('error', 'Error', e.message);
-    }
+  function approveAllPending() {
+    if (typeof _approveAllPending === 'function') _approveAllPending();
+    else showNotification('info', 'Info', 'Function not loaded yet.');
   }
 
   function downloadAllApproved() {
@@ -7924,11 +7912,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log('✅ Admin Nav Top loaded');
   </script>
 
+
+
+Skip to content
+Using Gmail with screen readers
+
 Get professional email like '@your-company.com'
 Plus 2 TB of storage per user, longer video calls and more with Google Workspace
-
+Conversations
+65% of 15 GB used
 Terms · Privacy · Programme Policies
- 1 hour ago
+Last account activity: 1 hour ago
 Details
 <!-- ENHANCED ADMIN MODERATION - PRODUCTION MODULE -->
 <style data-fragment-style="admin_moderation">
@@ -9091,6 +9085,7 @@ window.openEditMemory = openEditMemory;
 console.log('✅ Admin Moderation Module Loaded');
 </script>
 moderations.html
+Displaying moderations.html.
 
 
 <!-- FRAGMENT: admin_sitesettings -->
@@ -10650,7 +10645,7 @@ let ffData = {
 function initFunfeaturesPanelContent() {
   console.log('initFunfeaturesPanelContent called');
 
-  const panel = document.getElementById('panelFunFeatures');
+  const panel = document.getElementById('panelFunfeatures');
   if (!panel) return;
 
   if (panel.dataset.initialized !== 'true') {
@@ -11565,15 +11560,15 @@ function renderAdvicePanelHtml() {
     <!-- Stats -->
     <div class="admin-stats" style="margin-bottom:20px;">
       <div class="stat-card">
-        <div class="stat-number" id="adminAdviceTotalCount">0</div>
+        <div class="stat-number" id="adviceTotalCount">0</div>
         <div class="stat-label">Total Advice</div>
       </div>
       <div class="stat-card">
-        <div class="stat-number" id="adminAdviceFeaturedCount">0</div>
+        <div class="stat-number" id="adviceFeaturedCount">0</div>
         <div class="stat-label">Featured</div>
       </div>
       <div class="stat-card">
-        <div class="stat-number" id="adminAdviceTotalLikes">0</div>
+        <div class="stat-number" id="adviceTotalLikes">0</div>
         <div class="stat-label">Total Likes</div>
       </div>
     </div>
@@ -11605,9 +11600,9 @@ async function loadAdviceData() {
 
 function renderAdviceList() {
   // Update counts
-  const totalCount = document.getElementById('adminAdviceTotalCount');
-  const featuredCount = document.getElementById('adminAdviceFeaturedCount');
-  const totalLikes = document.getElementById('adminAdviceTotalLikes');
+  const totalCount = document.getElementById('adviceTotalCount');
+  const featuredCount = document.getElementById('adviceFeaturedCount');
+  const totalLikes = document.getElementById('adviceTotalLikes');
 
   if (totalCount) totalCount.textContent = adviceData.length;
   if (featuredCount) featuredCount.textContent = adviceData.filter(a => a.featured).length;
@@ -11979,11 +11974,180 @@ window.deleteAllPaperNotes = deleteAllPaperNotes;
 console.log('✅ Admin Paper Notes loaded');
 </script>
 
+<!-- FRAGMENT: admin_students -->
+
+<script data-fragment-script="admin_students">
+// ═══════════════════════════════════════════════════════════════════════════════
+// STUDENT DIRECTORY ADMIN PANEL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let studentDirectoryData = [];
+
+function initStudentsPanelContent() {
+  console.log('initStudentsPanelContent called');
+
+  const panel = document.getElementById('panelStudents');
+  if (!panel) return;
+
+  if (panel.dataset.initialized !== 'true') {
+    panel.innerHTML = renderStudentsPanelHtml();
+    panel.dataset.initialized = 'true';
+  }
+
+  loadStudentDirectoryData();
+}
+
+function renderStudentsPanelHtml() {
+  return `
+    <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">🎓 Student Directory</h3>
+        <div style="display:flex; gap:10px;">
+          <button class="admin-btn admin-btn-secondary" onclick="loadStudentDirectoryData()">🔄 Refresh</button>
+          <button class="admin-btn admin-btn-primary" onclick="saveStudentDirectory()">💾 Save All</button>
+        </div>
+      </div>
+      <p style="color:var(--text-muted); margin-top:10px;">Manage student directory entries shown publicly.</p>
+    </div>
+
+    <div class="ff-admin-card">
+      <div class="ff-admin-card-header">
+        <div class="ff-admin-card-title">➕ Add Student</div>
+        <button class="admin-btn admin-btn-secondary" onclick="addStudentRow()">+ Add Row</button>
+      </div>
+      <div id="studentDirectoryEditor" style="display:grid; gap:14px;">
+        <div class="ff-empty">Loading student directory...</div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadStudentDirectoryData() {
+  try {
+    const res = await fetch(apiUrl('/api/student-directory'));
+    const data = await res.json();
+
+    if (!data.success) {
+      showNotification('error', 'Failed', data.error || 'Could not load student directory.');
+      return;
+    }
+
+    studentDirectoryData = data.students || [];
+    renderStudentDirectoryEditor();
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
+}
+
+function renderStudentDirectoryEditor() {
+  const editor = document.getElementById('studentDirectoryEditor');
+  if (!editor) return;
+
+  if (!studentDirectoryData.length) {
+    editor.innerHTML = `
+      <div class="ff-empty">No students added yet.</div>
+    `;
+    return;
+  }
+
+  editor.innerHTML = studentDirectoryData.map((s, i) => `
+    <div style="padding:16px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Name</label>
+          <input class="form-input" value="${escapeAttr(s.name || '')}" onchange="updateStudentField(${i}, 'name', this.value)">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Section</label>
+          <input class="form-input" value="${escapeAttr(s.section || '')}" onchange="updateStudentField(${i}, 'section', this.value)">
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Photo URL</label>
+          <input class="form-input" value="${escapeAttr(s.photo || '')}" onchange="updateStudentField(${i}, 'photo', this.value)">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Destination</label>
+          <input class="form-input" value="${escapeAttr(s.destination || '')}" onchange="updateStudentField(${i}, 'destination', this.value)">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:12px;">
+        <label>Quote</label>
+        <textarea class="form-textarea" style="min-height:80px;" onchange="updateStudentField(${i}, 'quote', this.value)">${escapeHtml(s.quote || '')}</textarea>
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+        <button class="admin-btn admin-btn-danger" onclick="removeStudentRow(${i})">🗑️ Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addStudentRow() {
+  studentDirectoryData.push({
+    name: '',
+    section: '',
+    photo: '',
+    quote: '',
+    destination: ''
+  });
+  renderStudentDirectoryEditor();
+}
+
+function removeStudentRow(i) {
+  if (!confirm('Remove this student row?')) return;
+  studentDirectoryData.splice(i, 1);
+  renderStudentDirectoryEditor();
+}
+
+function updateStudentField(i, field, value) {
+  if (!studentDirectoryData[i]) return;
+  studentDirectoryData[i][field] = value;
+}
+
+async function saveStudentDirectory() {
+  try {
+    const res = await fetch(apiUrl('/api/admin/student-directory'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.adminToken}`
+      },
+      body: JSON.stringify({ students: studentDirectoryData })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showNotification('success', 'Saved', 'Student directory updated successfully.');
+    } else {
+      showNotification('error', 'Failed', data.error || 'Could not save student directory.');
+    }
+  } catch (e) {
+    showNotification('error', 'Error', e.message);
+  }
+}
+
+window.initStudentsPanelContent = initStudentsPanelContent;
+window.loadStudentDirectoryData = loadStudentDirectoryData;
+window.addStudentRow = addStudentRow;
+window.removeStudentRow = removeStudentRow;
+window.updateStudentField = updateStudentField;
+window.saveStudentDirectory = saveStudentDirectory;
+
+console.log('✅ Admin Students loaded');
+</script>
+
+
+
+Skip to content
+Using Gmail with screen readers
+
 Get professional email like '@your-company.com'
 Plus 2 TB of storage per user, longer video calls and more with Google Workspace
-
+Conversations
+65% of 15 GB used
 Terms · Privacy · Programme Policies
- 0 minutes ago
+Last account activity: 0 minutes ago
 Details
 <!-- FRAGMENT: admin_students -->
 
@@ -11995,7 +12159,7 @@ Details
 // Supports manual edit + CSV/Excel bulk import + photo mapping
 // ═══════════════════════════════════════════════════════════════════════════════
 
-let studentDirectoryData = [];
+
 
 function initStudentsPanelContent() {
   const panel = document.getElementById('panelStudents');

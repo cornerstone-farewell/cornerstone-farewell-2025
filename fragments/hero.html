@@ -195,7 +195,9 @@ async function initIntroVideo() {
     unmuteOverlay.style.display = 'none';
   }
 
-  const src = mediaUrl(('/uploads/' + introPath).replace(/\/+/g, '/'));
+  const p = String(introPath || '');
+  const normalized = p.startsWith('/uploads/') ? p : ('/uploads/' + p);
+  const src = mediaUrl(normalized.replace(/\/+/g, '/'));
 
   video.pause();
   video.removeAttribute('src');
