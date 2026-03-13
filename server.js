@@ -84,7 +84,11 @@ app.use(express.static(__dirname, { index: 'index.html' }));
 // ═══════════════════════════════════════════════════════════════════════════════
 // CREATE REQUIRED DIRECTORIES
 // ═══════════════════════════════════════════════════════════════════════════════
+const musicDir = path.join(__dirname, 'music');
+if (!fs.existsSync(musicDir)) fs.mkdirSync(musicDir, { recursive: true });
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/music', express.static(musicDir)); // <--- ADD THIS LINE
 const uploadsDir = path.join(__dirname, 'uploads');
 const databaseDir = path.join(__dirname, 'database');
 const logsDir = path.join(__dirname, 'logs');
@@ -806,7 +810,66 @@ app.get('/api/stats', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // API ENDPOINTS - ADMIN
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// MUSIC UPLOAD (ADMIN)
+// ═══════════════════════════════════════════════════════════════════════════════
+const uploadMusic = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, musicDir),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, `bg-music-${Date.now()}${ext}`);
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('audio/')) cb(null, true);
+    else cb(new Error('Only audio files are allowed'), false);
+  }
+});
 
+app.get('/api/admin/music-files', (req, res) => {
+  try {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    const files = fs.readdirSync(musicDir).map(f => ({ name: f, path: `/music/${f}` }));
+    res.json({ success: true, files });
+  } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+});
+
+app.post('/api/admin/upload-music', uploadMusic.single('music'), (req, res) => {
+  try {
+    const auth = requireAdmin(req, res); if (!auth) return;
+    if (!req.file) return res.status(400).json({ success: false, error: 'No file uploaded' });
+    res.json({ success: true, path: `/music/${req.file.filename}` });
+  } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+});
+  // GET Fun Features Admin Stats
+  app.get('/api/admin/fun/stats', (req, res) => {
+    try {
+      const auth = requireAdmin(req, res); if (!auth) return;
+      
+      const gratitude = ffRead('gratitude');
+      const wishes = ffRead('wishes');
+      const dedications = ffRead('dedications');
+      const capsules = ffRead('capsules');
+      const mood = ffRead('mood');
+      const adviceDb = safeReadJson(path.join(databaseDir, 'advice.json'), { entries: [] });
+
+      res.json({
+        success: true,
+        stats: {
+          gratitude: { count: gratitude.entries.length, entries: gratitude.entries },
+          wishes: { count: wishes.entries.length, entries: wishes.entries },
+          dedications: { count: dedications.entries.length, entries: dedications.entries },
+          capsules: { count: capsules.entries.length, entries: capsules.entries }, // Shows full unrevealed text to admins
+          mood: { 
+            total: mood.votes.length, 
+            votes: mood.votes.reduce((acc, v) => { acc[v.mood] = (acc[v.mood] || 0) + 1; return acc; }, {}) 
+          },
+          advice: { count: adviceDb.entries.length, entries: adviceDb.entries }
+        }
+      });
+    } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+  });
 // Admin login with userId + password
 app.post('/api/admin/login', (req, res) => {
   try {
@@ -2649,22 +2712,29 @@ app.use((err, req, res, next) => {
     });
     res.json({ success: true, votes: db.votes, options: db.options, counts });
   });
-
   app.post('/api/fun/mood', (req, res) => {
-    const { name, mood } = req.body || {};
+    const { name, mood, oldMood } = req.body || {};
     if (!mood?.trim()) return res.status(400).json({ success: false, error: 'mood required' });
-
     const db = ffRead('mood');
+    
+    // Remove previous vote if editing
+    if (oldMood) {
+      const idx = db.votes.findIndex(v => v.mood === oldMood);
+      if (idx !== -1) db.votes.splice(idx, 1);
+    }
+
     db.votes.push({
       name: (name || 'Anonymous').trim().substring(0,60),
       mood: mood.trim().substring(0,40),
       createdAt: nowIso()
     });
+    
     if (db.votes.length > 5000) db.votes = db.votes.slice(-5000);
     ffWrite('mood', db);
     broadcast('ff:mood:new', {});
     res.json({ success: true });
   });
+  
 
   app.delete('/api/fun/mood/:idx', (req, res) => {
     const auth = requireAdmin(req, res); if (!auth) return;

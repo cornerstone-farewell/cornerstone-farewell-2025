@@ -1,174 +1,207 @@
 <!-- FRAGMENT: admin_advice -->
-
 <script data-fragment-script="admin_advice">
 // ═══════════════════════════════════════════════════════════════════════════════
-// ADVICE WALL ADMIN PANEL
+// ADVICE WALL ADMIN PANEL - FIXED
 // ═══════════════════════════════════════════════════════════════════════════════
 
 let adviceData = [];
 
 function initAdvicePanelContent() {
-  console.log('initAdvicePanelContent called');
-
-  const panel = document.getElementById('panelAdvice');
-  if (!panel) return;
-
-  if (panel.dataset.initialized !== 'true') {
-    panel.innerHTML = renderAdvicePanelHtml();
-    panel.dataset.initialized = 'true';
-  }
-
-  loadAdviceData();
+ console.log('✓ initAdvicePanelContent called');
+ const panel = document.getElementById('panelAdvice');
+ if (!panel) {
+ console.error(' Panel #panelAdvice not found');
+ return;
+ }
+ // Always re-render to ensure fresh state
+ panel.innerHTML = renderAdvicePanelHtml();
+ panel.dataset.initialized = 'true';
+ console.log('✓ Panel HTML rendered');
+ // Small delay to ensure DOM is ready before loading data
+ setTimeout(() => {
+ loadAdviceData();
+ }, 100);
 }
 
 function renderAdvicePanelHtml() {
-  return `
-    <div class="stat-card" style="text-align:left; margin-bottom:20px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-        <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">💡 Senior Advice Wall</h3>
-        <button class="admin-btn admin-btn-secondary" onclick="loadAdviceData()">🔄 Refresh</button>
-      </div>
-      <p style="color:var(--text-muted); margin-top:10px;">Manage advice from seniors to juniors.</p>
-    </div>
-
-    <!-- Stats -->
-    <div class="admin-stats" style="margin-bottom:20px;">
-      <div class="stat-card">
-        <div class="stat-number" id="adminAdviceTotalCount">0</div>
-        <div class="stat-label">Total Advice</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number" id="adminAdviceFeaturedCount">0</div>
-        <div class="stat-label">Featured</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number" id="adminAdviceTotalLikes">0</div>
-        <div class="stat-label">Total Likes</div>
-      </div>
-    </div>
-
-    <!-- Advice List -->
-    <div class="ff-admin-card">
-      <div class="ff-admin-card-header">
-        <div class="ff-admin-card-title">📝 All Advice Entries</div>
-      </div>
-      <div class="ff-admin-list" id="adviceList" style="max-height:600px;">
-        <div class="ff-empty">Loading...</div>
-      </div>
-    </div>
-  `;
+ return `
+  <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+   <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">💡 Senior Advice Wall</h3>
+    <button class="admin-btn admin-btn-secondary" onclick="loadAdviceData()">🔄 Refresh</button>
+   </div>
+   <p style="color:var(--text-muted); margin-top:10px;">Manage advice from seniors to juniors.</p>
+  </div>
+  
+  <!-- Stats -->
+  <div class="admin-stats" style="margin-bottom:20px;">
+   <div class="stat-card">
+    <div class="stat-number" id="adminAdviceTotalCount">0</div>
+    <div class="stat-label">Total Advice</div>
+   </div>
+   <div class="stat-card">
+    <div class="stat-number" id="adminAdviceFeaturedCount">0</div>
+    <div class="stat-label">Featured</div>
+   </div>
+   <div class="stat-card">
+    <div class="stat-number" id="adminAdviceTotalLikes">0</div>
+    <div class="stat-label">Total Likes</div>
+   </div>
+  </div>
+  
+  <!-- Advice List -->
+  <div class="ff-admin-card">
+   <div class="ff-admin-card-header">
+    <div class="ff-admin-card-title">📝 All Advice Entries</div>
+   </div>
+   <div class="ff-admin-list" id="adviceList" style="max-height:600px;">
+    <div class="ff-empty">Loading...</div>
+   </div>
+  </div>
+ `;
 }
 
 async function loadAdviceData() {
-  try {
-    const res = await fetch(apiUrl('/api/fun/advice'));
-    const data = await res.json();
-    if (data.success) {
-      adviceData = data.entries || [];
-      renderAdviceList();
-    }
-  } catch (e) {
-    console.error('Load advice error:', e);
+ console.log('↻ Loading advice data...');
+ 
+ try {
+  const res = await fetch(apiUrl('/api/fun/advice'));
+  const data = await res.json();
+  
+  if (data.success) {
+   adviceData = Array.isArray(data.entries) ? data.entries : [];
+   console.log(`✓ Loaded ${adviceData.length} advice entries`);
+   renderAdviceList();
+  } else {
+   console.error('❌ API returned success=false');
+   adviceData = [];
+   renderAdviceList();
   }
+ } catch (e) {
+  console.error('❌ Load advice error:', e);
+  adviceData = [];
+  renderAdviceList();
+ }
 }
 
 function renderAdviceList() {
-  // Update counts
-  const totalCount = document.getElementById('adminAdviceTotalCount');
-  const featuredCount = document.getElementById('adminAdviceFeaturedCount');
-  const totalLikes = document.getElementById('adminAdviceTotalLikes');
-
-  if (totalCount) totalCount.textContent = adviceData.length;
-  if (featuredCount) featuredCount.textContent = adviceData.filter(a => a.featured).length;
-  if (totalLikes) totalLikes.textContent = adviceData.reduce((sum, a) => sum + (a.likes || 0), 0);
-
-  const list = document.getElementById('adviceList');
-  if (!list) return;
-
-  if (!adviceData.length) {
-    list.innerHTML = '<div class="ff-empty">No advice entries yet.</div>';
-    return;
-  }
-
-  // Sort by featured first, then by likes
-  const sorted = [...adviceData].sort((a, b) => {
-    if (a.featured !== b.featured) return b.featured ? 1 : -1;
-    return (b.likes || 0) - (a.likes || 0);
-  });
-
-  list.innerHTML = sorted.map(a => `
-    <div class="ff-admin-item" style="${a.featured ? 'border-color: var(--primary-gold); background: rgba(212,175,55,0.08);' : ''}">
-      <div class="ff-admin-item-content">
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <strong>${escapeHtml(a.name)}</strong>
-          ${a.batch ? `<span class="mini-pill">${escapeHtml(a.batch)}</span>` : ''}
-          ${a.category ? `<span class="mini-pill" style="background:rgba(123,45,142,0.2);">${escapeHtml(a.category)}</span>` : ''}
-          ${a.featured ? '<span class="mini-pill" style="background:var(--primary-gold); color:var(--navy-dark);">⭐ Featured</span>' : ''}
-        </div>
-        <div style="color:var(--text-light); margin-top:8px;">"${escapeHtml(a.text)}"</div>
-        <div class="ff-admin-item-meta">
-          ❤️ ${a.likes || 0} likes • ${timeAgo(a.createdAt)}
-        </div>
-      </div>
-      <div class="ff-admin-item-actions" style="flex-direction:column; gap:6px;">
-        <button class="admin-btn ${a.featured ? 'admin-btn-secondary' : 'admin-btn-primary'}" style="padding:6px 12px; font-size:0.8rem;" onclick="toggleAdviceFeature(${a.id}, ${!a.featured})">
-          ${a.featured ? '★ Unfeature' : '☆ Feature'}
-        </button>
-        <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteAdvice(${a.id})">🗑️</button>
-      </div>
+ // Update counts
+ const totalCount = document.getElementById('adminAdviceTotalCount');
+ const featuredCount = document.getElementById('adminAdviceFeaturedCount');
+ const totalLikes = document.getElementById('adminAdviceTotalLikes');
+ 
+ if (totalCount) totalCount.textContent = adviceData.length;
+ if (featuredCount) featuredCount.textContent = adviceData.filter(a => a.featured).length;
+ if (totalLikes) totalLikes.textContent = adviceData.reduce((sum, a) => sum + (a.likes || 0), 0);
+ 
+ const list = document.getElementById('adviceList');
+ if (!list) return;
+ 
+ if (!adviceData.length) {
+  list.innerHTML = '<div class="ff-empty">No advice entries yet.</div>';
+  return;
+ }
+ 
+ // Sort by featured first, then by likes
+ const sorted = [...adviceData].sort((a, b) => {
+  if (a.featured !== b.featured) return b.featured ? 1 : -1;
+  return (b.likes || 0) - (a.likes || 0);
+ });
+ 
+ list.innerHTML = sorted.map(a => `
+  <div class="ff-admin-item" style="${a.featured ? 'border-color: var(--primary-gold); background: rgba(212,175,55,0.08);' : ''}">
+   <div class="ff-admin-item-content">
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+     <strong>${escapeHtml(a.name)}</strong>
+     ${a.batch ? `<span class="mini-pill">${escapeHtml(a.batch)}</span>` : ''}
+     ${a.category ? `<span class="mini-pill" style="background:rgba(123,45,142,0.2);">${escapeHtml(a.category)}</span>` : ''}
+     ${a.featured ? '<span class="mini-pill" style="background:var(--primary-gold); color:var(--navy-dark);">⭐ Featured</span>' : ''}
     </div>
-  `).join('');
+    <div style="color:var(--text-light); margin-top:8px;">"${escapeHtml(a.text)}"</div>
+    <div class="ff-admin-item-meta">
+     ${a.likes || 0} likes • ${timeAgo(a.createdAt)}
+    </div>
+   </div>
+   <div class="ff-admin-item-actions" style="flex-direction:column; gap:6px;">
+    <button class="admin-btn ${a.featured ? 'admin-btn-secondary' : 'admin-btn-primary'}" 
+            style="padding:6px 12px; font-size:0.8rem;" 
+            onclick="toggleAdviceFeature(${a.id}, ${!a.featured})">
+     ${a.featured ? '★ Unfeature' : '☆ Feature'}
+    </button>
+    <button class="admin-btn admin-btn-danger" 
+            style="padding:6px 12px; font-size:0.8rem;" 
+            onclick="deleteAdvice(${a.id})">
+     🗑️ Delete
+    </button>
+   </div>
+  </div>
+ `).join('');
 }
 
 async function toggleAdviceFeature(id, featured) {
-  try {
-    const res = await fetch(apiUrl(`/api/fun/advice/${id}/feature`), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${state.adminToken}`
-      },
-      body: JSON.stringify({ featured })
-    });
-    const data = await res.json();
-    if (data.success) {
-      showNotification('success', 'Updated', featured ? 'Advice featured.' : 'Advice unfeatured.');
-      loadAdviceData();
-    } else {
-      showNotification('error', 'Error', data.error);
-    }
-  } catch (e) {
-    showNotification('error', 'Error', e.message);
+ if (!state?.adminToken) {
+  showNotification('error', 'Not logged in', 'Please log in again.');
+  return;
+ }
+ 
+ try {
+  const res = await fetch(apiUrl(`/api/fun/advice/${id}/feature`), {
+   method: 'POST',
+   headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${state.adminToken}`
+   },
+   body: JSON.stringify({ featured })
+  });
+  
+  const data = await res.json();
+  
+  if (data.success) {
+   showNotification('success', 'Updated', featured ? 'Advice featured.' : 'Advice unfeatured.');
+   loadAdviceData();
+  } else {
+   showNotification('error', 'Error', data.error || 'Failed to update');
   }
+ } catch (e) {
+  console.error('❌ Toggle feature error:', e);
+  showNotification('error', 'Error', e.message);
+ }
 }
 
 async function deleteAdvice(id) {
-  if (!confirm('Delete this advice?')) return;
-  try {
-    const res = await fetch(apiUrl(`/api/fun/advice/${id}`), {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${state.adminToken}` }
-    });
-    if (res.ok) {
-      showNotification('success', 'Deleted', 'Advice removed.');
-      loadAdviceData();
-    } else {
-      const data = await res.json();
-      showNotification('error', 'Error', data.error || 'Failed to delete.');
-    }
-  } catch (e) {
-    showNotification('error', 'Error', e.message);
+ if (!confirm('Delete this advice entry? This cannot be undone.')) return;
+ 
+ if (!state?.adminToken) {
+  showNotification('error', 'Not logged in', 'Please log in again.');
+  return;
+ }
+ 
+ try {
+  const res = await fetch(apiUrl(`/api/fun/advice/${id}`), {
+   method: 'DELETE',
+   headers: { 'Authorization': `Bearer ${state.adminToken}` }
+  });
+  
+  if (res.ok) {
+   showNotification('success', 'Deleted', 'Advice removed.');
+   loadAdviceData();
+  } else {
+   const data = await res.json();
+   showNotification('error', 'Error', data.error || 'Failed to delete.');
   }
+ } catch (e) {
+  console.error('❌ Delete error:', e);
+  showNotification('error', 'Error', e.message);
+ }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // EXPOSE GLOBALLY
 // ═══════════════════════════════════════════════════════════════════════════════
-
 window.initAdvicePanelContent = initAdvicePanelContent;
 window.loadAdviceData = loadAdviceData;
 window.toggleAdviceFeature = toggleAdviceFeature;
 window.deleteAdvice = deleteAdvice;
 
-console.log('✅ Admin Advice loaded');
+console.log('✅ Admin Advice Panel loaded');
 </script>

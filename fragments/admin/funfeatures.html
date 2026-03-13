@@ -1,139 +1,141 @@
 <!-- FRAGMENT: admin_funfeatures -->
-
 <script data-fragment-script="admin_funfeatures">
 // ═══════════════════════════════════════════════════════════════════════════════
-// FUN FEATURES ADMIN PANEL
+// FUN FEATURES ADMIN PANEL - FIXED VERSION
 // Manages: Gratitude Wall, Superlatives, Wish Jar, Song Dedications, Mood Board, Time Capsule
 // ═══════════════════════════════════════════════════════════════════════════════
 
 let ffSettings = { enabled: {} };
 let ffData = {
-  gratitude: [],
-  superlatives: [],
-  wishes: [],
-  dedications: [],
-  mood: { votes: [], options: [], counts: {} },
-  capsules: []
+ gratitude: [],
+ superlatives: [],
+ wishes: [],
+ dedications: [],
+ mood: { votes: [], options: [], counts: {} },
+ capsules: []
 };
 
 function initFunfeaturesPanelContent() {
-  console.log('initFunfeaturesPanelContent called');
-
-  const panel = document.getElementById('panelFunFeatures');
-  if (!panel) return;
-
-  if (panel.dataset.initialized !== 'true') {
-    panel.innerHTML = renderFunfeaturesPanelHtml();
-    panel.dataset.initialized = 'true';
-  }
-
-  loadFunFeaturesData();
+ console.log('✓ initFunfeaturesPanelContent called');
+ const panel = document.getElementById('panelFunFeatures');
+ if (!panel) {
+ console.error(' Panel element #panelFunFeatures not found!');
+ return;
+ }
+ // Always re-render to ensure fresh state
+ panel.innerHTML = renderFunfeaturesPanelHtml();
+ panel.dataset.initialized = 'true';
+ console.log('✓ Panel HTML rendered');
+ // Small delay to ensure DOM is ready
+ setTimeout(() => {
+ loadFunFeaturesData();
+ }, 100);
 }
 
 function renderFunfeaturesPanelHtml() {
-  return `
-    <div class="stat-card" style="text-align:left; margin-bottom:20px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-        <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">🎉 Fun Features Manager</h3>
-        <button class="admin-btn admin-btn-secondary" onclick="loadFunFeaturesData()">🔄 Refresh All</button>
-      </div>
-      <p style="color:var(--text-muted); margin-top:10px;">Enable/disable features and manage user submissions.</p>
-    </div>
+ return `
+  <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+   <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">🎉 Fun Features Manager</h3>
+    <button class="admin-btn admin-btn-secondary" onclick="loadFunFeaturesData()">🔄 Refresh All</button>
+   </div>
+   <p style="color:var(--text-muted); margin-top:10px;">Enable/disable features and manage user submissions.</p>
+  </div>
 
-    <!-- Feature Toggles -->
-    <div class="ff-admin-card">
-      <div class="ff-admin-card-header">
-        <div class="ff-admin-card-title">⚡ Feature Toggles</div>
-        <button class="admin-btn admin-btn-primary" onclick="saveFunFeatureSettings()">💾 Save Settings</button>
-      </div>
-      <div id="ffTogglesContainer">
-        <div class="ff-empty">Loading settings...</div>
-      </div>
-    </div>
+  <!-- Feature Toggles -->
+  <div class="ff-admin-card">
+   <div class="ff-admin-card-header">
+    <div class="ff-admin-card-title">⚙️ Feature Toggles</div>
+    <button class="admin-btn admin-btn-primary" onclick="saveFunFeatureSettings()">💾 Save Settings</button>
+   </div>
+   <div id="ffTogglesContainer">
+    <div class="ff-empty">Loading settings...</div>
+   </div>
+  </div>
 
-    <!-- Gratitude Wall -->
-    <div class="ff-admin-card">
-      <div class="ff-admin-card-header">
-        <div class="ff-admin-card-title">💝 Gratitude Wall <span id="ffGratitudeCount" class="mini-pill" style="margin-left:10px;">0</span></div>
-        <div class="ff-admin-card-actions">
-          <button class="admin-btn admin-btn-secondary" onclick="exportFunFeature('gratitude')">📥 Export</button>
-        </div>
-      </div>
-      <div class="ff-admin-list" id="ffGratitudeList">
-        <div class="ff-empty">Loading...</div>
-      </div>
+  <!-- Gratitude Wall -->
+  <div class="ff-admin-card">
+   <div class="ff-admin-card-header">
+    <div class="ff-admin-card-title">💌 Gratitude Wall <span id="ffGratitudeCount" class="mini-pill" style="margin-left:10px;">0</span></div>
+    <div class="ff-admin-card-actions">
+     <button class="admin-btn admin-btn-secondary" onclick="exportFunFeature('gratitude')">📥 Export</button>
     </div>
+   </div>
+   <div class="ff-admin-list" id="ffGratitudeList" style="max-height:400px;">
+    <div class="ff-empty">Loading...</div>
+   </div>
+  </div>
 
-    <!-- Wish Jar -->
-    <div class="ff-admin-card">
-      <div class="ff-admin-card-header">
-        <div class="ff-admin-card-title">🏺 Wish Jar <span id="ffWishesCount" class="mini-pill" style="margin-left:10px;">0</span></div>
-        <div class="ff-admin-card-actions">
-          <button class="admin-btn admin-btn-secondary" onclick="exportFunFeature('wishes')">📥 Export</button>
-        </div>
-      </div>
-      <div class="ff-admin-list" id="ffWishesList">
-        <div class="ff-empty">Loading...</div>
-      </div>
+  <!-- Wish Jar -->
+  <div class="ff-admin-card">
+   <div class="ff-admin-card-header">
+    <div class="ff-admin-card-title">🌟 Wish Jar <span id="ffWishesCount" class="mini-pill" style="margin-left:10px;">0</span></div>
+    <div class="ff-admin-card-actions">
+     <button class="admin-btn admin-btn-secondary" onclick="exportFunFeature('wishes')">📥 Export</button>
     </div>
+   </div>
+   <div class="ff-admin-list" id="ffWishesList" style="max-height:400px;">
+    <div class="ff-empty">Loading...</div>
+   </div>
+  </div>
 
-    <!-- Song Dedications -->
-    <div class="ff-admin-card">
-      <div class="ff-admin-card-header">
-        <div class="ff-admin-card-title">🎵 Song Dedications <span id="ffDedicationsCount" class="mini-pill" style="margin-left:10px;">0</span></div>
-        <div class="ff-admin-card-actions">
-          <button class="admin-btn admin-btn-secondary" onclick="exportFunFeature('dedications')">📥 Export</button>
-        </div>
-      </div>
-      <div class="ff-admin-list" id="ffDedicationsList">
-        <div class="ff-empty">Loading...</div>
-      </div>
+  <!-- Song Dedications -->
+  <div class="ff-admin-card">
+   <div class="ff-admin-card-header">
+    <div class="ff-admin-card-title">🎵 Song Dedications <span id="ffDedicationsCount" class="mini-pill" style="margin-left:10px;">0</span></div>
+    <div class="ff-admin-card-actions">
+     <button class="admin-btn admin-btn-secondary" onclick="exportFunFeature('dedications')">📥 Export</button>
     </div>
+   </div>
+   <div class="ff-admin-list" id="ffDedicationsList" style="max-height:400px;">
+    <div class="ff-empty">Loading...</div>
+   </div>
+  </div>
 
-    <!-- Mood Board -->
-    <div class="ff-admin-card">
-      <div class="ff-admin-card-header">
-        <div class="ff-admin-card-title">😊 Mood Board <span id="ffMoodCount" class="mini-pill" style="margin-left:10px;">0</span></div>
-        <div class="ff-admin-card-actions">
-          <button class="admin-btn admin-btn-secondary" onclick="exportFunFeature('mood')">📥 Export</button>
-        </div>
-      </div>
-      <div id="ffMoodStats" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:15px;"></div>
-      <div class="ff-admin-list" id="ffMoodList" style="max-height:200px;">
-        <div class="ff-empty">Loading...</div>
-      </div>
+  <!-- Mood Board -->
+  <div class="ff-admin-card">
+   <div class="ff-admin-card-header">
+    <div class="ff-admin-card-title">😊 Mood Board <span id="ffMoodCount" class="mini-pill" style="margin-left:10px;">0</span></div>
+    <div class="ff-admin-card-actions">
+     <button class="admin-btn admin-btn-secondary" onclick="exportFunFeature('mood')">📥 Export</button>
     </div>
+   </div>
+   <div id="ffMoodStats" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:15px;"></div>
+   <div class="ff-admin-list" id="ffMoodList" style="max-height:250px;">
+    <div class="ff-empty">Loading...</div>
+   </div>
+  </div>
 
-    <!-- Time Capsules -->
-    <div class="ff-admin-card">
-      <div class="ff-admin-card-header">
-        <div class="ff-admin-card-title">💊 Time Capsules <span id="ffCapsulesCount" class="mini-pill" style="margin-left:10px;">0</span></div>
-        <div class="ff-admin-card-actions">
-          <button class="admin-btn admin-btn-secondary" onclick="exportFunFeature('capsules')">📥 Export</button>
-        </div>
-      </div>
-      <div class="ff-admin-list" id="ffCapsulesList">
-        <div class="ff-empty">Loading...</div>
-      </div>
+  <!-- Time Capsules -->
+  <div class="ff-admin-card">
+   <div class="ff-admin-card-header">
+    <div class="ff-admin-card-title">⏰ Time Capsules <span id="ffCapsulesCount" class="mini-pill" style="margin-left:10px;">0</span></div>
+    <div class="ff-admin-card-actions">
+     <button class="admin-btn admin-btn-secondary" onclick="exportFunFeature('capsules')">📥 Export</button>
     </div>
+   </div>
+   <div class="ff-admin-list" id="ffCapsulesList" style="max-height:400px;">
+    <div class="ff-empty">Loading...</div>
+   </div>
+  </div>
 
-    <!-- Superlatives -->
-    <div class="ff-admin-card">
-      <div class="ff-admin-card-header">
-        <div class="ff-admin-card-title">🏆 Superlatives <span id="ffSuperlativesCount" class="mini-pill" style="margin-left:10px;">0</span></div>
-        <div class="ff-admin-card-actions">
-          <button class="admin-btn admin-btn-secondary" onclick="mapSuperlativeImagesFromStudents()">🖼️ Map Student Photos</button>
-          <button class="admin-btn admin-btn-primary" onclick="openSuperlativesEditor()">✏️ Edit Categories</button>
-        </div>
-      </div>
-      <div class="callout" style="margin-bottom:14px;">
-        Use <strong>Map Student Photos</strong> to auto-assign nominee images from the Student Directory by matching names.
-      </div>
-      <div class="ff-admin-list" id="ffSuperlativesList">
-        <div class="ff-empty">Loading...</div>
-      </div>
+  <!-- Superlatives -->
+  <div class="ff-admin-card">
+   <div class="ff-admin-card-header">
+    <div class="ff-admin-card-title">🏆 Superlatives <span id="ffSuperlativesCount" class="mini-pill" style="margin-left:10px;">0</span></div>
+    <div class="ff-admin-card-actions">
+     <button class="admin-btn admin-btn-secondary" onclick="mapSuperlativeImagesFromStudents()">🖼️ Map Student Photos</button>
+     <button class="admin-btn admin-btn-primary" onclick="openSuperlativesEditor()">✏️ Edit Categories</button>
     </div>
-  `;
+   </div>
+   <div class="callout" style="margin-bottom:14px;">
+    Use <strong>Map Student Photos</strong> to auto-assign nominee images from the Student Directory by matching names.
+   </div>
+   <div class="ff-admin-list" id="ffSuperlativesList" style="max-height:400px;">
+    <div class="ff-empty">Loading...</div>
+   </div>
+  </div>
+ `;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -141,84 +143,110 @@ function renderFunfeaturesPanelHtml() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function loadFunFeaturesData() {
-  await Promise.all([
-    loadFunFeatureSettings(),
-    loadFunFeatureGratitude(),
-    loadFunFeatureWishes(),
-    loadFunFeatureDedications(),
-    loadFunFeatureMood(),
-    loadFunFeatureCapsules(),
-    loadFunFeatureSuperlatives()
-  ]);
+ console.log('↻ Loading all fun features data...');
+ 
+ await Promise.all([
+  loadFunFeatureSettings(),
+  loadFunFeatureGratitude(),
+  loadFunFeatureWishes(),
+  loadFunFeatureDedications(),
+  loadFunFeatureMood(),
+  loadFunFeatureCapsules(),
+  loadFunFeatureSuperlatives()
+ ]);
+ 
+ console.log('✓ All fun features data loaded');
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════════════════════════
+
 async function loadFunFeatureSettings() {
-  try {
-    const res = await fetch(apiUrl('/api/fun/settings'));
-    const data = await res.json();
-    if (data.success) {
-      ffSettings = data.settings || { enabled: {} };
-      renderFunFeatureToggles();
-    }
-  } catch (e) {
-    console.error('Load fun settings error:', e);
-  }
+ try {
+ const res = await fetch(apiUrl('/api/fun/settings'));
+ if (!res.ok) {
+ throw new Error(`HTTP ${res.status}`);
+ }
+ const data = await res.json();
+ if (data.success) {
+ ffSettings = data.settings || { enabled: {} };
+ // Ensure enabled object exists
+ if (!ffSettings.enabled) {
+ ffSettings.enabled = {};
+ }
+ renderFunFeatureToggles();
+ } else {
+ console.warn(' Fun settings returned success=false');
+ ffSettings = { enabled: { gratitude: true, superlatives: true, wishes: true, dedications: true, mood: true, capsules: true } };
+ renderFunFeatureToggles();
+ }
+ } catch (e) {
+ console.error(' Load fun settings error:', e);
+ // Use defaults on error
+ ffSettings = { enabled: { gratitude: true, superlatives: true, wishes: true, dedications: true, mood: true, capsules: true } };
+ renderFunFeatureToggles();
+ }
 }
 
 function renderFunFeatureToggles() {
-  const container = document.getElementById('ffTogglesContainer');
-  if (!container) return;
+ const container = document.getElementById('ffTogglesContainer');
+ if (!container) return;
 
-  const features = [
-    { key: 'gratitude', label: '💝 Gratitude Wall', desc: 'Students can send thank-you notes' },
-    { key: 'superlatives', label: '🏆 Superlatives', desc: 'Vote for class awards' },
-    { key: 'wishes', label: '🏺 Wish Jar', desc: 'Future wishes and hopes' },
-    { key: 'dedications', label: '🎵 Song Dedications', desc: 'Dedicate songs to classmates' },
-    { key: 'mood', label: '😊 Mood Board', desc: 'Share current feelings' },
-    { key: 'capsules', label: '💊 Time Capsule', desc: 'Letters to future selves' }
-  ];
+ const features = [
+  { key: 'gratitude', label: '💌 Gratitude Wall', desc: 'Students can send thank-you notes' },
+  { key: 'superlatives', label: '🏆 Superlatives', desc: 'Vote for class awards' },
+  { key: 'wishes', label: '🌟 Wish Jar', desc: 'Future wishes and hopes' },
+  { key: 'dedications', label: '🎵 Song Dedications', desc: 'Dedicate songs to classmates' },
+  { key: 'mood', label: '😊 Mood Board', desc: 'Share current feelings' },
+  { key: 'capsules', label: '⏰ Time Capsule', desc: 'Letters to future selves' }
+ ];
 
-  container.innerHTML = features.map(f => {
-    const enabled = ffSettings.enabled?.[f.key] !== false;
-    return `
-      <div class="ff-toggle-row">
-        <div>
-          <div class="ff-toggle-label">${f.label}</div>
-          <div style="font-size:0.8rem; color:var(--text-muted);">${f.desc}</div>
-        </div>
-        <label class="ff-toggle">
-          <input type="checkbox" id="ffToggle_${f.key}" ${enabled ? 'checked' : ''} onchange="onFunFeatureToggle('${f.key}', this.checked)">
-          <span class="ff-toggle-slider"></span>
-        </label>
-      </div>
-    `;
-  }).join('');
+ container.innerHTML = features.map(f => {
+  const enabled = ffSettings.enabled?.[f.key] !== false;
+  return `
+   <div class="ff-toggle-row">
+    <div>
+     <div class="ff-toggle-label">${f.label}</div>
+     <div style="font-size:0.8rem; color:var(--text-muted);">${f.desc}</div>
+    </div>
+    <label class="ff-toggle">
+     <input type="checkbox" id="ffToggle_${f.key}" ${enabled ? 'checked' : ''} onchange="onFunFeatureToggle('${f.key}', this.checked)">
+     <span class="ff-toggle-slider"></span>
+    </label>
+   </div>
+  `;
+ }).join('');
 }
 
 function onFunFeatureToggle(key, enabled) {
-  ffSettings.enabled = ffSettings.enabled || {};
-  ffSettings.enabled[key] = enabled;
+ ffSettings.enabled = ffSettings.enabled || {};
+ ffSettings.enabled[key] = enabled;
+ console.log(`Toggle ${key}:`, enabled);
 }
 
 async function saveFunFeatureSettings() {
-  try {
-    const res = await fetch(apiUrl('/api/fun/settings'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${state.adminToken}`
-      },
-      body: JSON.stringify({ enabled: ffSettings.enabled })
-    });
-    const data = await res.json();
-    if (data.success) {
-      showNotification('success', 'Saved', 'Feature settings updated.');
-    } else {
-      showNotification('error', 'Error', data.error || 'Failed to save.');
-    }
-  } catch (e) {
-    showNotification('error', 'Error', e.message);
+ try {
+  const res = await fetch(apiUrl('/api/fun/settings'), {
+   method: 'POST',
+   headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${state.adminToken}`
+   },
+   body: JSON.stringify({ enabled: ffSettings.enabled })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+   showNotification('success', 'Saved', 'Feature settings updated.');
+  } else {
+   showNotification('error', 'Error', data.error || 'Failed to save.');
   }
+ } catch (e) {
+  console.error('❌ Save settings error:', e);
+  showNotification('error', 'Error', e.message);
+ }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -226,42 +254,43 @@ async function saveFunFeatureSettings() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function loadFunFeatureGratitude() {
-  try {
-    const res = await fetch(apiUrl('/api/fun/gratitude'));
-    const data = await res.json();
-    if (data.success) {
-      ffData.gratitude = data.entries || [];
-      renderFunFeatureGratitude();
-    }
-  } catch (e) {
-    console.error('Load gratitude error:', e);
+ try {
+  const res = await fetch(apiUrl('/api/fun/gratitude'));
+  const data = await res.json();
+  
+  if (data.success) {
+   ffData.gratitude = data.entries || [];
+   renderFunFeatureGratitude();
   }
+ } catch (e) {
+  console.error('❌ Load gratitude error:', e);
+ }
 }
 
 function renderFunFeatureGratitude() {
-  const list = document.getElementById('ffGratitudeList');
-  const count = document.getElementById('ffGratitudeCount');
-  if (!list) return;
+ const list = document.getElementById('ffGratitudeList');
+ const count = document.getElementById('ffGratitudeCount');
+ 
+ if (!list) return;
+ if (count) count.textContent = ffData.gratitude.length;
 
-  if (count) count.textContent = ffData.gratitude.length;
+ if (!ffData.gratitude.length) {
+  list.innerHTML = '<div class="ff-empty">No gratitude notes yet.</div>';
+  return;
+ }
 
-  if (!ffData.gratitude.length) {
-    list.innerHTML = '<div class="ff-empty">No gratitude notes yet.</div>';
-    return;
-  }
-
-  list.innerHTML = ffData.gratitude.map(e => `
-    <div class="ff-admin-item">
-      <div class="ff-admin-item-content">
-        <div><strong>${escapeHtml(e.from)}</strong> → <strong>${escapeHtml(e.to)}</strong></div>
-        <div style="color:var(--text-light); margin-top:6px;">"${escapeHtml(e.message)}"</div>
-        <div class="ff-admin-item-meta">${timeAgo(e.createdAt)}</div>
-      </div>
-      <div class="ff-admin-item-actions">
-        <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteFunFeatureItem('gratitude', ${e.id})">🗑️</button>
-      </div>
-    </div>
-  `).join('');
+ list.innerHTML = ffData.gratitude.map(e => `
+  <div class="ff-admin-item">
+   <div class="ff-admin-item-content">
+    <div><strong>${escapeHtml(e.from)}</strong> → <strong>${escapeHtml(e.to)}</strong></div>
+    <div style="color:var(--text-light); margin-top:6px;">"${escapeHtml(e.message)}"</div>
+    <div class="ff-admin-item-meta">${timeAgo(e.createdAt)}</div>
+   </div>
+   <div class="ff-admin-item-actions">
+    <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteFunFeatureItem('gratitude', ${e.id})">🗑️</button>
+   </div>
+  </div>
+ `).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -269,42 +298,43 @@ function renderFunFeatureGratitude() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function loadFunFeatureWishes() {
-  try {
-    const res = await fetch(apiUrl('/api/fun/wishes'));
-    const data = await res.json();
-    if (data.success) {
-      ffData.wishes = data.entries || [];
-      renderFunFeatureWishes();
-    }
-  } catch (e) {
-    console.error('Load wishes error:', e);
+ try {
+  const res = await fetch(apiUrl('/api/fun/wishes'));
+  const data = await res.json();
+  
+  if (data.success) {
+   ffData.wishes = data.entries || [];
+   renderFunFeatureWishes();
   }
+ } catch (e) {
+  console.error('❌ Load wishes error:', e);
+ }
 }
 
 function renderFunFeatureWishes() {
-  const list = document.getElementById('ffWishesList');
-  const count = document.getElementById('ffWishesCount');
-  if (!list) return;
+ const list = document.getElementById('ffWishesList');
+ const count = document.getElementById('ffWishesCount');
+ 
+ if (!list) return;
+ if (count) count.textContent = ffData.wishes.length;
 
-  if (count) count.textContent = ffData.wishes.length;
+ if (!ffData.wishes.length) {
+  list.innerHTML = '<div class="ff-empty">No wishes yet.</div>';
+  return;
+ }
 
-  if (!ffData.wishes.length) {
-    list.innerHTML = '<div class="ff-empty">No wishes yet.</div>';
-    return;
-  }
-
-  list.innerHTML = ffData.wishes.map(e => `
-    <div class="ff-admin-item">
-      <div class="ff-admin-item-content">
-        <div><strong>${escapeHtml(e.name)}</strong> <span class="mini-pill" style="margin-left:8px;">${escapeHtml(e.category || 'General')}</span></div>
-        <div style="color:var(--text-light); margin-top:6px;">"${escapeHtml(e.text)}"</div>
-        <div class="ff-admin-item-meta">${timeAgo(e.createdAt)}</div>
-      </div>
-      <div class="ff-admin-item-actions">
-        <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteFunFeatureItem('wishes', ${e.id})">🗑️</button>
-      </div>
-    </div>
-  `).join('');
+ list.innerHTML = ffData.wishes.map(e => `
+  <div class="ff-admin-item">
+   <div class="ff-admin-item-content">
+    <div><strong>${escapeHtml(e.name)}</strong> <span class="mini-pill" style="margin-left:8px;">${escapeHtml(e.category || 'General')}</span></div>
+    <div style="color:var(--text-light); margin-top:6px;">"${escapeHtml(e.text)}"</div>
+    <div class="ff-admin-item-meta">${timeAgo(e.createdAt)}</div>
+   </div>
+   <div class="ff-admin-item-actions">
+    <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteFunFeatureItem('wishes', ${e.id})">🗑️</button>
+   </div>
+  </div>
+ `).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -312,43 +342,44 @@ function renderFunFeatureWishes() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function loadFunFeatureDedications() {
-  try {
-    const res = await fetch(apiUrl('/api/fun/dedications'));
-    const data = await res.json();
-    if (data.success) {
-      ffData.dedications = data.entries || [];
-      renderFunFeatureDedications();
-    }
-  } catch (e) {
-    console.error('Load dedications error:', e);
+ try {
+  const res = await fetch(apiUrl('/api/fun/dedications'));
+  const data = await res.json();
+  
+  if (data.success) {
+   ffData.dedications = data.entries || [];
+   renderFunFeatureDedications();
   }
+ } catch (e) {
+  console.error('❌ Load dedications error:', e);
+ }
 }
 
 function renderFunFeatureDedications() {
-  const list = document.getElementById('ffDedicationsList');
-  const count = document.getElementById('ffDedicationsCount');
-  if (!list) return;
+ const list = document.getElementById('ffDedicationsList');
+ const count = document.getElementById('ffDedicationsCount');
+ 
+ if (!list) return;
+ if (count) count.textContent = ffData.dedications.length;
 
-  if (count) count.textContent = ffData.dedications.length;
+ if (!ffData.dedications.length) {
+  list.innerHTML = '<div class="ff-empty">No dedications yet.</div>';
+  return;
+ }
 
-  if (!ffData.dedications.length) {
-    list.innerHTML = '<div class="ff-empty">No dedications yet.</div>';
-    return;
-  }
-
-  list.innerHTML = ffData.dedications.map(e => `
-    <div class="ff-admin-item">
-      <div class="ff-admin-item-content">
-        <div><strong>${escapeHtml(e.from)}</strong> → <strong>${escapeHtml(e.to)}</strong></div>
-        <div style="color:var(--primary-gold); margin-top:6px;">🎵 ${escapeHtml(e.song)}</div>
-        ${e.message ? `<div style="color:var(--text-muted); margin-top:4px; font-style:italic;">"${escapeHtml(e.message)}"</div>` : ''}
-        <div class="ff-admin-item-meta">${timeAgo(e.createdAt)}</div>
-      </div>
-      <div class="ff-admin-item-actions">
-        <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteFunFeatureItem('dedications', ${e.id})">🗑️</button>
-      </div>
-    </div>
-  `).join('');
+ list.innerHTML = ffData.dedications.map(e => `
+  <div class="ff-admin-item">
+   <div class="ff-admin-item-content">
+    <div><strong>${escapeHtml(e.from)}</strong> → <strong>${escapeHtml(e.to)}</strong></div>
+    <div style="color:var(--primary-gold); margin-top:6px;">🎵 ${escapeHtml(e.song)}</div>
+    ${e.message ? `<div style="color:var(--text-muted); margin-top:4px; font-style:italic;">"${escapeHtml(e.message)}"</div>` : ''}
+    <div class="ff-admin-item-meta">${timeAgo(e.createdAt)}</div>
+   </div>
+   <div class="ff-admin-item-actions">
+    <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteFunFeatureItem('dedications', ${e.id})">🗑️</button>
+   </div>
+  </div>
+ `).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -356,86 +387,96 @@ function renderFunFeatureDedications() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function loadFunFeatureMood() {
-  try {
-    const res = await fetch(apiUrl('/api/fun/mood'));
-    const data = await res.json();
-    if (data.success) {
-      ffData.mood = {
-        votes: data.votes || [],
-        options: data.options || [],
-        counts: data.counts || {}
-      };
-      renderFunFeatureMood();
-    }
-  } catch (e) {
-    console.error('Load mood error:', e);
+ try {
+  const res = await fetch(apiUrl('/api/fun/mood'));
+  const data = await res.json();
+  
+  if (data.success) {
+   ffData.mood = {
+    votes: data.votes || [],
+    options: data.options || [],
+    counts: data.counts || {}
+   };
+   renderFunFeatureMood();
   }
+ } catch (e) {
+  console.error('❌ Load mood error:', e);
+ }
 }
 
 function renderFunFeatureMood() {
-  const list = document.getElementById('ffMoodList');
-  const stats = document.getElementById('ffMoodStats');
-  const count = document.getElementById('ffMoodCount');
-  if (!list) return;
+ const list = document.getElementById('ffMoodList');
+ const stats = document.getElementById('ffMoodStats');
+ const count = document.getElementById('ffMoodCount');
+ 
+ if (!list) return;
+ if (count) count.textContent = ffData.mood.votes.length;
 
-  if (count) count.textContent = ffData.mood.votes.length;
-
-  if (stats) {
-    const total = ffData.mood.votes.length || 1;
-    stats.innerHTML = Object.entries(ffData.mood.counts).map(([mood, c]) => {
-      const pct = Math.round((c / total) * 100);
-      return `
-        <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; text-align:center;">
-          <div style="font-size:1.5rem;">${getMoodEmoji(mood)}</div>
-          <div style="font-weight:700; color:var(--primary-gold);">${c}</div>
-          <div style="font-size:0.75rem; color:var(--text-muted);">${mood} (${pct}%)</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  const recent = ffData.mood.votes.slice(-20).reverse();
-  if (!recent.length) {
-    list.innerHTML = '<div class="ff-empty">No mood votes yet.</div>';
-    return;
-  }
-
-  list.innerHTML = recent.map((v, i) => `
-    <div class="ff-admin-item" style="padding:10px;">
-      <div class="ff-admin-item-content">
-        <span>${getMoodEmoji(v.mood)} ${escapeHtml(v.mood)}</span>
-        <span style="color:var(--text-muted); margin-left:10px;">— ${escapeHtml(v.name || 'Anonymous')}</span>
-      </div>
-      <button class="admin-btn admin-btn-danger" style="padding:4px 10px; font-size:0.75rem;" onclick="deleteFunFeatureMoodVote(${ffData.mood.votes.length - 1 - i})">✕</button>
+ // Stats
+ if (stats) {
+  const total = ffData.mood.votes.length || 1;
+  stats.innerHTML = Object.entries(ffData.mood.counts).map(([mood, c]) => {
+   const pct = Math.round((c / total) * 100);
+   return `
+    <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; text-align:center;">
+     <div style="font-size:1.5rem;">${getMoodEmoji(mood)}</div>
+     <div style="font-weight:700; color:var(--primary-gold);">${c}</div>
+     <div style="font-size:0.75rem; color:var(--text-muted);">${mood} (${pct}%)</div>
     </div>
-  `).join('');
+   `;
+  }).join('');
+ }
+
+ // Recent votes
+ const recent = ffData.mood.votes.slice(-20).reverse();
+ 
+ if (!recent.length) {
+  list.innerHTML = '<div class="ff-empty">No mood votes yet.</div>';
+  return;
+ }
+
+ list.innerHTML = recent.map((v, i) => `
+  <div class="ff-admin-item" style="padding:10px;">
+   <div class="ff-admin-item-content">
+    <span>${getMoodEmoji(v.mood)} ${escapeHtml(v.mood)}</span>
+    <span style="color:var(--text-muted); margin-left:10px;">— ${escapeHtml(v.name || 'Anonymous')}</span>
+   </div>
+   <button class="admin-btn admin-btn-danger" style="padding:4px 10px; font-size:0.75rem;" 
+           onclick="deleteFunFeatureMoodVote(${ffData.mood.votes.length - 1 - i})">✕</button>
+  </div>
+ `).join('');
 }
 
 function getMoodEmoji(mood) {
-  const map = {
-    'Excited': '🤩',
-    'Happy': '😊',
-    'Nostalgic': '🥹',
-    'Bittersweet': '😢',
-    'Emotional': '😭'
-  };
-  return map[mood] || '😐';
+ const map = {
+  'Excited': '🤩',
+  'Happy': '😊',
+  'Nostalgic': '🥺',
+  'Bittersweet': '😌',
+  'Emotional': '😭',
+  'Nervous': '😰',
+  'Grateful': '🙏'
+ };
+ return map[mood] || '😐';
 }
 
 async function deleteFunFeatureMoodVote(idx) {
-  if (!confirm('Delete this mood vote?')) return;
-  try {
-    const res = await fetch(apiUrl(`/api/fun/mood/${idx}`), {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${state.adminToken}` }
-    });
-    if (res.ok) {
-      showNotification('success', 'Deleted', 'Mood vote removed.');
-      loadFunFeatureMood();
-    }
-  } catch (e) {
-    showNotification('error', 'Error', e.message);
+ if (!confirm('Delete this mood vote?')) return;
+ 
+ try {
+  const res = await fetch(apiUrl(`/api/fun/mood/${idx}`), {
+   method: 'DELETE',
+   headers: { 'Authorization': `Bearer ${state.adminToken}` }
+  });
+  
+  if (res.ok) {
+   showNotification('success', 'Deleted', 'Mood vote removed.');
+   loadFunFeatureMood();
   }
+ } catch (e) {
+  console.error('❌ Delete mood vote error:', e);
+  showNotification('error', 'Error', e.message);
+ }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -443,46 +484,50 @@ async function deleteFunFeatureMoodVote(idx) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function loadFunFeatureCapsules() {
-  try {
-    const res = await fetch(apiUrl('/api/fun/capsules'));
-    const data = await res.json();
-    if (data.success) {
-      ffData.capsules = data.entries || [];
-      renderFunFeatureCapsules();
-    }
-  } catch (e) {
-    console.error('Load capsules error:', e);
+ try {
+  const res = await fetch(apiUrl('/api/fun/capsules'));
+  const data = await res.json();
+  
+  if (data.success) {
+   ffData.capsules = data.entries || [];
+   renderFunFeatureCapsules();
   }
+ } catch (e) {
+  console.error('❌ Load capsules error:', e);
+ }
 }
 
 function renderFunFeatureCapsules() {
-  const list = document.getElementById('ffCapsulesList');
-  const count = document.getElementById('ffCapsulesCount');
-  if (!list) return;
+ const list = document.getElementById('ffCapsulesList');
+ const count = document.getElementById('ffCapsulesCount');
+ 
+ if (!list) return;
+ if (count) count.textContent = ffData.capsules.length;
 
-  if (count) count.textContent = ffData.capsules.length;
+ if (!ffData.capsules.length) {
+  list.innerHTML = '<div class="ff-empty">No time capsules yet.</div>';
+  return;
+ }
 
-  if (!ffData.capsules.length) {
-    list.innerHTML = '<div class="ff-empty">No time capsules yet.</div>';
-    return;
-  }
-
-  list.innerHTML = ffData.capsules.map(e => `
-    <div class="ff-admin-item">
-      <div class="ff-admin-item-content">
-        <div><strong>${escapeHtml(e.name)}</strong></div>
-        <div style="color:var(--text-muted); margin-top:4px;">
-          📅 Reveal: ${new Date(e.revealDate).toLocaleDateString()}
-          ${e.revealed ? '<span class="mini-pill" style="margin-left:10px; background:rgba(76,175,80,0.2); color:#8ff09a;">Revealed</span>' : '<span class="mini-pill" style="margin-left:10px;">Sealed</span>'}
-        </div>
-        ${e.revealed && e.letter ? `<div style="color:var(--text-light); margin-top:8px; font-style:italic; max-height:60px; overflow:hidden;">"${escapeHtml(e.letter.substring(0, 150))}..."</div>` : ''}
-        <div class="ff-admin-item-meta">${timeAgo(e.createdAt)}</div>
-      </div>
-      <div class="ff-admin-item-actions">
-        <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteFunFeatureItem('capsules', ${e.id})">🗑️</button>
-      </div>
+ list.innerHTML = ffData.capsules.map(e => `
+  <div class="ff-admin-item">
+   <div class="ff-admin-item-content">
+    <div><strong>${escapeHtml(e.name)}</strong></div>
+    <div style="color:var(--text-muted); margin-top:4px;">
+     Reveal: ${new Date(e.revealDate).toLocaleDateString()}
+     ${e.revealed 
+      ? '<span class="mini-pill" style="margin-left:10px; background:rgba(76,175,80,0.2); color:#8ff09a;">✓ Revealed</span>' 
+      : '<span class="mini-pill" style="margin-left:10px;">🔒 Sealed</span>'
+     }
     </div>
-  `).join('');
+    ${e.revealed && e.letter ? `<div style="color:var(--text-light); margin-top:8px; font-style:italic; max-height:60px; overflow:hidden;">"${escapeHtml(e.letter.substring(0, 150))}..."</div>` : ''}
+    <div class="ff-admin-item-meta">${timeAgo(e.createdAt)}</div>
+   </div>
+   <div class="ff-admin-item-actions">
+    <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteFunFeatureItem('capsules', ${e.id})">🗑️</button>
+   </div>
+  </div>
+ `).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -490,110 +535,113 @@ function renderFunFeatureCapsules() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function loadFunFeatureSuperlatives() {
-  try {
-    const res = await fetch(apiUrl('/api/fun/superlatives'));
-    const data = await res.json();
-    if (data.success) {
-      ffData.superlatives = data.categories || [];
-      renderFunFeatureSuperlatives();
-    }
-  } catch (e) {
-    console.error('Load superlatives error:', e);
+ try {
+  const res = await fetch(apiUrl('/api/fun/superlatives'));
+  const data = await res.json();
+  
+  if (data.success) {
+   ffData.superlatives = data.categories || [];
+   renderFunFeatureSuperlatives();
   }
+ } catch (e) {
+  console.error('❌ Load superlatives error:', e);
+ }
 }
 
 function renderFunFeatureSuperlatives() {
-  const list = document.getElementById('ffSuperlativesList');
-  const count = document.getElementById('ffSuperlativesCount');
-  if (!list) return;
+ const list = document.getElementById('ffSuperlativesList');
+ const count = document.getElementById('ffSuperlativesCount');
+ 
+ if (!list) return;
+ if (count) count.textContent = ffData.superlatives.length;
 
-  if (count) count.textContent = ffData.superlatives.length;
+ if (!ffData.superlatives.length) {
+  list.innerHTML = '<div class="ff-empty">No superlative categories yet. Click "Edit Categories" to add some.</div>';
+  return;
+ }
 
-  if (!ffData.superlatives.length) {
-    list.innerHTML = '<div class="ff-empty">No superlative categories yet. Click "Edit Categories" to add some.</div>';
-    return;
-  }
-
-  list.innerHTML = ffData.superlatives.map(cat => {
-    const topNominee = cat.nominees?.sort((a, b) => (b.votes || 0) - (a.votes || 0))[0];
-    return `
-      <div class="ff-admin-item">
-        <div class="ff-admin-item-content">
-          <div style="font-weight:700; color:var(--primary-gold);">🏆 ${escapeHtml(cat.title)}</div>
-          <div style="color:var(--text-muted); margin-top:6px;">
-            ${cat.nominees?.length || 0} nominees
-            ${topNominee ? ` • Leading: <strong>${escapeHtml(topNominee.name)}</strong> (${topNominee.votes || 0} votes)` : ''}
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
+ list.innerHTML = ffData.superlatives.map(cat => {
+  const topNominee = cat.nominees?.sort((a, b) => (b.votes || 0) - (a.votes || 0))[0];
+  return `
+   <div class="ff-admin-item">
+    <div class="ff-admin-item-content">
+     <div style="font-weight:700; color:var(--primary-gold);">🏆 ${escapeHtml(cat.title)}</div>
+     <div style="color:var(--text-muted); margin-top:6px;">
+      ${cat.nominees?.length || 0} nominees
+      ${topNominee ? ` • Leading: <strong>${escapeHtml(topNominee.name)}</strong> (${topNominee.votes || 0} votes)` : ''}
+     </div>
+    </div>
+   </div>
+  `;
+ }).join('');
 }
 
 function openSuperlativesEditor() {
-  const categories = ffData.superlatives.map(c => c.title).join('\n');
-  const newCategories = prompt('Enter superlative categories (one per line):', categories);
-  
-  if (newCategories === null) return;
-  
-  const cats = newCategories.split('\n').filter(c => c.trim()).map((title, i) => {
-    const existing = ffData.superlatives.find(c => c.title === title.trim());
-    return {
-      id: existing?.id || Date.now() + i,
-      title: title.trim(),
-      nominees: existing?.nominees || [],
-      imageUrl: existing?.imageUrl || null
-    };
-  });
+ const categories = ffData.superlatives.map(c => c.title).join('\n');
+ const newCategories = prompt('Enter superlative categories (one per line):', categories);
+ 
+ if (newCategories === null) return;
 
-  saveSuperlatives(cats);
+ const cats = newCategories.split('\n').filter(c => c.trim()).map((title, i) => {
+  const existing = ffData.superlatives.find(c => c.title === title.trim());
+  return {
+   id: existing?.id || Date.now() + i,
+   title: title.trim(),
+   nominees: existing?.nominees || [],
+   imageUrl: existing?.imageUrl || null
+  };
+ });
+
+ saveSuperlatives(cats);
 }
 
 async function saveSuperlatives(categories) {
-  try {
-    const res = await fetch(apiUrl('/api/fun/superlatives'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${state.adminToken}`
-      },
-      body: JSON.stringify({ categories })
-    });
-    const data = await res.json();
-    if (data.success) {
-      showNotification('success', 'Saved', 'Superlatives updated.');
-      ffData.superlatives = data.categories;
-      renderFunFeatureSuperlatives();
-    } else {
-      showNotification('error', 'Error', data.error);
-    }
-  } catch (e) {
-    showNotification('error', 'Error', e.message);
+ try {
+  const res = await fetch(apiUrl('/api/fun/superlatives'), {
+   method: 'POST',
+   headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${state.adminToken}`
+   },
+   body: JSON.stringify({ categories })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+   showNotification('success', 'Saved', 'Superlatives updated.');
+   ffData.superlatives = data.categories;
+   renderFunFeatureSuperlatives();
+  } else {
+   showNotification('error', 'Error', data.error);
   }
+ } catch (e) {
+  console.error('❌ Save superlatives error:', e);
+  showNotification('error', 'Error', e.message);
+ }
 }
 
 async function mapSuperlativeImagesFromStudents() {
-  if (!confirm('Auto-map superlative nominee images from the Student Directory by matching names?')) return;
+ if (!confirm('Auto-map superlative nominee images from the Student Directory by matching names?')) return;
 
-  try {
-    const res = await fetch(apiUrl('/api/admin/superlatives/map-images-from-students'), {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${state.adminToken}`
-      }
-    });
+ try {
+  const res = await fetch(apiUrl('/api/admin/superlatives/map-images-from-students'), {
+   method: 'POST',
+   headers: { 'Authorization': `Bearer ${state.adminToken}` }
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if (data.success) {
-      showNotification('success', 'Mapped', `Mapped ${data.mapped || 0} nominee images from student directory.`);
-      loadFunFeatureSuperlatives();
-    } else {
-      showNotification('error', 'Failed', data.error || 'Could not map images.');
-    }
-  } catch (e) {
-    showNotification('error', 'Failed', e.message);
+  if (data.success) {
+   showNotification('success', 'Mapped', `Mapped ${data.mapped || 0} nominee images from student directory.`);
+   loadFunFeatureSuperlatives();
+  } else {
+   showNotification('error', 'Failed', data.error || 'Could not map images.');
   }
+ } catch (e) {
+  console.error('❌ Map images error:', e);
+  showNotification('error', 'Failed', e.message);
+ }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -601,32 +649,37 @@ async function mapSuperlativeImagesFromStudents() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function deleteFunFeatureItem(feature, id) {
-  if (!confirm('Delete this item?')) return;
-  try {
-    const res = await fetch(apiUrl(`/api/fun/${feature}/${id}`), {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${state.adminToken}` }
-    });
-    if (res.ok) {
-      showNotification('success', 'Deleted', 'Item removed.');
-      const loadFn = {
-        gratitude: loadFunFeatureGratitude,
-        wishes: loadFunFeatureWishes,
-        dedications: loadFunFeatureDedications,
-        capsules: loadFunFeatureCapsules
-      }[feature];
-      if (loadFn) loadFn();
-    } else {
-      const data = await res.json();
-      showNotification('error', 'Error', data.error || 'Failed to delete.');
-    }
-  } catch (e) {
-    showNotification('error', 'Error', e.message);
+ if (!confirm('Delete this item?')) return;
+
+ try {
+  const res = await fetch(apiUrl(`/api/fun/${feature}/${id}`), {
+   method: 'DELETE',
+   headers: { 'Authorization': `Bearer ${state.adminToken}` }
+  });
+
+  if (res.ok) {
+   showNotification('success', 'Deleted', 'Item removed.');
+   
+   const loadFn = {
+    gratitude: loadFunFeatureGratitude,
+    wishes: loadFunFeatureWishes,
+    dedications: loadFunFeatureDedications,
+    capsules: loadFunFeatureCapsules
+   }[feature];
+   
+   if (loadFn) loadFn();
+  } else {
+   const data = await res.json();
+   showNotification('error', 'Error', data.error || 'Failed to delete.');
   }
+ } catch (e) {
+  console.error('❌ Delete item error:', e);
+  showNotification('error', 'Error', e.message);
+ }
 }
 
 function exportFunFeature(feature) {
-  window.open(apiUrl(`/api/admin/fun/export/${feature}?token=${state.adminToken}`), '_blank');
+ window.open(apiUrl(`/api/admin/fun/export/${feature}?token=${state.adminToken}`), '_blank');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -636,11 +689,12 @@ function exportFunFeature(feature) {
 window.initFunfeaturesPanelContent = initFunfeaturesPanelContent;
 window.loadFunFeaturesData = loadFunFeaturesData;
 window.saveFunFeatureSettings = saveFunFeatureSettings;
+window.onFunFeatureToggle = onFunFeatureToggle;
 window.deleteFunFeatureItem = deleteFunFeatureItem;
 window.deleteFunFeatureMoodVote = deleteFunFeatureMoodVote;
 window.exportFunFeature = exportFunFeature;
 window.openSuperlativesEditor = openSuperlativesEditor;
 window.mapSuperlativeImagesFromStudents = mapSuperlativeImagesFromStudents;
 
-console.log('✅ Admin Fun Features loaded');
+console.log('✅ Admin Fun Features Panel loaded');
 </script>

@@ -1,6 +1,7 @@
+<!-- FRAGMENT: admin_destinations -->
 <script data-fragment-script="admin_destinations">
 // ═══════════════════════════════════════════════════════════════════════════════
-// DESTINATIONS / GLOBE ADMIN PANEL - FIXED VERSION
+// DESTINATIONS / GLOBE ADMIN PANEL - COMPLETELY FIXED VERSION
 // ═══════════════════════════════════════════════════════════════════════════════
 
 let destData = {
@@ -8,74 +9,80 @@ let destData = {
  pending: []
 };
 
-if (!window.state) {
- window.state = {
-  adminToken: null
- };
-}
-
 function initDestinationsPanelContent() {
  console.log('✓ initDestinationsPanelContent called');
+ 
  const panel = document.getElementById('panelDestinations');
  if (!panel) {
-  console.error(' Panel element #panelDestinations not found!');
+  console.error('❌ Panel element #panelDestinations not found!');
   return;
  }
+
  if (panel.dataset.initialized !== 'true') {
   panel.innerHTML = renderDestinationsPanelHtml();
   panel.dataset.initialized = 'true';
   console.log('✓ Panel HTML rendered');
  }
+
  loadDestinationsData();
 }
 
 function renderDestinationsPanelHtml() {
  return `
- <div class="stat-card" style="text-align:left; margin-bottom:20px;">
-  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-   <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;"> Destinations Manager</h3>
-   <button class="admin-btn admin-btn-secondary" onclick="window.loadDestinationsData()"> Refresh</button>
+  <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+   <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">🌍 Destinations Manager</h3>
+    <button class="admin-btn admin-btn-secondary" onclick="loadDestinationsData()">🔄 Refresh</button>
+   </div>
+   <p style="color:var(--text-muted); margin-top:10px;">Manage where students are headed after graduation.</p>
   </div>
-  <p style="color:var(--text-muted); margin-top:10px;">Manage where students are headed after graduation.</p>
- </div>
 
- <div class="admin-stats" style="margin-bottom:20px;">
-  <div class="stat-card">
-   <div class="stat-number" id="destApprovedCount">0</div>
-   <div class="stat-label">Approved Pins</div>
-  </div>
-  <div class="stat-card">
-   <div class="stat-number" id="destPendingCount">0</div>
-   <div class="stat-label">Pending Approval</div>
-  </div>
- </div>
-
- <div class="ff-admin-card">
-  <div class="ff-admin-card-header">
-   <div class="ff-admin-card-title"> Pending Submissions</div>
-   <div class="ff-admin-card-actions">
-    <button class="admin-btn admin-btn-primary" onclick="window.approveAllDestinations()">✓ Approve All</button>
+  <!-- Stats -->
+  <div class="admin-stats" style="margin-bottom:20px;">
+   <div class="stat-card">
+    <div class="stat-number" id="destApprovedCount">0</div>
+    <div class="stat-label">Approved Pins</div>
+   </div>
+   <div class="stat-card">
+    <div class="stat-number" id="destPendingCount">0</div>
+    <div class="stat-label">Pending Approval</div>
+   </div>
+   <div class="stat-card">
+    <div class="stat-number" id="destTotalCount">0</div>
+    <div class="stat-label">Total Submissions</div>
    </div>
   </div>
-  <div class="ff-admin-list" id="destPendingList">
-   <div class="ff-empty">Loading...</div>
-  </div>
- </div>
 
- <div class="ff-admin-card">
-  <div class="ff-admin-card-header">
-   <div class="ff-admin-card-title"> Approved Destinations</div>
+  <!-- Pending Submissions -->
+  <div class="ff-admin-card">
+   <div class="ff-admin-card-header">
+    <div class="ff-admin-card-title">⏳ Pending Submissions</div>
+    <div class="ff-admin-card-actions">
+     <button class="admin-btn admin-btn-primary" onclick="approveAllDestinations()">✓ Approve All</button>
+    </div>
+   </div>
+   <div class="ff-admin-list" id="destPendingList" style="max-height:500px;">
+    <div class="ff-empty">Loading...</div>
+   </div>
   </div>
-  <div class="ff-admin-list" id="destApprovedList">
-   <div class="ff-empty">Loading...</div>
+
+  <!-- Approved Destinations -->
+  <div class="ff-admin-card">
+   <div class="ff-admin-card-header">
+    <div class="ff-admin-card-title">✅ Approved Destinations</div>
+   </div>
+   <div class="ff-admin-list" id="destApprovedList" style="max-height:500px;">
+    <div class="ff-empty">Loading...</div>
+   </div>
   </div>
- </div>
  `;
 }
 
 async function loadDestinationsData() {
+ console.log('↻ Loading destinations data...');
+ 
  try {
-  console.log('↻ Loading destinations data...');
+  // Load approved destinations
   const approvedRes = await fetch(apiUrl('/api/destinations'));
   if (!approvedRes.ok) {
    throw new Error(`HTTP ${approvedRes.status}: Failed to fetch approved destinations`);
@@ -83,6 +90,7 @@ async function loadDestinationsData() {
   const approvedData = await approvedRes.json();
   destData.approved = approvedData.success ? (approvedData.destinations || []) : [];
 
+  // Load pending submissions
   const pendingRes = await fetch(apiUrl('/api/destinations/pin-submissions'));
   if (!pendingRes.ok) {
    throw new Error(`HTTP ${pendingRes.status}: Failed to fetch pending submissions`);
@@ -90,44 +98,71 @@ async function loadDestinationsData() {
   const pendingData = await pendingRes.json();
   destData.pending = pendingData.success ? (pendingData.submissions || []) : [];
 
-  console.log(`✓ Loaded ${destData.approved.length} approved destinations`);
-  console.log(`✓ Loaded ${destData.pending.length} pending submissions`);
+  console.log(`✓ Loaded ${destData.approved.length} approved, ${destData.pending.length} pending`);
+  
   renderDestinations();
+
  } catch (e) {
-  console.error(' Load destinations error:', e);
+  console.error('❌ Load destinations error:', e);
   showNotification('error', 'Load Error', `Failed to load destinations: ${e.message}`);
+  
+  // Show error in UI
+  const pendingList = document.getElementById('destPendingList');
+  const approvedList = document.getElementById('destApprovedList');
+  
+  if (pendingList) pendingList.innerHTML = `<div class="ff-empty" style="color:var(--error-red);">Error: ${escapeHtml(e.message)}</div>`;
+  if (approvedList) approvedList.innerHTML = `<div class="ff-empty" style="color:var(--error-red);">Error: ${escapeHtml(e.message)}</div>`;
  }
 }
 
 function renderDestinations() {
  console.log('↻ Rendering destinations...');
+
+ // Update stats
  const approvedCount = document.getElementById('destApprovedCount');
  const pendingCount = document.getElementById('destPendingCount');
+ const totalCount = document.getElementById('destTotalCount');
+
  if (approvedCount) approvedCount.textContent = destData.approved.length;
  if (pendingCount) pendingCount.textContent = destData.pending.length;
+ if (totalCount) totalCount.textContent = destData.approved.length + destData.pending.length;
 
+ // Render pending list
  const pendingList = document.getElementById('destPendingList');
  if (pendingList) {
   if (!destData.pending.length) {
-   pendingList.innerHTML = '<div class="ff-empty">No pending submissions.</div>';
+   pendingList.innerHTML = '<div class="ff-empty">✅ No pending submissions.</div>';
   } else {
    pendingList.innerHTML = destData.pending.map(d => `
     <div class="ff-admin-item">
      <div class="ff-admin-item-content">
-      <div><strong>${escapeHtml(d.name)}</strong> ${d.emoji || ' '}</div>
-      <div style="color:var(--text-light); margin-top:4px;">${escapeHtml(d.school || d.city || '')}${d.country ? `, ${escapeHtml(d.country)}` : ''}</div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+       <strong>${escapeHtml(d.name)}</strong> 
+       <span style="font-size:1.5rem;">${d.emoji || '📍'}</span>
+      </div>
+      <div style="color:var(--text-light); margin-top:6px;">
+       ${escapeHtml(d.school || d.city || 'Unknown location')}${d.country ? `, ${escapeHtml(d.country)}` : ''}
+      </div>
       ${d.note ? `<div style="color:var(--text-muted); margin-top:4px; font-style:italic;">"${escapeHtml(d.note)}"</div>` : ''}
-      <div class="ff-admin-item-meta">Type: ${escapeHtml(d.type || 'university')} • Coords: ${d.lat?.toFixed?.(2) ?? d.lat}, ${d.lng?.toFixed?.(2) ?? d.lng}</div>
+      <div class="ff-admin-item-meta">
+       Type: ${escapeHtml(d.type || 'university')} • 
+       Coords: ${d.lat?.toFixed?.(2) ?? d.lat}, ${d.lng?.toFixed?.(2) ?? d.lng}
+      </div>
      </div>
-     <div class="ff-admin-item-actions">
-      <button class="admin-btn admin-btn-primary" style="padding:6px 12px; font-size:0.8rem;" onclick="window.approveDestination(${d.id})">✓</button>
-      <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="window.deleteDestination(${d.id})"> Delete</button>
+     <div class="ff-admin-item-actions" style="flex-direction:column; gap:6px;">
+      <button class="admin-btn admin-btn-primary" style="padding:6px 12px; font-size:0.8rem;" onclick="approveDestination(${d.id})">
+       ✓ Approve
+      </button>
+      <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteDestination(${d.id})">
+       🗑️ Delete
+      </button>
      </div>
     </div>
    `).join('');
   }
  }
 
+ // Render approved list
  const approvedList = document.getElementById('destApprovedList');
  if (approvedList) {
   if (!destData.approved.length) {
@@ -136,12 +171,21 @@ function renderDestinations() {
    approvedList.innerHTML = destData.approved.map(d => `
     <div class="ff-admin-item">
      <div class="ff-admin-item-content">
-      <div><strong>${escapeHtml(d.name)}</strong> ${d.emoji || ' '}</div>
-      <div style="color:var(--text-light); margin-top:4px;">${escapeHtml(d.school || d.city || '')}${d.country ? `, ${escapeHtml(d.country)}` : ''}</div>
-      <div class="ff-admin-item-meta">Type: ${escapeHtml(d.type || 'university')}</div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+       <strong>${escapeHtml(d.name)}</strong> 
+       <span style="font-size:1.5rem;">${d.emoji || '📍'}</span>
+      </div>
+      <div style="color:var(--text-light); margin-top:6px;">
+       ${escapeHtml(d.school || d.city || 'Unknown location')}${d.country ? `, ${escapeHtml(d.country)}` : ''}
+      </div>
+      <div class="ff-admin-item-meta">
+       Type: ${escapeHtml(d.type || 'university')}
+      </div>
      </div>
      <div class="ff-admin-item-actions">
-      <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="window.deleteDestination(${d.id})"> Delete</button>
+      <button class="admin-btn admin-btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="deleteDestination(${d.id})">
+       🗑️ Delete
+      </button>
      </div>
     </div>
    `).join('');
@@ -153,100 +197,141 @@ function renderDestinations() {
 
 async function approveDestination(id) {
  console.log(`→ Approving destination ${id}...`);
- if (!window.state?.adminToken) {
-  showNotification('error', 'Error', 'Admin token not found. Please log in again.');
+
+ // Check admin token
+ if (!state?.adminToken) {
+  showNotification('error', 'Not logged in', 'Admin token not found. Please log in again.');
+  console.error('❌ No admin token found');
   return;
  }
+
  try {
   const res = await fetch(apiUrl('/api/admin/destinations'), {
    method: 'POST',
    headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${window.state.adminToken}`
+    'Authorization': `Bearer ${state.adminToken}`
    },
    body: JSON.stringify({ action: 'approve', id })
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+  if (!res.ok) {
+   throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
+
   const data = await res.json();
+
   if (data.success) {
    showNotification('success', 'Approved', 'Destination approved.');
    loadDestinationsData();
   } else {
    showNotification('error', 'Error', data.error || 'Unknown error occurred.');
   }
+
  } catch (e) {
-  console.error(' Approve error:', e);
+  console.error('❌ Approve error:', e);
   showNotification('error', 'Error', e.message);
  }
 }
 
 async function approveAllDestinations() {
  if (!destData.pending.length) {
-  showNotification('info', 'Info', 'No pending destinations.');
+  showNotification('info', 'Info', 'No pending destinations to approve.');
   return;
  }
+
  if (!confirm(`Approve all ${destData.pending.length} pending destinations?`)) return;
- if (!window.state?.adminToken) {
-  showNotification('error', 'Error', 'Admin token not found. Please log in again.');
+
+ // Check admin token
+ if (!state?.adminToken) {
+  showNotification('error', 'Not logged in', 'Admin token not found. Please log in again.');
+  console.error('❌ No admin token found');
   return;
  }
+
+ console.log(`→ Approving all ${destData.pending.length} destinations...`);
+
  try {
   const ids = destData.pending.map(d => d.id);
+  
   const res = await fetch(apiUrl('/api/admin/destinations'), {
    method: 'POST',
    headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${window.state.adminToken}`
+    'Authorization': `Bearer ${state.adminToken}`
    },
    body: JSON.stringify({ action: 'approve', ids })
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+  if (!res.ok) {
+   throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
+
   const data = await res.json();
+
   if (data.success) {
-   showNotification('success', 'Approved', `Approved ${data.changed} destinations.`);
+   showNotification('success', 'Approved', `Approved ${data.changed || 0} destinations.`);
    loadDestinationsData();
   } else {
    showNotification('error', 'Error', data.error || 'Unknown error occurred.');
   }
+
  } catch (e) {
-  console.error(' Approve all error:', e);
+  console.error('❌ Approve all error:', e);
   showNotification('error', 'Error', e.message);
  }
 }
 
 async function deleteDestination(id) {
- if (!confirm('Delete this destination?')) return;
- if (!window.state?.adminToken) {
-  showNotification('error', 'Error', 'Admin token not found. Please log in again.');
+ if (!confirm('Delete this destination? This action cannot be undone.')) return;
+
+ // Check admin token
+ if (!state?.adminToken) {
+  showNotification('error', 'Not logged in', 'Admin token not found. Please log in again.');
+  console.error('❌ No admin token found');
   return;
  }
+
+ console.log(`→ Deleting destination ${id}...`);
+
  try {
   const res = await fetch(apiUrl('/api/admin/destinations'), {
    method: 'POST',
    headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${window.state.adminToken}`
+    'Authorization': `Bearer ${state.adminToken}`
    },
    body: JSON.stringify({ action: 'delete', id })
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+  if (!res.ok) {
+   throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
+
   const data = await res.json();
+
   if (data.success) {
    showNotification('success', 'Deleted', 'Destination removed.');
    loadDestinationsData();
   } else {
    showNotification('error', 'Error', data.error || 'Unknown error occurred.');
   }
+
  } catch (e) {
-  console.error(' Delete error:', e);
+  console.error('❌ Delete error:', e);
   showNotification('error', 'Error', e.message);
  }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPOSE GLOBALLY
+// ═══════════════════════════════════════════════════════════════════════════════
 
 window.initDestinationsPanelContent = initDestinationsPanelContent;
 window.loadDestinationsData = loadDestinationsData;
 window.approveDestination = approveDestination;
 window.approveAllDestinations = approveAllDestinations;
 window.deleteDestination = deleteDestination;
-console.log(' Admin Destinations loaded and ready');
+
+console.log('✅ Admin Destinations Panel loaded and ready');
 </script>

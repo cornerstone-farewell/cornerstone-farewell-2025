@@ -1,551 +1,273 @@
 <!-- FRAGMENT: stereodeck -->
 <style data-fragment-style="stereodeck">
-/* Boombox / StereoDeck - Moved to footer area */
+/* Floating Sleek Boombox */
 #boomboxDock {
-  max-width: var(--container-width);
-  margin: 40px auto 20px;
-  padding: 0 20px;
-  display: flex;
-  gap: 16px;
-  align-items: flex-end;
-  justify-content: center;
-  flex-wrap: wrap;
+ position: fixed;
+ bottom: 20px;
+ right: 20px;
+ z-index: 5000;
+ transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+ display: flex;
+ flex-direction: column;
+ align-items: flex-end;
 }
-
+#boomboxDock.minimized {
+ transform: translateY(calc(100% - 48px));
+}
+#boomboxToggle {
+ background: var(--gradient-gold);
+ color: var(--navy-dark);
+ border: none;
+ border-radius: 12px 12px 0 0;
+ padding: 8px 20px;
+ font-weight: bold;
+ cursor: pointer;
+ font-family: var(--font-body);
+ box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+ font-size: 0.9rem;
+ display: flex;
+ align-items: center;
+ gap: 8px;
+}
 #boomboxUnit {
-  width: min(400px, 100%);
-  background: linear-gradient(180deg, #3a3a42, #1a1a1f);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 20px;
-  padding: 16px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+ width: 320px;
+ background: rgba(26, 26, 46, 0.95);
+ backdrop-filter: blur(15px);
+ border: 1px solid var(--primary-gold);
+ border-radius: 16px 0 16px 16px;
+ padding: 20px;
+ box-shadow: 0 15px 40px rgba(0,0,0,0.5);
 }
-
-.boombox-top {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
 .boombox-brand {
-  font-weight: 700;
-  color: var(--primary-gold);
-  font-size: 0.95rem;
+ font-family: var(--font-display);
+ color: var(--primary-gold);
+ font-size: 1.2rem;
+ text-align: center;
+ margin-bottom: 15px;
+ border-bottom: 1px solid rgba(212,175,55,0.2);
+ padding-bottom: 10px;
 }
-
 .boombox-door {
-  height: 80px;
-  border-radius: 14px;
-  border: 2px solid rgba(255,255,255,0.1);
-  background: #0a0a0c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  transition: var(--transition-smooth);
+ height: 60px;
+ border-radius: 10px;
+ border: 1px solid rgba(255,255,255,0.1);
+ background: #0a0a0c;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ color: var(--text-muted);
+ font-size: 0.85rem;
+ margin-bottom: 15px;
+ overflow: hidden;
+ position: relative;
 }
-
 .boombox-door.has-tape {
-  background: linear-gradient(180deg, #1a1a1f, #0a0a0c);
-  border-color: var(--primary-gold);
+ border-color: var(--primary-gold);
+ background: linear-gradient(90deg, #111, #222, #111);
 }
-
-.boombox-speakers {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 12px;
+.tape-spool {
+ width: 30px; height: 30px;
+ border: 2px solid #555;
+ border-radius: 50%;
+ border-top-color: #fff;
+ animation: spin 2s linear infinite;
+ position: absolute;
 }
-
-.boombox-speaker {
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle, #0d0d0f 0 20%, #2b2b33 21% 45%, #0c0c0f 46% 60%, #444 61% 100%);
-  border: 2px solid rgba(255,255,255,0.08);
-  max-width: 60px;
-  margin: 0 auto;
-}
+.tape-spool.left { left: 20px; }
+.tape-spool.right { right: 20px; }
 
 #cassetteRack {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 12px;
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: 8px;
+ margin-bottom: 15px;
 }
-
 .cassette {
-  padding: 12px 18px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #f0e3b8, #cfb15b);
-  color: #111;
-  font-weight: 700;
-  font-size: 0.85rem;
-  border: 1px solid rgba(0,0,0,0.15);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-  cursor: pointer;
-  transition: var(--transition-smooth);
+ padding: 8px;
+ border-radius: 8px;
+ background: rgba(255,255,255,0.05);
+ border: 1px solid rgba(255,255,255,0.1);
+ color: var(--text-light);
+ font-size: 0.8rem;
+ cursor: pointer;
+ transition: all 0.3s ease;
 }
+.cassette:hover, .cassette.active {
+ background: rgba(212,175,55,0.2);
+ border-color: var(--primary-gold);
+ color: var(--primary-gold);
+}
+.boombox-controls {
+ display: flex;
+ gap: 10px;
+}
+.boombox-controls button {
+ flex: 1;
+ padding: 8px;
+ border-radius: 8px;
+ background: rgba(244,67,54,0.2);
+ color: #ffb3ad;
+ border: 1px solid rgba(244,67,54,0.4);
+ cursor: pointer;
+ transition: 0.3s;
+ font-weight: bold;
+}
+.boombox-controls button:hover { background: rgba(244,67,54,0.4); }
 
-.cassette:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.35);
-}
-
-/* Lean Back Mode Overlay */
-#leanBackOverlay {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  z-index: 9000;
-  display: none;
-  overflow: hidden;
-}
-
-#leanBackOverlay.active {
-  display: block;
-}
-
-#leanBackStage {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#leanBackStage img {
-  max-width: 90vw;
-  max-height: 90vh;
-  object-fit: contain;
-  border-radius: 16px;
-  box-shadow: 0 30px 100px rgba(0,0,0,0.7);
-  transition: transform 7s ease, opacity 0.8s ease;
-}
-
-#leanBackControls {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 2;
-}
-
-#leanBackStatus {
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.18);
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 999px;
-  backdrop-filter: blur(12px);
-  font-size: 0.9rem;
-}
-
-/* Last Bell / Zero Hour */
-#sniperLastBell {
-  position: fixed;
-  inset: 0;
-  z-index: 9500;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  background: rgba(0,0,0,0.95);
-  text-align: center;
-  padding: 30px;
-}
-
-#sniperLastBell.active {
-  display: flex;
-}
-
-#sniperLastBell h1 {
-  font-family: var(--font-display);
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  color: var(--primary-gold);
-  margin-bottom: 15px;
-}
-
-#sniperLastBell p {
-  color: #fff;
-  opacity: 0.85;
-  margin-bottom: 20px;
-  font-size: 1.1rem;
-}
-
-.sniper-final-video {
-  width: min(1000px, 90vw);
-  max-height: 70vh;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #000;
-  margin-top: 20px;
-}
-
-.sniper-final-video video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-@media (max-width: 768px) {
-  #boomboxDock {
-    flex-direction: column;
-    align-items: center;
-  }
-  #cassetteRack {
-    width: 100%;
-  }
-  .cassette {
-    flex: 1;
-    min-width: 100px;
-    text-align: center;
-  }
-}
+/* Lean Back Mode */
+#leanBackOverlay{position:fixed;inset:0;background:#000;z-index:9000;display:none;overflow:hidden;}
+#leanBackOverlay.active{display:block;}
+#leanBackStage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+#leanBackStage img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:16px;box-shadow:0 30px 100px rgba(0,0,0,0.7);transition:transform 7s ease,opacity 0.8s ease;}
+#leanBackControls{position:absolute;left:20px;right:20px;bottom:20px;display:flex;justify-content:space-between;align-items:center;z-index:2;}
+#leanBackStatus{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);color:#fff;padding:10px 16px;border-radius:999px;backdrop-filter:blur(12px);font-size:0.9rem;}
 </style>
 
-<!-- Global Effects Container -->
-<div id="sniperGlobalFx" style="position:fixed; inset:0; pointer-events:none; z-index:8000;">
-  <div id="emojiPhysicsLayer"></div>
-</div>
-
-<!-- Lean Back Mode Overlay -->
 <div id="leanBackOverlay">
-  <div id="leanBackStage"></div>
-  <div id="leanBackControls">
-    <div id="leanBackStatus">Lean Back Mode</div>
-    <button class="btn btn-danger" onclick="stopLeanBackMode()" type="button">Exit</button>
-  </div>
+ <div id="leanBackStage"></div>
+ <div id="leanBackControls">
+ <div id="leanBackStatus">Lean Back Mode</div>
+ <button class="btn btn-danger" onclick="stopLeanBackMode()" type="button">Exit</button>
+ </div>
 </div>
 
-<!-- Last Bell Overlay (shown when countdown hits zero) -->
-<div id="sniperLastBell">
-  <h1>🔔 Last Bell.</h1>
-  <p>One final ring. One final goodbye.</p>
-  <div class="sniper-final-video">
-    <video id="sniperFinalGoodbyeVideo" controls playsinline></video>
-  </div>
-</div>
-
-<!-- Boombox / Music Player (will be moved before footer by JS) -->
-<div id="boomboxDock">
-  <div id="boomboxUnit">
-    <div class="boombox-top">
-      <div class="boombox-brand">🎵 Cornerstone StereoDeck</div>
-      <button class="btn btn-secondary" id="ejectTapeBtn" type="button" style="padding: 8px 14px; font-size: 0.85rem;">Eject</button>
-    </div>
-    <div id="cassetteRack"></div>
-    <div class="boombox-door" id="boomboxDoor">Choose a vibe above</div>
-    <div class="boombox-speakers">
-      <div class="boombox-speaker"></div>
-      <div class="boombox-speaker"></div>
-    </div>
-  </div>
+<div id="boomboxDock" class="minimized">
+ <button id="boomboxToggle" onclick="document.getElementById('boomboxDock').classList.toggle('minimized')">
+ 📻 StereoDeck <span style="font-size:0.7rem;">▲/▼</span>
+ </button>
+ <div id="boomboxUnit">
+ <div class="boombox-brand">Cornerstone Tunes</div>
+ <div class="boombox-door" id="boomboxDoor">Pick a vibe below</div>
+ <div id="cassetteRack"></div>
+ <div class="boombox-controls">
+ <button id="ejectTapeBtn" onclick="ejectTape()">⏏ Eject / Stop</button>
+ </div>
+ </div>
 </div>
 
 <script data-fragment-script="stereodeck">
-// ═══════════════════════════════════════════════════════════════════════════════
-// STEREODECK - Simplified & Working
-// ═══════════════════════════════════════════════════════════════════════════════
 (function() {
-  'use strict';
+ const stereoState = { currentAudio: null, activeTape: null, leanBackTimer: null, leanBackIndex: 0, leanBackItems: [] };
 
-  const stereoState = {
-    currentAudio: null,
-    leanBackTimer: null,
-    leanBackIndex: 0,
-    leanBackItems: []
-  };
+ function initBoombox() {
+ const rack = document.getElementById('cassetteRack');
+ if (!rack || rack.dataset.built) return;
+ rack.dataset.built = '1';
+ 
+ const tapes = [
+ { name: '🎓 Graduation Vibes', key: 'graduation' },
+ { name: '🥺 Sad Boi Hours', key: 'sadboi' },
+ { name: '🔥 Hype Track', key: 'hype' },
+ { name: '✨ Lo-Fi Chill', key: 'lofi' } // Fallback
+ ];
 
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // INITIALIZATION
-  // ═══════════════════════════════════════════════════════════════════════════════
-  function init() {
-    console.log('[StereoDeck] Initializing...');
+ tapes.forEach(tape => {
+ const btn = document.createElement('button');
+ btn.className = 'cassette';
+ btn.textContent = tape.name;
+ btn.onclick = () => playTape(tape.name, tape.key, btn);
+ rack.appendChild(btn);
+ });
+
+ // Append Lean Back button to hero programmatically
+ const heroBtns = document.querySelector('.hero-buttons');
+ if(heroBtns && !document.getElementById('watchMovieBtn')) {
+ const btn = document.createElement('button');
+ btn.className = 'btn btn-secondary';
+ btn.id = 'watchMovieBtn';
+ btn.innerHTML = '🎬 Watch as Movie';
+ btn.onclick = startLeanBackMode;
+ heroBtns.appendChild(btn);
+ }
+ }
+
+ function playTape(name, key, btnEl) {
+ const door = document.getElementById('boomboxDoor');
+ if(stereoState.currentAudio) { stereoState.currentAudio.pause(); stereoState.currentAudio = null; }
+ 
+ document.querySelectorAll('.cassette').forEach(b => b.classList.remove('active'));
+ btnEl.classList.add('active');
+
+ const musicSettings = window.state?.settings?.music || {};
+ const musicFile = musicSettings['boombox' + key.charAt(0).toUpperCase() + key.slice(1)] || `/music/${key}.mp3`; // fallback route
+
+ try {
+ stereoState.currentAudio = new Audio(musicFile);
+ stereoState.currentAudio.loop = true;
+ stereoState.currentAudio.volume = 0.4;
+ stereoState.currentAudio.play().catch(e => console.log('Audio playback blocked until interaction', e));
+ 
+ door.classList.add('has-tape');
+ door.innerHTML = `
+ <div class="tape-spool left"></div>
+ <div style="text-align:center; z-index:2; font-weight:bold; color:var(--primary-gold);">${name}</div>
+ <div class="tape-spool right"></div>
+ `;
+ } catch (e) { console.error('Audio fail', e); }
+ }
+
+ window.ejectTape = function() {
+ if(stereoState.currentAudio) { stereoState.currentAudio.pause(); stereoState.currentAudio = null; }
+ document.querySelectorAll('.cassette').forEach(b => b.classList.remove('active'));
+ const door = document.getElementById('boomboxDoor');
+ if(door) {
+ door.classList.remove('has-tape');
+ door.innerHTML = 'Music Stopped';
+ }
+ };
+
+ window.startLeanBackMode = function() {
+    const memories = (window.state?.memories || []).filter(m => m.file_type === 'image' && m.file_url);
     
-    moveBoomboxBeforeFooter();
-    buildCassetteTapes();
-    setupEjectButton();
-    addMovieButtons();
+    if (!memories.length) {
+        if(typeof showNotification==='function') showNotification('info', 'No photos', 'Need approved photos first.');
+        return;
+    }
     
-    console.log('[StereoDeck] Ready');
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // BOOMBOX / CASSETTE PLAYER
-  // ═══════════════════════════════════════════════════════════════════════════════
-  function moveBoomboxBeforeFooter() {
-    const dock = document.getElementById('boomboxDock');
-    const footer = document.querySelector('footer');
-    if (dock && footer && !dock.dataset.moved) {
-      dock.dataset.moved = '1';
-      footer.parentNode.insertBefore(dock, footer);
-    }
-  }
-
-  function buildCassetteTapes() {
-    const rack = document.getElementById('cassetteRack');
-    if (!rack || rack.dataset.built) return;
-    rack.dataset.built = '1';
-
-    const tapes = [
-      { name: '🎓 Graduation Vibes', key: 'graduation' },
-      { name: '😢 Sad Boi Hours', key: 'sadboi' },
-      { name: '🔥 Hype', key: 'hype' }
-    ];
-
-    tapes.forEach(tape => {
-      const btn = document.createElement('button');
-      btn.className = 'cassette';
-      btn.textContent = tape.name;
-      btn.addEventListener('click', () => playTape(tape.name, tape.key));
-      rack.appendChild(btn);
-    });
-  }
-
-  function playTape(name, key) {
-    const door = document.getElementById('boomboxDoor');
-    if (!door) return;
-
-    // Get music path from settings
-    const musicSettings = state?.settings?.music || {};
-    const musicKey = 'boombox' + key.charAt(0).toUpperCase() + key.slice(1);
-    const musicFile = musicSettings[musicKey];
-
-    if (!musicFile) {
-      door.classList.remove('has-tape');
-      door.innerHTML = `<div style="text-align:center;"><div style="font-weight:700;color:var(--primary-gold);">${name}</div><div style="opacity:.7;font-size:.85rem;">🎵 Playing (no audio configured)</div></div>`;
-      if (typeof showNotification === 'function') {
-        showNotification('info', 'Music not configured', `${name} audio file not set in admin settings.`);
-      }
-      return;
-    }
-
-    // Stop current audio
-    if (stereoState.currentAudio) {
-      stereoState.currentAudio.pause();
-      stereoState.currentAudio = null;
-    }
-
-    // Play new audio
-    const src = '/music/' + musicFile.replace(/^\/+/, '');
-    try {
-      stereoState.currentAudio = new Audio(src);
-      stereoState.currentAudio.loop = true;
-      stereoState.currentAudio.volume = 0.3;
-      stereoState.currentAudio.play().catch(() => {});
-    } catch (e) {
-      console.error('[StereoDeck] Audio error:', e);
-    }
-
-    door.classList.add('has-tape');
-    door.innerHTML = `<div style="text-align:center;"><div style="font-weight:700;color:var(--primary-gold);">${name}</div><div style="opacity:.7;font-size:.85rem;">🎵 Now Playing</div></div>`;
-  }
-
-  function setupEjectButton() {
-    const ejectBtn = document.getElementById('ejectTapeBtn');
-    if (ejectBtn && !ejectBtn.dataset.bound) {
-      ejectBtn.dataset.bound = '1';
-      ejectBtn.addEventListener('click', ejectTape);
-    }
-  }
-
-  function ejectTape() {
-    const door = document.getElementById('boomboxDoor');
-    if (door) {
-      door.classList.remove('has-tape');
-      door.textContent = 'Choose a vibe above';
-    }
-
-    if (stereoState.currentAudio) {
-      stereoState.currentAudio.pause();
-      stereoState.currentAudio = null;
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // LEAN BACK MODE (Watch as Movie)
-  // ═══════════════════════════════════════════════════════════════════════════════
-  function addMovieButtons() {
-    // Add to hero section
-    const heroButtons = document.querySelector('.hero-buttons');
-    if (heroButtons && !document.getElementById('watchAsMovieBtn')) {
-      const btn = document.createElement('button');
-      btn.className = 'btn btn-secondary';
-      btn.id = 'watchAsMovieBtn';
-      btn.textContent = '🎬 Watch as Movie';
-      btn.addEventListener('click', startLeanBackMode);
-      heroButtons.appendChild(btn);
-    }
-
-    // Add to memories section
-    const memoriesHeader = document.querySelector('#memories .section-header');
-    if (memoriesHeader && !document.getElementById('memoriesMovieBtn')) {
-      const wrapper = document.createElement('div');
-      wrapper.style.marginTop = '15px';
-      wrapper.innerHTML = '<button id="memoriesMovieBtn" class="btn btn-secondary">🎬 Watch Memories as Movie</button>';
-      memoriesHeader.appendChild(wrapper);
-      document.getElementById('memoriesMovieBtn').addEventListener('click', startLeanBackMode);
-    }
-  }
-
-  function getAllImageMemories() {
-    const memories = (window.state?.memories || []).filter(m => 
-      m && m.file_type === 'image' && m.file_url
-    );
-    return memories.map(m => ({
-      src: m.file_url,
-      caption: m.caption || '',
-      id: m.id
+    // Process URLs through mediaUrl if available
+    stereoState.leanBackItems = memories.map(m => ({
+        ...m,
+        file_url: typeof mediaUrl === 'function' ? mediaUrl(m.file_url) : m.file_url
     }));
-  }
-
-  function startLeanBackMode() {
-    stereoState.leanBackItems = getAllImageMemories();
     
-    if (!stereoState.leanBackItems.length) {
-      if (typeof showNotification === 'function') {
-        showNotification('info', 'No photos yet', 'Lean Back Mode needs approved image memories.');
-      }
-      return;
-    }
-
-    stereoState.leanBackIndex = 0;
-    
-    const overlay = document.getElementById('leanBackOverlay');
-    if (overlay) {
-      overlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-
-    showLeanBackSlide();
-  }
-  window.startLeanBackMode = startLeanBackMode;
-
-  function stopLeanBackMode() {
-    clearTimeout(stereoState.leanBackTimer);
-    
-    const overlay = document.getElementById('leanBackOverlay');
-    if (overlay) {
-      overlay.classList.remove('active');
-    }
-    
-    document.body.style.overflow = '';
-  }
-  window.stopLeanBackMode = stopLeanBackMode;
-
-  function showLeanBackSlide() {
-    const stage = document.getElementById('leanBackStage');
-    const status = document.getElementById('leanBackStatus');
-    
-    if (!stage || !stereoState.leanBackItems.length) return;
-
-    const item = stereoState.leanBackItems[stereoState.leanBackIndex % stereoState.leanBackItems.length];
-    
-    // Create new image
-    stage.innerHTML = '';
-    const img = document.createElement('img');
-    img.src = item.src;
-    img.alt = item.caption || 'Memory';
-    img.style.opacity = '0';
-    img.style.transform = 'scale(1.05)';
-    stage.appendChild(img);
-
-    // Animate in
-    requestAnimationFrame(() => {
-      img.style.transition = 'transform 6s ease, opacity 0.8s ease';
-      img.style.opacity = '1';
-      img.style.transform = 'scale(1.15)';
-    });
-
-    // Update status
-    if (status) {
-      status.textContent = `Lean Back Mode • ${stereoState.leanBackIndex + 1} / ${stereoState.leanBackItems.length}`;
-    }
-
-    // Next slide
-    clearTimeout(stereoState.leanBackTimer);
-    stereoState.leanBackTimer = setTimeout(() => {
-      stereoState.leanBackIndex = (stereoState.leanBackIndex + 1) % stereoState.leanBackItems.length;
-      showLeanBackSlide();
-    }, 6000);
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // LAST BELL (Zero Hour)
-  // ═══════════════════════════════════════════════════════════════════════════════
-  function triggerLastBell() {
-    console.log('[StereoDeck] Last Bell triggered!');
-    
-    // Lock scroll
+    document.getElementById('leanBackOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
+    stereoState.leanBackIndex = 0;
+    showLeanBackSlide();
+};
 
-    // Show confetti
-    if (typeof triggerConfetti === 'function') {
-      for (let i = 0; i < 5; i++) {
-        setTimeout(() => triggerConfetti(), i * 200);
-      }
-    }
+ window.stopLeanBackMode = function() {
+ clearTimeout(stereoState.leanBackTimer);
+ document.getElementById('leanBackOverlay').classList.remove('active');
+ document.body.style.overflow = '';
+ };
 
-    // Show last bell overlay
-    const wrap = document.getElementById('sniperLastBell');
-    const video = document.getElementById('sniperFinalGoodbyeVideo');
-    
-    if (wrap) {
-      wrap.classList.add('active');
-    }
+ function showLeanBackSlide() {
+ const stage = document.getElementById('leanBackStage');
+ if (!stage || !stereoState.leanBackItems.length) return;
+ const item = stereoState.leanBackItems[stereoState.leanBackIndex % stereoState.leanBackItems.length];
+ 
+ stage.innerHTML = '';
+ const img = document.createElement('img');
+ img.src = item.file_url;
+ img.style.opacity = '0';
+ img.style.transform = 'scale(1.05)';
+ stage.appendChild(img);
+ 
+ requestAnimationFrame(() => {
+ img.style.opacity = '1';
+ img.style.transform = 'scale(1.15)';
+ });
 
-    // Play final video if configured
-    if (video && state?.settings?.finalGoodbyeVideoPath) {
-      const src = typeof mediaUrl === 'function' 
-        ? mediaUrl('/uploads/' + state.settings.finalGoodbyeVideoPath)
-        : '/uploads/' + state.settings.finalGoodbyeVideoPath;
-      video.src = src;
-      video.play().catch(() => {});
-    }
-  }
-  window.triggerLastBell = triggerLastBell;
+ const status = document.getElementById('leanBackStatus');
+ if (status) status.textContent = `Movie Mode • ${stereoState.leanBackIndex + 1} / ${stereoState.leanBackItems.length}`;
 
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // KEYBOARD SHORTCUTS
-  // ═══════════════════════════════════════════════════════════════════════════════
-  document.addEventListener('keydown', (e) => {
-    // ESC to exit lean back mode
-    if (e.key === 'Escape') {
-      const leanBack = document.getElementById('leanBackOverlay');
-      if (leanBack?.classList.contains('active')) {
-        stopLeanBackMode();
-      }
-    }
+ stereoState.leanBackTimer = setTimeout(() => {
+ stereoState.leanBackIndex++;
+ showLeanBackSlide();
+ }, 5000);
+ }
 
-    // Arrow keys to navigate in lean back mode
-    const leanBack = document.getElementById('leanBackOverlay');
-    if (leanBack?.classList.contains('active')) {
-      if (e.key === 'ArrowLeft') {
-        stereoState.leanBackIndex = Math.max(0, stereoState.leanBackIndex - 1);
-        showLeanBackSlide();
-      }
-      if (e.key === 'ArrowRight') {
-        stereoState.leanBackIndex = (stereoState.leanBackIndex + 1) % stereoState.leanBackItems.length;
-        showLeanBackSlide();
-      }
-    }
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // INIT
-  // ═══════════════════════════════════════════════════════════════════════════════
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    // Wait a bit for other fragments to load
-    setTimeout(init, 500);
-  }
+ document.addEventListener('DOMContentLoaded', () => setTimeout(initBoombox, 1000));
 })();
 </script>

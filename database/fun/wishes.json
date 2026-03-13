@@ -13,7 +13,21 @@
       "category": "dream",
       "text": "hi people",
       "createdAt": "2026-03-12T06:57:06.400Z"
+    },
+    {
+      "id": 3,
+      "name": "anonymous",
+      "category": "dream",
+      "text": "hi peple",
+      "createdAt": "2026-03-13T13:09:40.559Z"
+    },
+    {
+      "id": 4,
+      "name": "rkdngjndrfngjedrngfnjlb",
+      "category": "advice",
+      "text": "gjrlnsgkjnfkdfjhjnkrdjfjlhkjrtfhdlktrjgfnhj",
+      "createdAt": "2026-03-13T14:39:22.511Z"
     }
   ],
-  "nextId": 3
+  "nextId": 5
 }

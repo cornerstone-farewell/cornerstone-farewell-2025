@@ -35,4 +35,29 @@
 </div>
 <div class="wishes-scroll" id="wishesScroll"><div class="ff-empty">The jar is empty. Be first!</div></div>
 </div>
+<script data-fragment-script="wishjar">
+(function() {
+ const WISH_ICONS={dream:'💭',advice:'💡',hope:'✨',funny:'😂'};
+ async function loadWishes() {
+ const s = document.getElementById('wishesScroll'); if(!s) return;
+ try {
+ const d = await fetch(apiUrl('/api/fun/wishes')).then(r=>r.json());
+ if(d.success && d.entries?.length) {
+ s.innerHTML = d.entries.map(w => `<div class="wish-item"><div class="wish-author">${WISH_ICONS[w.category]||'🌟'} ${escapeHtml(w.name||'Anonymous')} · ${timeAgo(w.createdAt)}</div><div class="wish-text">${escapeHtml(w.text)}</div></div>`).join('');
+ } else s.innerHTML = '<div class="ff-empty">The jar is empty. Be first! 🫙</div>';
+ } catch(_) { s.innerHTML = '<div class="ff-empty">Failed to load wishes.</div>'; }
+ }
+ window.submitWish = async function() {
+ const name = document.getElementById('wishName')?.value?.trim() || 'Anonymous';
+ const category = document.getElementById('wishCategory')?.value || 'dream';
+ const text = document.getElementById('wishText')?.value?.trim();
+ if(!text) { if(typeof showNotification==='function') showNotification('error','Empty','Write your wish first!'); return; }
+ try {
+ const d = await fetch(apiUrl('/api/fun/wishes'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,category,text})}).then(r=>r.json());
+ if(d.success) { document.getElementById('wishText').value=''; if(typeof showNotification==='function') showNotification('success','Dropped!','Your wish is in the jar 🌟'); loadWishes(); }
+ } catch(e){}
+ };
+ document.addEventListener('DOMContentLoaded', loadWishes);
+})();
+</script>
 </section>

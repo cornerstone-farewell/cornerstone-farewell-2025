@@ -941,74 +941,93 @@
   // SAVE - Send TWO separate requests to match backend
   // ══════════════════════════════════════════════════════════════════════════
   async function saveAll() {
-    const name = $('globeName')?.value?.trim();
-    const btn = $('saveBtn');
+ const name = $('globeName')?.value?.trim();
+ const btn = $('saveBtn');
+ if (!name) { msg('error', 'Enter your name'); $('globeName')?.focus(); return; }
+ if (!S.schoolLoc && !S.uniLoc) { msg('error', 'Select at least one location'); return; }
+ btn.disabled = true;
+ btn.innerHTML = ' Saving...';
+ const url = typeof apiUrl === 'function' ? apiUrl('/api/destinations/submit') : '/api/destinations/submit';
+ let successCount = 0;
+ let errors = [];
+ try {
+ // Save school location
+ if (S.schoolLoc) {
+ const parts = (S.schoolLoc.addr || '').split(',').map(x => x.trim()).filter(Boolean);
+ const payload = {
+ name: name,
+ type: 'school',
+ school: S.schoolLoc.name || '',
+ city: parts[parts.length - 2] || S.schoolLoc.name || 'Unknown',
+ country: parts[parts.length - 1] || 'Unknown',
+ lat: S.schoolLoc.lat,
+ lng: S.schoolLoc.lng,
+ note: S.schoolLoc.addr || ''
+ };
+ console.log('[Globe] Saving school:', payload);
+ try {
+ const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+ const d = await r.json();
+ if (r.ok && d.success) { 
+ successCount++; 
+ } else { 
+ errors.push('School: ' + (d.error || 'Failed')); 
+ }
+ } catch (e) {
+ errors.push('School: Network error');
+ }
+ }
+ // Save university location
+ if (S.uniLoc) {
+ const payload = {
+ name: name,
+ type: 'university',
+ city: S.uniLoc.name || S.uniLoc.addr || 'Unknown',
+ country: S.uniLoc.addr ? S.uniLoc.addr.split(',').slice(-1)[0].trim() : 'Unknown',
+ lat: S.uniLoc.lat,
+ lng: S.uniLoc.lng,
+ school: S.uniLoc.name || '',
+ note: S.uniLoc.addr || ''
+ };
+ console.log('[Globe] Saving university:', payload);
+ try {
+ const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+ const d = await r.json();
+ if (r.ok && d.success) { 
+ successCount++; 
+ } else { 
+ errors.push('University: ' + (d.error || 'Failed')); 
+ }
+ } catch (e) {
+ errors.push('University: Network error');
+ }
+ }
+ if (successCount > 0) {
+ // Show success with pending approval message
+ msg('success', `Submitted ${successCount} path(s)! Your pins will appear after admin approval. `);
+ closeModal();
+ // Reload data after a short delay
+ setTimeout(async () => {
+ await loadData();
+ }, 500);
+ // Trigger confetti if available
+ if (typeof triggerConfetti === 'function') {
+ triggerConfetti();
+ }
+ } else if (errors.length > 0) {
+ msg('error', errors.join(', '));
+ } else {
+ msg('error', 'No locations were saved. Please try again.');
+ }
+ } catch (e) {
+ console.error('[Globe] Save error:', e);
+ msg('error', 'Save failed: ' + e.message);
+ } finally {
+ btn.disabled = false;
+ btn.innerHTML = ' Save Paths';
+ }
+ }
 
-    if (!name) { msg('error', 'Enter your name'); $('globeName')?.focus(); return; }
-    if (!S.schoolLoc && !S.uniLoc) { msg('error', 'Select at least one location'); return; }
-
-    btn.disabled = true;
-    btn.innerHTML = '⏳ Saving...';
-
-    const url = typeof apiUrl === 'function' ? apiUrl('/api/destinations/submit') : '/api/destinations/submit';
-    let success = true;
-    let errors = [];
-
-    try {
-      // Save school location
-      if (S.schoolLoc) {
-        const parts = (S.schoolLoc.addr || '').split(',').map(x => x.trim()).filter(Boolean);
-
-const payload = {
-  name: name,
-  type: 'school',
-  school: S.schoolLoc.name || '',
-  city: parts[parts.length - 2] || S.schoolLoc.name || 'Unknown',
-  country: parts[parts.length - 1] || 'Unknown',
-  lat: S.schoolLoc.lat,
-  lng: S.schoolLoc.lng,
-  note: S.schoolLoc.addr || ''
-};
-        console.log('[Globe] Saving school:', payload);
-        const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        const d = await r.json();
-        if (!r.ok || !d.success) { success = false; errors.push('School: ' + (d.error || 'Failed')); }
-      }
-
-      // Save university location
-      if (S.uniLoc) {
-        const payload = {
-          name: name,
-          type: 'university',
-          city: S.uniLoc.name || S.uniLoc.addr || 'Unknown',
-          country: S.uniLoc.addr ? S.uniLoc.addr.split(',').slice(-1)[0].trim() : 'Unknown',
-          lat: S.uniLoc.lat,
-          lng: S.uniLoc.lng,
-          school: S.uniLoc.name || '',
-          note: S.uniLoc.addr || ''
-        };
-        console.log('[Globe] Saving university:', payload);
-        const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        const d = await r.json();
-        if (!r.ok || !d.success) { success = false; errors.push('University: ' + (d.error || 'Failed')); }
-      }
-
-      if (success) {
-        msg('success', 'Your paths are now on the globe! 🎉');
-        closeModal();
-        await loadData();
-      } else {
-        msg('error', errors.join(', '));
-      }
-
-    } catch (e) {
-      console.error('[Globe] Save error:', e);
-      msg('error', 'Save failed: ' + e.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '🚀 Save Paths';
-    }
-  }
 
   function msg(t, m) {
     if (typeof showNotification === 'function') showNotification(t, t === 'success' ? 'Success' : 'Error', m);

@@ -16,188 +16,215 @@
 .nominee-votes{font-size:.82rem;color:var(--primary-gold);min-width:40px;text-align:right}
 .nominee-bar{height:4px;border-radius:2px;background:var(--primary-gold);margin-top:4px;transition:width .5s ease}
 .superlative-add-form{margin-top:14px;display:grid;gap:10px}
-.superlative-add-form .ff-input{width:100%;padding:10px 14px}
 .superlative-select{width:100%;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#fff}
 .superlative-select option{background:var(--navy-dark);color:#fff}
 .superlative-empty{color:var(--text-muted);font-size:.9rem}
+/* Section Tabs */
+.sup-tabs{display:flex;gap:10px;justify-content:center;margin-bottom:30px;flex-wrap:wrap;}
+.sup-tab{padding:8px 20px;border-radius:20px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text-light);cursor:pointer;transition:all 0.3s;}
+.sup-tab:hover{background:rgba(212,175,55,0.1);border-color:var(--primary-gold);}
+.sup-tab.active{background:var(--primary-gold);color:var(--navy-dark);font-weight:bold;border-color:var(--primary-gold);}
 </style>
 
 <section class="ff-section-hidden" id="superlativesSection">
-  <div class="container">
-    <div class="section-header">
-      <span class="section-badge">Class Awards</span>
-      <h2 class="section-title">Class <span class="highlight">Superlatives</span></h2>
-      <p class="section-description">Nominate and vote for your classmates in these fun farewell categories.</p>
-    </div>
-    <div class="superlatives-grid" id="superlativesGrid"><div class="ff-empty">Loading...</div></div>
-  </div>
+ <div class="container">
+ <div class="section-header">
+ <span class="section-badge">Class Awards</span>
+ <h2 class="section-title">Class <span class="highlight">Superlatives</span></h2>
+ <p class="section-description">Select your section below to nominate and vote for your classmates!</p>
+ </div>
+ 
+ <div class="sup-tabs" id="supSectionTabs">
+ <!-- Tabs generated via JS -->
+ </div>
+
+ <div class="superlatives-grid" id="superlativesGrid"><div class="ff-empty">Loading...</div></div>
+ </div>
 </section>
 
 <script data-fragment-script="superlatives">
-let superlativesStudentDirectory = [];
+(function() {
+ let superlativesStudentDirectory = [];
+ let supCategories = [];
+ let activeSection = 'All';
 
-async function loadSuperlatives() {
-  try {
-    const [supRes, studentRes, settingsRes] = await Promise.all([
-      fetch(apiUrl('/api/fun/superlatives')),
-      fetch(apiUrl('/api/student-directory')),
-      fetch(apiUrl('/api/fun/settings')).catch(() => null)
-    ]);
+  async function initSuperlatives() {
+ const grid = document.getElementById('superlativesGrid');
+ try {
+ // Load superlatives
+ let supData = { categories: [] };
+ try {
+ const supRes = await fetch(apiUrl('/api/fun/superlatives'));
+ if (supRes.ok) {
+ supData = await supRes.json();
+ }
+ } catch (e) {
+ console.warn('[Superlatives] Could not load categories:', e);
+ }
+ supCategories = supData?.categories || [];
+ // Load student directory separately (don't fail if this fails)
+ try {
+ const studentRes = await fetch(apiUrl('/api/student-directory'));
+ if (studentRes.ok) {
+ const studentData = await studentRes.json();
+ superlativesStudentDirectory = (studentData?.students || []).map(s => ({
+ name: String(s.name || '').trim(),
+ section: String(s.section || '').trim(),
+ photo: String(s.photo || '').trim()
+ }));
+ }
+ } catch (e) {
+ console.warn('[Superlatives] Could not load student directory:', e);
+ superlativesStudentDirectory = [];
+ }
+ renderTabs();
+ renderSuperlatives();
+ } catch (e) {
+ console.error('[Superlatives] Init error:', e);
+ if (grid) grid.innerHTML = `<div class="ff-empty">Failed to load superlatives. Please refresh the page.</div>`;
+ }
+ }
+ function getSections() {
+ const sections = new Set(superlativesStudentDirectory.map(s => s.section).filter(Boolean));
+ return ['All', ...Array.from(sections).sort()];
+ }
 
-    let enabled = true;
-    if (settingsRes && settingsRes.ok) {
-      const sData = await settingsRes.json();
-      enabled = sData?.settings?.enabled?.superlatives !== false;
-    }
+ function renderTabs() {
+ const tabsContainer = document.getElementById('supSectionTabs');
+ if (!tabsContainer) return;
+ const sections = getSections();
+ tabsContainer.innerHTML = sections.map(sec => `
+ <button class="sup-tab ${sec === activeSection ? 'active' : ''}" onclick="window.setSupSection('${escapeAttr(sec)}')">${escapeHtml(sec)}</button>
+ `).join('');
+ }
 
-    const section = document.getElementById('superlativesSection');
-    if (section) {
-      section.classList.toggle('ff-section-hidden', !enabled);
-    }
-    if (!enabled) return;
+ window.setSupSection = function(section) {
+ activeSection = section;
+ renderTabs();
+ renderSuperlatives();
+ };
 
-    const supData = await supRes.json();
-    const studentData = await studentRes.json();
+ function getStudentByName(name) {
+ const key = String(name || '').trim().toLowerCase();
+ return superlativesStudentDirectory.find(s => s.name.toLowerCase() === key) || null;
+ }
 
-    superlativesStudentDirectory = (studentData?.students || []).map(s => ({
-      name: String(s.name || '').trim(),
-      section: String(s.section || '').trim(),
-      photo: String(s.photo || '').trim(),
-      quote: String(s.quote || '').trim(),
-      destination: String(s.destination || '').trim()
-    }));
+ function studentInitials(name) {
+ const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+ if (!parts.length) return 'S';
+ return parts.length === 1 ? parts[0].slice(0, 2).toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+ }
 
-    renderSuperlatives(supData?.categories || []);
-  } catch (e) {
-    const grid = document.getElementById('superlativesGrid');
-    if (grid) grid.innerHTML = `<div class="ff-empty">Failed to load superlatives</div>`;
-  }
-}
+ function renderSuperlatives() {
+ const grid = document.getElementById('superlativesGrid');
+ if (!grid) return;
+ if (!supCategories.length) {
+ grid.innerHTML = `<div class="ff-empty">No superlative categories yet.</div>`;
+ return;
+ }
 
-function getStudentByName(name) {
-  const key = String(name || '').trim().toLowerCase();
-  return superlativesStudentDirectory.find(s => s.name.trim().toLowerCase() === key) || null;
-}
+ const emojiMap = ['🤡','🌟','💼','✈️','😁','🎨','🏃','🌍'];
+ 
+ grid.innerHTML = supCategories.map((cat, i) => {
+ // Filter nominees by active section
+ let sectionNominees = cat.nominees || [];
+ if (activeSection !== 'All') {
+ sectionNominees = sectionNominees.filter(n => {
+ const st = getStudentByName(n.name);
+ return st && st.section === activeSection;
+ });
+ }
 
-function studentInitials(name) {
-  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return 'S';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
+ const maxVotes = Math.max(1, ...sectionNominees.map(n => Number(n.votes) || 0));
+ 
+ const nomineesHtml = sectionNominees.map(n => {
+ const votes = Number(n.votes) || 0;
+ const width = Math.max(6, Math.round((votes / maxVotes) * 100));
+ const student = getStudentByName(n.name);
+ const avatar = student?.photo
+ ? `<div class="nominee-avatar"><img src="${escapeAttr(student.photo.startsWith('/uploads/') ? mediaUrl(student.photo) : student.photo)}" alt="Avatar"></div>`
+ : `<div class="nominee-avatar fallback">${escapeHtml(studentInitials(n.name))}</div>`;
+ 
+ return `
+ <div class="nominee-row" onclick="window.voteSuperlative(${cat.id}, '${escapeAttr(n.name)}')">
+ <div style="flex:1; min-width:0;">
+ <div class="nominee-main">
+ ${avatar}
+ <div style="min-width:0;">
+ <div class="nominee-name">${escapeHtml(n.name)}</div>
+ ${student?.section ? `<div style="font-size:.75rem; color:var(--text-muted);">${escapeHtml(student.section)}</div>` : ''}
+ </div>
+ </div>
+ <div class="nominee-bar" style="width:${width}%"></div>
+ </div>
+ <div class="nominee-votes">${votes}</div>
+ </div>`;
+ }).join('');
 
-function renderSuperlatives(categories) {
-  const grid = document.getElementById('superlativesGrid');
-  if (!grid) return;
+ // Filter dropdown options by active section
+ let availableStudents = superlativesStudentDirectory;
+ if (activeSection !== 'All') {
+ availableStudents = availableStudents.filter(s => s.section === activeSection);
+ }
+ const studentOptions = availableStudents
+ .sort((a, b) => a.name.localeCompare(b.name))
+ .map(s => `<option value="${escapeAttr(s.name)}">${escapeHtml(s.name)} ${s.section ? `(${s.section})` : ''}</option>`)
+ .join('');
 
-  if (!categories.length) {
-    grid.innerHTML = `<div class="ff-empty">No superlative categories yet.</div>`;
-    return;
-  }
+ return `
+ <div class="superlative-card">
+ <span class="superlative-emoji">${emojiMap[i % emojiMap.length]}</span>
+ <div class="superlative-title">${escapeHtml(cat.title)}</div>
+ <div class="superlative-nominee-list">
+ ${nomineesHtml || `<div class="superlative-empty">No nominees in this section yet.</div>`}
+ </div>
+ <div class="superlative-add-form">
+ <select class="superlative-select" id="superSelect_${cat.id}">
+ <option value="">Select a classmate...</option>
+ ${studentOptions}
+ </select>
+ <button class="ff-submit-btn" style="padding:10px; margin-top:0; width:100%; justify-content:center;" onclick="window.addSuperlativeNomineeFromSelect(${cat.id})"><span>+ Nominate</span></button>
+ </div>
+ </div>`;
+ }).join('');
+ }
 
-  const emojiMap = ['🏆','🌟','😂','🧠','🎤','📚','⚡','💫','🎨','🎯'];
+ window.voteSuperlative = async function(categoryId, nomineeName) {
+ try {
+ const res = await fetch(apiUrl('/api/fun/superlatives/vote'), {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ categoryId, nomineeName })
+ });
+ const data = await res.json();
+ if (data.success) {
+ if(typeof showNotification==='function') showNotification('success', 'Vote counted', `You voted for ${nomineeName}`);
+ initSuperlatives();
+ }
+ } catch (e) {}
+ }
 
-  grid.innerHTML = categories.map((cat, i) => {
-    const maxVotes = Math.max(1, ...(cat.nominees || []).map(n => Number(n.votes) || 0));
+ window.addSuperlativeNomineeFromSelect = async function(categoryId) {
+ const select = document.getElementById(`superSelect_${categoryId}`);
+ const name = select?.value?.trim();
+ if (!name) {
+ if(typeof showNotification==='function') showNotification('error', 'Select Student', 'Please select a class member first.');
+ return;
+ }
+ try {
+ const res = await fetch(apiUrl('/api/fun/superlatives/nominee'), {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ categoryId, name })
+ });
+ const data = await res.json();
+ if (data.success) {
+ if(typeof showNotification==='function') showNotification('success', 'Nominated!', `${name} added to category.`);
+ initSuperlatives();
+ }
+ } catch (e) {}
+ }
 
-    const nomineesHtml = (cat.nominees || []).map(n => {
-      const votes = Number(n.votes) || 0;
-      const width = Math.max(6, Math.round((votes / maxVotes) * 100));
-      const student = getStudentByName(n.name);
-      const avatar = student?.photo
-        ? `<div class="nominee-avatar"><img src="${escapeAttr(student.photo.startsWith('/uploads/') ? mediaUrl(student.photo) : student.photo)}" alt="${escapeAttr(n.name)}"></div>`
-        : `<div class="nominee-avatar fallback">${escapeHtml(studentInitials(n.name))}</div>`;
-
-      return `
-        <div class="nominee-row" onclick="voteSuperlative(${cat.id}, '${escapeAttr(n.name)}')">
-          <div style="flex:1; min-width:0;">
-            <div class="nominee-main">
-              ${avatar}
-              <div style="min-width:0;">
-                <div class="nominee-name">${escapeHtml(n.name)}</div>
-                ${student?.section ? `<div style="font-size:.75rem; color:var(--text-muted);">${escapeHtml(student.section)}</div>` : ''}
-              </div>
-            </div>
-            <div class="nominee-bar" style="width:${width}%"></div>
-          </div>
-          <div class="nominee-votes">${votes}</div>
-        </div>
-      `;
-    }).join('');
-
-    const studentOptions = superlativesStudentDirectory
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map(s => `<option value="${escapeAttr(s.name)}">${escapeHtml(s.name)}${s.section ? ` (${escapeHtml(s.section)})` : ''}</option>`)
-      .join('');
-
-    return `
-      <div class="superlative-card">
-        <span class="superlative-emoji">${emojiMap[i % emojiMap.length]}</span>
-        <div class="superlative-title">${escapeHtml(cat.title)}</div>
-        <div class="superlative-nominee-list">
-          ${nomineesHtml || `<div class="superlative-empty">No nominees yet.</div>`}
-        </div>
-        <div class="superlative-add-form">
-          <select class="superlative-select" id="superSelect_${cat.id}">
-            <option value="">Select a class member...</option>
-            ${studentOptions}
-          </select>
-          <button class="ff-submit-btn" onclick="addSuperlativeNomineeFromSelect(${cat.id})"><span>+ Add Nominee</span></button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-async function voteSuperlative(categoryId, nomineeName) {
-  try {
-    const res = await fetch(apiUrl('/api/fun/superlatives/vote'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ categoryId, nomineeName })
-    });
-    const data = await res.json();
-    if (data.success) {
-      showNotification?.('success', 'Vote counted', `You voted for ${nomineeName}`);
-      loadSuperlatives();
-    } else {
-      showNotification?.('error', 'Vote failed', data.error || 'Could not vote');
-    }
-  } catch (e) {
-    showNotification?.('error', 'Vote failed', e.message);
-  }
-}
-
-async function addSuperlativeNomineeFromSelect(categoryId) {
-  const select = document.getElementById(`superSelect_${categoryId}`);
-  const name = select?.value?.trim();
-  if (!name) {
-    return showNotification?.('error', 'No student selected', 'Please select a class member first.');
-  }
-
-  try {
-    const res = await fetch(apiUrl('/api/fun/superlatives/nominee'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ categoryId, name })
-    });
-    const data = await res.json();
-    if (data.success) {
-      showNotification?.('success', 'Nominee added', `${name} added to category.`);
-      loadSuperlatives();
-    } else {
-      showNotification?.('error', 'Failed', data.error || 'Could not add nominee');
-    }
-  } catch (e) {
-    showNotification?.('error', 'Failed', e.message);
-  }
-}
-
-window.loadSuperlatives = loadSuperlatives;
-window.voteSuperlative = voteSuperlative;
-window.addSuperlativeNomineeFromSelect = addSuperlativeNomineeFromSelect;
-
-document.addEventListener('DOMContentLoaded', () => {
-  loadSuperlatives();
-});
+ document.addEventListener('DOMContentLoaded', initSuperlatives);
+})();
 </script>

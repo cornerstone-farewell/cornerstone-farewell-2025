@@ -10,7 +10,7 @@
       "lng": 77.69534831197028,
       "type": "school",
       "note": "Itarsi Tahsil, Narmadapuram, Madhya Pradesh",
-      "approved": false,
+      "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-13T05:19:52.207Z"
     },
@@ -24,7 +24,7 @@
       "lng": 82.7071552192769,
       "type": "university",
       "note": "Venkatapuram, Ramannapalem, Kotauratla",
-      "approved": false,
+      "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-13T05:19:52.273Z"
     },
@@ -38,7 +38,7 @@
       "lng": 94.21875,
       "type": "school",
       "note": "Kamle, Arunachal Pradesh, India",
-      "approved": false,
+      "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-13T07:16:51.061Z"
     },
@@ -52,11 +52,39 @@
       "lng": 78.66210937500001,
       "type": "university",
       "note": "Poo district, Kinnaur, Himachal Pradesh",
-      "approved": false,
+      "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-13T07:16:51.130Z"
+    },
+    {
+      "id": 5,
+      "name": "jaswanth",
+      "school": "Vishvakarmaveedhi",
+      "city": "Warangal",
+      "country": "Warangal mandal",
+      "lat": 17.9820644,
+      "lng": 79.5970954,
+      "type": "school",
+      "note": "Mandi Bazar Rd, Warangal, Warangal mandal",
+      "approved": true,
+      "deletedAt": null,
+      "createdAt": "2026-03-13T13:13:14.662Z"
+    },
+    {
+      "id": 6,
+      "name": "jaswanth",
+      "school": "Warangal",
+      "city": "Warangal",
+      "country": "Telangana",
+      "lat": 17.985804990732046,
+      "lng": 79.60000276565553,
+      "type": "university",
+      "note": "Warangal mandal, Warangal, Telangana",
+      "approved": true,
+      "deletedAt": null,
+      "createdAt": "2026-03-13T13:13:14.766Z"
     }
   ],
   "submissions": [],
-  "nextId": 5
+  "nextId": 7
 }

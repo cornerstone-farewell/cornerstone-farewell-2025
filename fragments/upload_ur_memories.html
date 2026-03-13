@@ -1,63 +1,87 @@
 <!-- FRAGMENT: upload -->
 <style data-fragment-style="upload">
-#upload { background: var(--navy-medium); }.upload-container { max-width: 800px; margin: 0 auto; }.upload-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 30px; padding: 50px; backdrop-filter: blur(20px); }.dropzone {
-      border: 3px dashed var(--glass-border);
-      border-radius: 20px;
-      padding: 60px 40px;
-      text-align: center;
-      transition: var(--transition-smooth);
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.02);
-    }.dropzone:hover, .dropzone.drag-over { border-color: var(--primary-gold); background: rgba(212, 175, 55, 0.05); }.dropzone-icon { font-size: 4rem; margin-bottom: 20px; }.dropzone-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 10px; }.dropzone-subtitle { color: var(--text-muted); margin-bottom: 20px; }.dropzone-formats { font-size: 0.85rem; color: var(--text-muted); }.dropzone-formats span { background: rgba(212, 175, 55, 0.2); padding: 4px 10px; border-radius: 10px; margin: 0 3px; color: var(--primary-gold); }#file-input { display: none; }.file-preview-container { margin-top: 30px; display: none; }.file-preview-container.has-files { display: block; }.file-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }.file-preview-item { position: relative; aspect-ratio: 1; border-radius: 15px; overflow: hidden; background: var(--navy-dark); }.file-preview-item img, .file-preview-item video { width: 100%; height: 100%; object-fit: cover; }.file-preview-item .video-indicator {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 40px; height: 40px;
-      background: rgba(0,0,0,0.7);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem;
-    }.file-preview-item .remove-file {
-      position: absolute;
-      top: 5px; right: 5px;
-      width: 25px; height: 25px;
-      background: var(--error-red);
-      border: none; border-radius: 50%;
-      color: white;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.8rem;
-      opacity: 0;
-      transition: var(--transition-smooth);
-    }.file-preview-item:hover .remove-file { opacity: 1; }.upload-form { margin-top: 30px; }.upload-progress { display: none; margin-top: 20px; }.upload-progress.active { display: block; }.upload-success { display: none; text-align: center; padding: 40px; }.upload-success.active { display: block; animation: scaleIn 0.5s ease; }@media (max-width: 768px) {
-.upload-card { padding: 30px 20px; }
-.dropzone { padding: 40px 20px; }
+#upload { background: var(--navy-medium); }
+.upload-container { max-width: 800px; margin: 0 auto; }
+.upload-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 30px; padding: 50px; backdrop-filter: blur(20px); }
+.dropzone {
+ border: 3px dashed var(--glass-border);
+ border-radius: 20px;
+ padding: 60px 40px;
+ text-align: center;
+ transition: var(--transition-smooth);
+ cursor: pointer;
+ background: rgba(255, 255, 255, 0.02);
+}
+.dropzone:hover, .dropzone.drag-over { border-color: var(--primary-gold); background: rgba(212, 175, 55, 0.05); }
+.dropzone-icon { font-size: 4rem; margin-bottom: 20px; }
+.dropzone-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 10px; }
+.dropzone-subtitle { color: var(--text-muted); margin-bottom: 20px; }
+.dropzone-formats { font-size: 0.85rem; color: var(--text-muted); }
+.dropzone-formats span { background: rgba(212, 175, 55, 0.2); padding: 4px 10px; border-radius: 10px; margin: 0 3px; color: var(--primary-gold); }
+#file-input { display: none; }
+.file-preview-container { margin-top: 30px; display: none; }
+.file-preview-container.has-files { display: block; }
+.file-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }
+.file-preview-item { position: relative; aspect-ratio: 1; border-radius: 15px; overflow: hidden; background: var(--navy-dark); }
+.file-preview-item img, .file-preview-item video { width: 100%; height: 100%; object-fit: cover; }
+.file-preview-item .video-indicator {
+ position: absolute; top: 50%; left: 50%;
+ transform: translate(-50%, -50%);
+ width: 40px; height: 40px;
+ background: rgba(0,0,0,0.7);
+ border-radius: 50%;
+ display: flex; align-items: center; justify-content: center;
+ font-size: 1.2rem;
+}
+.file-preview-item .remove-file {
+ position: absolute; top: 5px; right: 5px;
+ width: 25px; height: 25px;
+ background: var(--error-red);
+ border: none; border-radius: 50%;
+ color: white; cursor: pointer;
+ display: flex; align-items: center; justify-content: center;
+ font-size: 0.8rem;
+ opacity: 0;
+ transition: var(--transition-smooth);
+}
+.file-preview-item:hover .remove-file { opacity: 1; }
+.upload-form { margin-top: 30px; }
+.upload-progress { display: none; margin-top: 20px; }
+.upload-progress.active { display: block; }
+.upload-success { display: none; text-align: center; padding: 40px; }
+.upload-success.active { display: block; animation: scaleIn 0.5s ease; }
+@media (max-width: 768px) {
+ .upload-card { padding: 30px 20px; }
+ .dropzone { padding: 40px 20px; }
 }
 </style>
+
 <section id="upload">
 <div class="container">
 <div class="section-header">
-<span class="section-badge" id="uiUploadBadge">Share Your Story</span>
-<h2 class="section-title" id="uiUploadTitle">Upload Your <span class="highlight">Memories</span></h2>
-<p class="section-description" id="uiUploadDesc">Share the moments that made your journey special</p>
+<span class="section-badge">Share Your Story</span>
+<h2 class="section-title">Upload Your <span class="highlight">Memories</span></h2>
+<p class="section-description">Share the moments that made your journey special</p>
 </div>
 <div class="upload-container">
 <div class="upload-card">
 <div class="callout" id="uploadStatusCallout" style="display:none;"></div>
 <div id="uploadForm">
 <div class="dropzone" id="dropzone">
-<div class="dropzone-icon">📤</div>
-<h3 class="dropzone-title">Drag &amp; Drop Your Files</h3>
+<div class="dropzone-icon">📸</div>
+<h3 class="dropzone-title">Drag & Drop Your Files</h3>
 <p class="dropzone-subtitle">or click to browse</p>
 <p class="dropzone-formats">Supported: <span>JPG</span> <span>PNG</span> <span>GIF</span> <span>MP4</span> <span>MOV</span></p>
-<p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);">Max 200MB total • 100MB per file</p>
-<input accept="image/*,video/*" id="file-input" multiple="" type="file"/>
+<p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);">Max 200MB total • 100MB per file • Up to 20 files</p>
+<input accept="image/*,video/*" id="file-input" multiple type="file"/>
 </div>
+
 <div class="file-preview-container" id="filePreviewContainer">
 <h4 style="margin-bottom: 15px;">Selected Files:</h4>
 <div class="file-preview-grid" id="filePreviewGrid"></div>
 <p class="file-info" id="fileInfo"></p>
 </div>
+
 <div class="upload-form" id="uploadFormFields" style="display: none;">
 <div class="form-group">
 <label>Your Name <span class="required">*</span></label>
@@ -81,22 +105,400 @@
 <option value="Other">Other</option>
 </select>
 </div>
-<button class="btn btn-primary" id="submitUpload" style="width: 100%;" type="button">Upload Memory</button>
+<button class="btn btn-primary" id="submitUpload" style="width: 100%;" type="button">📤 Upload Memory</button>
 </div>
+
 <div class="upload-progress" id="uploadProgress">
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 <p class="progress-text" id="progressText">Uploading... 0%</p>
 </div>
 </div>
+
 <div class="upload-success" id="uploadSuccess">
-<div class="success-icon">✅</div>
+<div class="success-icon">✓</div>
 <h3 class="success-title">Memory Uploaded!</h3>
-<p class="success-message" id="uploadSuccessMsg">
-              Your memory has been submitted and is pending approval. It will appear once approved by the admin.
-            </p>
+<p class="success-message" id="uploadSuccessMsg">Your memory has been submitted and is pending approval.</p>
 <button class="btn btn-primary" onclick="resetUploadForm()">Upload Another</button>
 </div>
 </div>
 </div>
 </div>
 </section>
+
+<script data-fragment-script="upload">
+// ═══════════════════════════════════════════════════════════════════════════════
+// UPLOAD FUNCTIONALITY - COMPLETE REWRITE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let selectedFiles = [];
+
+function initUpload() {
+ console.log('🚀 Initializing upload functionality...');
+ 
+ const dropzone = document.getElementById('dropzone');
+ const fileInput = document.getElementById('file-input');
+ const captionField = document.getElementById('caption');
+ const submitBtn = document.getElementById('submitUpload');
+
+ if (!dropzone || !fileInput) {
+ console.error('❌ Upload elements not found!');
+ return;
+ }
+
+ // Click to browse
+ dropzone.addEventListener('click', (e) => {
+ e.preventDefault();
+ console.log('📁 Dropzone clicked, opening file browser...');
+ fileInput.click();
+ });
+
+ // File input change
+ fileInput.addEventListener('change', (e) => {
+ console.log('📂 Files selected via browse:', e.target.files.length);
+ handleFiles(Array.from(e.target.files));
+ });
+
+ // Drag & Drop events
+ dropzone.addEventListener('dragover', (e) => {
+ e.preventDefault();
+ e.stopPropagation();
+ dropzone.classList.add('drag-over');
+ });
+
+ dropzone.addEventListener('dragleave', (e) => {
+ e.preventDefault();
+ e.stopPropagation();
+ dropzone.classList.remove('drag-over');
+ });
+
+ dropzone.addEventListener('drop', (e) => {
+ e.preventDefault();
+ e.stopPropagation();
+ dropzone.classList.remove('drag-over');
+ console.log('📦 Files dropped:', e.dataTransfer.files.length);
+ handleFiles(Array.from(e.dataTransfer.files));
+ });
+
+ // Caption character counter
+ if (captionField) {
+ captionField.addEventListener('input', (e) => {
+ const count = e.target.value.length;
+ const counter = document.getElementById('charCount');
+ if (counter) counter.textContent = count;
+ });
+ }
+
+ // Submit button
+ if (submitBtn) {
+ submitBtn.addEventListener('click', submitUpload);
+ }
+
+ // Upload status callout
+ updateUploadStatusCallout();
+
+ console.log('✅ Upload initialized successfully');
+}
+
+function handleFiles(files) {
+ console.log('🔍 Processing', files.length, 'files...');
+ 
+ if (!files || files.length === 0) {
+ console.log('⚠️ No files provided');
+ return;
+ }
+
+ // Filter valid files
+ const validFiles = files.filter(file => {
+ const valid = CONFIG.ALLOWED_TYPES.includes(file.type);
+ if (!valid) {
+ showNotification('error', 'Invalid file', `${file.name} is not a supported format`);
+ }
+ return valid;
+ });
+
+ if (validFiles.length === 0) {
+ console.log('❌ No valid files');
+ return;
+ }
+
+ // Check file count limit
+ const totalFiles = selectedFiles.length + validFiles.length;
+ if (totalFiles > CONFIG.MAX_FILES) {
+ showNotification('error', 'Too many files', `Maximum ${CONFIG.MAX_FILES} files allowed`);
+ return;
+ }
+
+ // Check individual file sizes
+ for (const file of validFiles) {
+ if (file.size > CONFIG.MAX_FILE_SIZE) {
+ showNotification('error', 'File too large', `${file.name} exceeds 100MB limit`);
+ return;
+ }
+ }
+
+ // Check total size
+ const currentSize = selectedFiles.reduce((sum, f) => sum + f.size, 0);
+ const newSize = validFiles.reduce((sum, f) => sum + f.size, 0);
+ const totalSize = currentSize + newSize;
+
+ if (totalSize > CONFIG.MAX_TOTAL_SIZE) {
+ showNotification('error', 'Total size exceeded', `Total files exceed 200MB limit`);
+ return;
+ }
+
+ // Add files
+ selectedFiles.push(...validFiles);
+ console.log('✅ Added', validFiles.length, 'files. Total:', selectedFiles.length);
+ 
+ updateFilePreview();
+}
+
+function updateFilePreview() {
+ const container = document.getElementById('filePreviewContainer');
+ const grid = document.getElementById('filePreviewGrid');
+ const info = document.getElementById('fileInfo');
+ const formFields = document.getElementById('uploadFormFields');
+
+ if (!container || !grid) return;
+
+ if (selectedFiles.length === 0) {
+ container.classList.remove('has-files');
+ if (formFields) formFields.style.display = 'none';
+ return;
+ }
+
+ container.classList.add('has-files');
+ if (formFields) formFields.style.display = 'block';
+
+ // Render preview grid
+ grid.innerHTML = selectedFiles.map((file, index) => {
+ const isVideo = file.type.startsWith('video/');
+ const url = URL.createObjectURL(file);
+ 
+ return `
+ <div class="file-preview-item">
+ ${isVideo 
+ ? `<video src="${url}" muted></video><div class="video-indicator">▶</div>` 
+ : `<img src="${url}" alt="Preview" />`
+ }
+ <button class="remove-file" onclick="removeFile(${index})" type="button">✕</button>
+ </div>
+ `;
+ }).join('');
+
+ // Update file info
+ const totalSize = selectedFiles.reduce((sum, f) => sum + f.size, 0);
+ if (info) {
+ info.textContent = `${selectedFiles.length} file(s) selected • ${formatFileSize(totalSize)} total`;
+ }
+
+ console.log('📊 Preview updated:', selectedFiles.length, 'files');
+}
+
+function removeFile(index) {
+ console.log('🗑️ Removing file at index', index);
+ selectedFiles.splice(index, 1);
+ updateFilePreview();
+}
+
+async function submitUpload() {
+ console.log('📤 Submitting upload...');
+
+ const studentName = document.getElementById('studentName')?.value?.trim();
+ const caption = document.getElementById('caption')?.value?.trim();
+ const memoryType = document.getElementById('memoryType')?.value;
+
+ // Validation
+ if (!studentName) {
+ showNotification('error', 'Name required', 'Please enter your name');
+ return;
+ }
+
+ if (!caption) {
+ showNotification('error', 'Caption required', 'Please add a description');
+ return;
+ }
+
+ if (!memoryType) {
+ showNotification('error', 'Category required', 'Please select a category');
+ return;
+ }
+
+ if (selectedFiles.length === 0) {
+ showNotification('error', 'No files', 'Please select at least one file');
+ return;
+ }
+
+ // Check upload window
+ const settings = state.settings || {};
+ if (settings.uploadWindowEnabled) {
+ const now = new Date();
+ const start = parseISTLocalToDate(settings.uploadWindowStartIST);
+ const end = parseISTLocalToDate(settings.uploadWindowEndIST);
+ 
+ if (start && now < start) {
+ showNotification('error', 'Too early', 'Upload window has not started yet');
+ return;
+ }
+ if (end && now > end) {
+ showNotification('error', 'Too late', 'Upload window has closed');
+ return;
+ }
+ }
+
+ // Prepare FormData - use correct field names matching server expectations
+ const formData = new FormData();
+ formData.append('name', studentName);
+ formData.append('caption', caption);
+ formData.append('type', memoryType);
+ selectedFiles.forEach(file => {
+ formData.append('files', file);
+ });
+
+ // Show progress
+ const uploadForm = document.getElementById('uploadForm');
+ const uploadProgress = document.getElementById('uploadProgress');
+ const progressFill = document.getElementById('progressFill');
+ const progressText = document.getElementById('progressText');
+
+ if (uploadForm) uploadForm.style.display = 'none';
+ if (uploadProgress) uploadProgress.classList.add('active');
+
+ try {
+ const xhr = new XMLHttpRequest();
+
+ xhr.upload.addEventListener('progress', (e) => {
+ if (e.lengthComputable) {
+ const percent = Math.round((e.loaded / e.total) * 100);
+ if (progressFill) progressFill.style.width = percent + '%';
+ if (progressText) progressText.textContent = `Uploading... ${percent}%`;
+ }
+ });
+
+ xhr.addEventListener('load', () => {
+ if (uploadProgress) uploadProgress.classList.remove('active');
+
+ if (xhr.status === 200) {
+ const data = JSON.parse(xhr.responseText);
+ if (data.success) {
+ showUploadSuccess();
+ triggerConfetti();
+ } else {
+ showNotification('error', 'Upload failed', data.error || 'Unknown error');
+ if (uploadForm) uploadForm.style.display = 'block';
+ }
+ } else {
+ showNotification('error', 'Upload failed', 'Server error: ' + xhr.status);
+ if (uploadForm) uploadForm.style.display = 'block';
+ }
+ });
+
+ xhr.addEventListener('error', () => {
+ if (uploadProgress) uploadProgress.classList.remove('active');
+ showNotification('error', 'Upload failed', 'Network error');
+ if (uploadForm) uploadForm.style.display = 'block';
+ });
+
+ xhr.open('POST', apiUrl('/api/upload'), true);
+ xhr.send(formData);
+
+ } catch (e) {
+ console.error('❌ Upload error:', e);
+ if (uploadProgress) uploadProgress.classList.remove('active');
+ showNotification('error', 'Upload failed', e.message);
+ if (uploadForm) uploadForm.style.display = 'block';
+ }
+}
+
+function showUploadSuccess() {
+ const uploadForm = document.getElementById('uploadForm');
+ const uploadSuccess = document.getElementById('uploadSuccess');
+ 
+ if (uploadForm) uploadForm.style.display = 'none';
+ if (uploadSuccess) uploadSuccess.classList.add('active');
+}
+
+function resetUploadForm() {
+ selectedFiles = [];
+ 
+ const uploadForm = document.getElementById('uploadForm');
+ const uploadSuccess = document.getElementById('uploadSuccess');
+ const fileInput = document.getElementById('file-input');
+ 
+ if (uploadForm) uploadForm.style.display = 'block';
+ if (uploadSuccess) uploadSuccess.classList.remove('active');
+ if (fileInput) fileInput.value = '';
+ 
+ document.getElementById('studentName').value = '';
+ document.getElementById('caption').value = '';
+ document.getElementById('memoryType').value = '';
+ document.getElementById('charCount').textContent = '0';
+ 
+ updateFilePreview();
+}
+
+function updateUploadStatusCallout() {
+ const callout = document.getElementById('uploadStatusCallout');
+ if (!callout) return;
+
+ const settings = state.settings || {};
+ 
+ if (!settings.uploadsEnabled) {
+ callout.innerHTML = '<strong>⚠️ Uploads Disabled</strong><br>Memory uploads are currently disabled by the admin.';
+ callout.style.display = 'block';
+ callout.style.background = 'rgba(244,67,54,0.1)';
+ callout.style.borderColor = 'var(--error-red)';
+ document.getElementById('dropzone').style.pointerEvents = 'none';
+ document.getElementById('dropzone').style.opacity = '0.5';
+ return;
+ }
+
+ if (settings.uploadWindowEnabled) {
+ const now = new Date();
+ const start = parseISTLocalToDate(settings.uploadWindowStartIST);
+ const end = parseISTLocalToDate(settings.uploadWindowEndIST);
+ 
+ if (start && now < start) {
+ const startStr = start.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+ callout.innerHTML = `<strong>⏰ Upload Window Not Started</strong><br>Uploads will open on ${startStr} IST`;
+ callout.style.display = 'block';
+ callout.style.background = 'rgba(255,193,7,0.1)';
+ callout.style.borderColor = '#ffc107';
+ document.getElementById('dropzone').style.pointerEvents = 'none';
+ document.getElementById('dropzone').style.opacity = '0.5';
+ return;
+ }
+ 
+ if (end && now > end) {
+ callout.innerHTML = '<strong>🔒 Upload Window Closed</strong><br>The upload period has ended.';
+ callout.style.display = 'block';
+ callout.style.background = 'rgba(244,67,54,0.1)';
+ callout.style.borderColor = 'var(--error-red)';
+ document.getElementById('dropzone').style.pointerEvents = 'none';
+ document.getElementById('dropzone').style.opacity = '0.5';
+ return;
+ }
+ }
+
+ callout.style.display = 'none';
+ document.getElementById('dropzone').style.pointerEvents = 'auto';
+ document.getElementById('dropzone').style.opacity = '1';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPOSE GLOBALLY
+// ═══════════════════════════════════════════════════════════════════════════════
+window.initUpload = initUpload;
+window.handleFiles = handleFiles;
+window.removeFile = removeFile;
+window.submitUpload = submitUpload;
+window.resetUploadForm = resetUploadForm;
+window.updateUploadStatusCallout = updateUploadStatusCallout;
+
+// Auto-initialize on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+ initUpload();
+});
+
+console.log('✅ Upload fragment loaded');
+</script>

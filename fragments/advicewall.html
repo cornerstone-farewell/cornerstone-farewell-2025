@@ -882,25 +882,45 @@
   // SHARE ADVICE
   // ═══════════════════════════════════════════════════════════════════════════
   window.shareAdvice = function(id) {
-    const advice = adviceList.find(a => a.id === id);
-    if (!advice) return;
-
-    const text = `💡 Senior Advice from ${advice.name || 'Anonymous'}:\n\n"${advice.text}"\n\n— Class of ${advice.batch || '2025'}`;
-
-    if (navigator.share) {
-      navigator.share({
-        title: 'Senior Advice',
-        text: text
-      }).catch(() => {});
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(text).then(() => {
-        showNotification('success', 'Copied!', 'Advice copied to clipboard.');
-      }).catch(() => {
-        showNotification('error', 'Failed', 'Could not copy to clipboard.');
-      });
-    }
-  };
+ if (!adviceList || !Array.isArray(adviceList)) {
+ showNotification('error', 'Error', 'Advice data not loaded yet.');
+ return;
+ }
+ const advice = adviceList.find(a => a.id === id);
+ if (!advice) {
+ showNotification('error', 'Not Found', 'Could not find this advice.');
+ return;
+ }
+ const text = ` Senior Advice from ${advice.name || 'Anonymous'}:\n\n"${advice.text}"\n\n— Class of ${advice.batch || '2025'}`;
+ if (navigator.share) {
+ navigator.share({
+ title: 'Senior Advice',
+ text: text
+ }).catch(() => {});
+ } else if (navigator.clipboard && navigator.clipboard.writeText) {
+ // Fallback: copy to clipboard
+ navigator.clipboard.writeText(text).then(() => {
+ showNotification('success', 'Copied!', 'Advice copied to clipboard.');
+ }).catch(() => {
+ showNotification('error', 'Failed', 'Could not copy to clipboard.');
+ });
+ } else {
+ // Final fallback for older browsers
+ const textarea = document.createElement('textarea');
+ textarea.value = text;
+ textarea.style.position = 'fixed';
+ textarea.style.opacity = '0';
+ document.body.appendChild(textarea);
+ textarea.select();
+ try {
+ document.execCommand('copy');
+ showNotification('success', 'Copied!', 'Advice copied to clipboard.');
+ } catch (e) {
+ showNotification('error', 'Failed', 'Could not copy to clipboard.');
+ }
+ document.body.removeChild(textarea);
+ }
+ };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // FILTER

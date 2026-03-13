@@ -889,654 +889,194 @@ document.addEventListener('DOMContentLoaded', async () => {
 <body>
     <!-- FRAGMENT: navbar -->
   <style data-fragment-style="navbar">
-  .navbar {
-    position: fixed;
-    top: 0; 
-    left: 0; 
-    right: 0;
-    z-index: 1000;
-    padding: 20px 50px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  
-    /* START: Fully transparent */
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
-  }
+  .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: transparent; }
+  .navbar.scrolled { background: rgba(26, 26, 46, 0.97) !important; backdrop-filter: blur(20px) !important; padding: 15px 50px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); }
+  .navbar.scrolled::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(26, 26, 46, 0.95); z-index: -1; }
+  .logo { display: flex; align-items: center; gap: 15px; cursor: pointer; user-select: none; }
+  .logo-icon { width: 50px; height: 50px; background: var(--gradient-gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow-gold); transition: var(--transition-smooth); }
+  .logo:hover .logo-icon { transform: rotate(360deg); }
+  .logo-text { display: flex; flex-direction: column; }
+  .logo-text .school-name { font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; color: var(--primary-gold); }
+  .logo-text .event-name { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+  .nav-links { display: flex; gap: 30px; list-style: none; align-items: center; }
+  .nav-links a { color: var(--text-light); text-decoration: none; font-weight: 500; font-size: 0.95rem; position: relative; padding: 5px 0; transition: var(--transition-smooth); }
+  .nav-links a::after { content: ""; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: var(--primary-gold); transition: var(--transition-smooth); }
+  .nav-links a:hover { color: var(--primary-gold); }
+  .nav-links a:hover::after { width: 100%; }
 
-  /* SCROLLED: Solid background with blur */
-  .navbar.scrolled {
-    background: rgba(26, 26, 46, 0.97) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    padding: 15px 50px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-  }
+  /* Dropdown CSS */
+  .nav-dropdown { position: relative; display: inline-block; }
+  .dropdown-content { display: none; position: absolute; top: 100%; left: 0; background: rgba(26, 26, 46, 0.98); min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); border-radius: 12px; border: 1px solid var(--glass-border); padding: 10px 0; z-index: 1000; backdrop-filter: blur(10px); }
+  .nav-dropdown:hover .dropdown-content { display: flex; flex-direction: column; }
+  .dropdown-content a { padding: 10px 20px; display: block; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .dropdown-content a::after { display: none; }
+  .dropdown-content a:hover { background: rgba(212, 175, 55, 0.1); padding-left: 25px; }
 
-  /* Extra solid layer for scrolled state */
-  .navbar.scrolled::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(26, 26, 46, 0.95);
-    z-index: -1;
-  }
+  .nav-cta { background: var(--gradient-gold); color: var(--navy-dark) !important; padding: 12px 28px !important; border-radius: 30px; font-weight: 600 !important; box-shadow: var(--shadow-gold); transition: var(--transition-smooth) !important; }
+  .nav-cta::after { display: none !important; }
+  .nav-cta:hover { transform: translateY(-3px); box-shadow: 0 6px 30px rgba(212, 175, 55, 0.5); }
+  .mobile-menu-btn { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 10px; }
+  .mobile-menu-btn span { width: 25px; height: 3px; background: var(--primary-gold); border-radius: 2px; transition: var(--transition-smooth); }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .logo-icon {
-    width: 50px; 
-    height: 50px;
-    background: var(--gradient-gold);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    box-shadow: var(--shadow-gold);
-    transition: var(--transition-smooth);
-  }
-
-  .logo:hover .logo-icon { 
-    transform: rotate(360deg); 
-  }
-
-  .logo-text { 
-    display: flex; 
-    flex-direction: column; 
-  }
-
-  .logo-text .school-name {
-    font-family: var(--font-display);
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--primary-gold);
-  }
-
-  .logo-text .event-name {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  .nav-links { 
-    display: flex; 
-    gap: 40px; 
-    list-style: none; 
-  }
-
-  .nav-links a {
-    color: var(--text-light);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.95rem;
-    position: relative;
-    padding: 5px 0;
-    transition: var(--transition-smooth);
-  }
-
-  .nav-links a::after {
-    content: "";
-    position: absolute;
-    bottom: 0; 
-    left: 0;
-    width: 0; 
-    height: 2px;
-    background: var(--primary-gold);
-    transition: var(--transition-smooth);
-  }
-
-  .nav-links a:hover { 
-    color: var(--primary-gold); 
-  }
-
-  .nav-links a:hover::after { 
-    width: 100%; 
-  }
-
-  .nav-cta {
-    background: var(--gradient-gold);
-    color: var(--navy-dark) !important;
-    padding: 12px 28px !important;
-    border-radius: 30px;
-    font-weight: 600 !important;
-    box-shadow: var(--shadow-gold);
-    transition: var(--transition-smooth) !important;
-  }
-
-  .nav-cta::after { 
-    display: none !important; 
-  }
-
-  .nav-cta:hover { 
-    transform: translateY(-3px); 
-    box-shadow: 0 6px 30px rgba(212, 175, 55, 0.5); 
-  }
-
-  .mobile-menu-btn { 
-    display: none; 
-    flex-direction: column; 
-    gap: 5px; 
-    cursor: pointer; 
-    padding: 10px; 
-  }
-
-  .mobile-menu-btn span { 
-    width: 25px; 
-    height: 3px; 
-    background: var(--primary-gold); 
-    border-radius: 2px; 
-    transition: var(--transition-smooth); 
-  }
-
-  @media (max-width: 768px) {
-    .navbar { 
-      padding: 15px 20px; 
-    }
-  
-    .navbar.scrolled {
-      padding: 12px 20px;
-    }
-  
-    .nav-links {
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      right: 0; 
-      bottom: 0;
-      background: rgba(26, 26, 46, 0.98);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 30px;
-      transform: translateX(-100%);
-      transition: var(--transition-smooth);
-      z-index: 999;
-    }
-  
-    .nav-links.active { 
-      transform: translateX(0); 
-    }
-  
-    .mobile-menu-btn { 
-      display: flex; 
-      z-index: 1001; 
-    }
-  
-    .mobile-menu-btn.active span:nth-child(1) { 
-      transform: rotate(45deg) translate(5px, 5px); 
-    }
-  
-    .mobile-menu-btn.active span:nth-child(2) { 
-      opacity: 0; 
-    }
-  
-    .mobile-menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -6px); }
-
-  /* Tutorial Overlay Styles */
-  .feature-tour-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 10000;
-      display: none;
-      pointer-events: auto;
-  }
-
-  .feature-tour-overlay.active {
-      display: block;
-  }
-
-  .feature-tour-spotlight {
-      position: absolute;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.8);
-      border-radius: 8px;
-      border: 2px solid var(--primary-gold);
-      pointer-events: none;
-      transition: all 0.4s ease;
-      min-width: 50px;
-      min-height: 50px;
-  }
-
-  .feature-tour-card {
-      position: absolute;
-      background: rgba(26, 26, 46, 0.98);
-      border: 1px solid var(--primary-gold);
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 360px;
-      z-index: 10001;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-  }
-
-  .feature-tour-card h3 {
-      color: var(--primary-gold);
-      margin-bottom: 10px;
-      font-size: 1.1rem;
-  }
-
-  .feature-tour-card p {
-      color: var(--text-light);
-      margin-bottom: 15px;
-      font-size: 0.9rem;
-      line-height: 1.5;
-  }
-
-  .feature-tour-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-  }
+  @media (max-width: 980px) {
+   .navbar { padding: 15px 20px; }
+   .navbar.scrolled { padding: 12px 20px; }
+   .nav-links { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(26, 26, 46, 0.98); backdrop-filter: blur(20px); flex-direction: column; justify-content: center; align-items: center; gap: 20px; transform: translateX(-100%); transition: var(--transition-smooth); z-index: 999; }
+   .nav-links.active { transform: translateX(0); }
+   .mobile-menu-btn { display: flex; z-index: 1001; }
+   .mobile-menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+   .mobile-menu-btn.active span:nth-child(2) { opacity: 0; }
+   .mobile-menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -6px); }
+   .nav-dropdown:hover .dropdown-content { position: relative; box-shadow: none; border: none; background: transparent; }
   }
   </style>
-
   <nav class="navbar" id="navbar">
-    <div class="logo" id="logo" title="Click 5 times for Admin login">
-      <div class="logo-icon" id="uiLogoIcon">🎓</div>
-      <div class="logo-text">
-        <span class="school-name" id="uiSchoolName">Cornerstone</span>
-        <span class="event-name" id="uiEventName">Farewell 2025</span>
-      </div>
-    </div>
-  
-    <ul class="nav-links" id="navLinks">
-      <li><a href="#home">Home</a></li>
-      <li><a href="#countdown">Countdown</a></li>
-      <li><a href="#memories">Memories</a></li>
-      <li><a href="#teachers">Teachers</a></li>
-      <li><a href="#adviceWall">Senior Advice</a></li>
-      <li><a href="#timeline">Journey</a></li>
-      <li><a href="#compilations">Compilations</a></li>
-      <li><a class="nav-cta" href="#upload">Upload Memory</a></li>
-    </ul>
-  
-    <div class="mobile-menu-btn" id="mobileMenuBtn">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
+   <div class="logo" id="logo" title="Click 5 times for Admin login">
+   <div class="logo-icon" id="uiLogoIcon">🎓</div>
+   <div class="logo-text">
+   <span class="school-name" id="uiSchoolName">Cornerstone</span>
+   <span class="event-name" id="uiEventName">Farewell 2025</span>
+   </div>
+   </div>
+   <ul class="nav-links" id="navLinks">
+   <li><a href="#home">Home</a></li>
+   <li><a href="#memories">Memories</a></li>
+   <li><a href="#teachers">Teachers</a></li>
+   <li><a href="#timeline">Journey</a></li>
+ 
+   <li class="nav-dropdown">
+   <a href="javascript:void(0)">Fun Features ▾</a>
+   <div class="dropdown-content">
+   <a href="#adviceWall">Senior Advice</a>
+   <a href="#gratitudeWall">Gratitude Wall</a>
+   <a href="#superlativesSection">Class Superlatives</a>
+   <a href="#wishJarSection">Wish Jar</a>
+   <a href="#songDedicationsSection">Song Dedications</a>
+   <a href="#moodBoardSection">Mood Board</a>
+   <a href="#timeCapsuleSection">Time Capsule</a>
+   </div>
+   </li>
+ 
+   <li><a href="#distanceMapSection">Globe</a></li>
+   <li><a href="javascript:void(0)" onclick="startTutorial()" style="color: var(--primary-gold-light);">💡 Tutorial</a></li>
+   <li><a class="nav-cta" href="#upload">Upload Memory</a></li>
+   </ul>
+   <div class="mobile-menu-btn" id="mobileMenuBtn">
+   <span></span><span></span><span></span>
+   </div>
   </nav>
 
   <script data-fragment-script="navbar">
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // NAVBAR - SCROLL EFFECT + MOBILE MENU + ADMIN ACCESS
-  // ═══════════════════════════════════════════════════════════════════════════════
-
   (function() {
-    let logoClickCount = 0;
-    let logoClickTimer = null;
+   let logoClickCount = 0; let logoClickTimer = null;
+   function initNavbar() {
+   const navbar = document.getElementById('navbar');
+   const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+   const navLinks = document.getElementById('navLinks');
+   const logo = document.getElementById('logo');
+   if (!navbar) return;
+ 
+   window.addEventListener('scroll', () => {
+   if (window.scrollY > 50) navbar.classList.add('scrolled');
+   else navbar.classList.remove('scrolled');
+   }, { passive: true });
+ 
+   if (mobileMenuBtn && navLinks) {
+   mobileMenuBtn.addEventListener('click', () => {
+   mobileMenuBtn.classList.toggle('active');
+   navLinks.classList.toggle('active');
+   });
+   navLinks.querySelectorAll('a').forEach(link => {
+   link.addEventListener('click', () => {
+   mobileMenuBtn.classList.remove('active');
+   navLinks.classList.remove('active');
+   });
+   });
+   }
+ 
+   if (logo) {
+   logo.addEventListener('click', () => {
+   logoClickCount++;
+   clearTimeout(logoClickTimer);
+   logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2000);
+   if (logoClickCount >= 5) {
+   logoClickCount = 0;
+   clearTimeout(logoClickTimer);
+   if (typeof openAdminLogin === 'function') openAdminLogin();
+   else { const o = document.getElementById('adminOverlay'); if(o) o.classList.add('active'); }
+   }
+   });
+   }
+   }
+   document.addEventListener('DOMContentLoaded', initNavbar);
+ 
+   // TUTORIAL SYSTEM
+   window.startTutorial = function() {
+   const steps = [
+   { target: '#upload', title: 'Upload Memories', text: 'Share your favorite photos and videos from school here.' },
+   { target: '#memories', title: 'Memory Wall', text: 'View, like, and comment on memories shared by your friends.' },
+   { target: '#distanceMapSection', title: 'Destinations Globe', text: 'Pin your future university and see where everyone is going!' },
+   { target: '#gratitudeWall', title: 'Fun Features', text: 'Leave advice, dedicate songs, and drop wishes in the jar.' },
+   { target: '#logo', title: 'Admin Access', text: 'Admins: Click the logo 5 times rapidly to access the moderation dashboard.' }
+   ];
+   let currentStep = 0;
 
-    function initNavbar() {
-      const navbar = document.getElementById('navbar');
-      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-      const navLinks = document.getElementById('navLinks');
-      const logo = document.getElementById('logo');
+   function showStep() {
+   if (currentStep >= steps.length) { closeTutorial(); return; }
+   const step = steps[currentStep];
+   const el = document.querySelector(step.target);
+   if (!el) { currentStep++; showStep(); return; }
+ 
+   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+ 
+   setTimeout(() => {
+   const rect = el.getBoundingClientRect();
+   let overlay = document.getElementById('tutorialOverlay');
+   if (!overlay) {
+   overlay = document.createElement('div');
+   overlay.id = 'tutorialOverlay';
+   overlay.className = 'feature-tour-overlay active';
+   document.body.appendChild(overlay);
+ 
+   const spotlight = document.createElement('div');
+   spotlight.id = 'tutorialSpotlight';
+   spotlight.className = 'feature-tour-spotlight';
+   overlay.appendChild(spotlight);
+ 
+   const card = document.createElement('div');
+   card.id = 'tutorialCard';
+   card.className = 'feature-tour-card';
+   overlay.appendChild(card);
+   }
+ 
+   const spotlight = document.getElementById('tutorialSpotlight');
+   spotlight.style.left = rect.left + 'px';
+   spotlight.style.top = rect.top + 'px';
+   spotlight.style.width = rect.width + 'px';
+   spotlight.style.height = rect.height + 'px';
+ 
+   const card = document.getElementById('tutorialCard');
+   card.innerHTML = `
+   <h3>${step.title}</h3>
+   <p>${step.text}</p>
+   <div class="feature-tour-actions">
+   <button class="btn btn-secondary" style="padding:8px 16px; font-size:0.85rem;" onclick="closeTutorial()">Skip Tour</button>
+   <button class="btn btn-primary" style="padding:8px 16px; font-size:0.85rem;" onclick="nextTutorialStep()">${currentStep === steps.length - 1 ? 'Finish 🎉' : 'Next ➔'}</button>
+   </div>
+   `;
+ 
+   let cardTop = rect.bottom + 20;
+   if (cardTop + 200 > window.innerHeight) cardTop = rect.top - 150;
+   card.style.left = Math.max(20, rect.left + (rect.width/2) - 180) + 'px';
+   card.style.top = cardTop + 'px';
+   }, 600);
+   }
 
-      if (!navbar) return;
-
-      // ═══════════════════════════════════════════════════════════════════════
-      // SCROLL EFFECT - Transparent → Solid
-      // ═══════════════════════════════════════════════════════════════════════
-      function handleScroll() {
-        const scrollY = window.scrollY || window.pageYOffset;
-      
-        if (scrollY > 50) {
-          navbar.classList.add('scrolled');
-        } else {
-          navbar.classList.remove('scrolled');
-        }
-      }
-
-      // Initial check
-      handleScroll();
-
-      // Listen for scroll
-      window.addEventListener('scroll', handleScroll, { passive: true });
-
-      // ═══════════════════════════════════════════════════════════════════════
-      // MOBILE MENU TOGGLE
-      // ═══════════════════════════════════════════════════════════════════════
-      if (mobileMenuBtn && navLinks) {
-        mobileMenuBtn.addEventListener('click', () => {
-          mobileMenuBtn.classList.toggle('active');
-          navLinks.classList.toggle('active');
-        });
-
-        // Close mobile menu when clicking a link
-        navLinks.querySelectorAll('a').forEach(link => {
-          link.addEventListener('click', () => {
-            mobileMenuBtn.classList.remove('active');
-            navLinks.classList.remove('active');
-          });
-        });
-      }
-
-      // ═══════════════════════════════════════════════════════════════════════
-      // ADMIN ACCESS - 5 CLICKS ON LOGO
-      // ═══════════════════════════════════════════════════════════════════════
-      if (logo) {
-        logo.addEventListener('click', () => {
-          logoClickCount++;
-        
-          // Reset after 2 seconds of no clicks
-          clearTimeout(logoClickTimer);
-          logoClickTimer = setTimeout(() => {
-            logoClickCount = 0;
-          }, 2000);
-
-          // Open admin login after 5 clicks
-          if (logoClickCount >= 5) {
-            logoClickCount = 0;
-            clearTimeout(logoClickTimer);
-          
-            if (typeof openAdminLogin === 'function') {
-              openAdminLogin();
-            } else {
-              // Fallback: directly show admin overlay
-              const adminOverlay = document.getElementById('adminOverlay');
-              if (adminOverlay) {
-                adminOverlay.classList.add('active');
-              }
-            }
-          }
-        });
-      }
-
-      // ═══════════════════════════════════════════════════════════════════════
-      // SMOOTH SCROLL FOR ANCHOR LINKS
-      // ═══════════════════════════════════════════════════════════════════════
-      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-          const targetId = this.getAttribute('href');
-          if (targetId === '#') return;
-        
-          const targetElement = document.querySelector(targetId);
-          if (targetElement) {
-            e.preventDefault();
-          
-            const navbarHeight = navbar.offsetHeight;
-            const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight - 20;
-          
-            window.scrollTo({
-              top: targetPosition,
-              behavior: 'smooth'
-            });
-          }
-        });
-      });
-    }
-
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initNavbar);
-    } else {
-      initNavbar();
-    }
-
-    // Expose for external use
-    window.initNavbar = initNavbar;
+   window.nextTutorialStep = function() { currentStep++; showStep(); };
+   window.closeTutorial = function() { const o = document.getElementById('tutorialOverlay'); if (o) o.remove(); };
+   showStep();
+   };
   })();
-
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // ADMIN LOGIN FUNCTIONS
-  // ═══════════════════════════════════════════════════════════════════════════════
-
-  function openAdminLogin() {
-    const overlay = document.getElementById('adminOverlay');
-    if (overlay) {
-      overlay.classList.add('active');
-      const userIdInput = document.getElementById('adminUserId');
-      if (userIdInput) userIdInput.focus();
-    }
-  }
-
-  function closeAdminLogin() {
-    const overlay = document.getElementById('adminOverlay');
-    if (overlay) {
-      overlay.classList.remove('active');
-    }
-    const errorEl = document.getElementById('adminLoginError');
-    if (errorEl) errorEl.classList.remove('active');
-  }
-
-  async function adminLogin() {
-    const userId = document.getElementById('adminUserId')?.value?.trim() || 'super';
-    const password = document.getElementById('adminPassword')?.value?.trim();
-    const errorEl = document.getElementById('adminLoginError');
-
-    if (!password) {
-      if (errorEl) {
-        errorEl.textContent = 'Please enter a password.';
-        errorEl.classList.add('active');
-      }
-      return;
-    }
-
-    try {
-      const res = await fetch(apiUrl('/api/admin/login'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, password })
-      });
-
-      const data = await res.json();
-
-      if (data.success && data.token) {
-        state.adminToken = data.token;
-        state.adminUser = data.user;
-        localStorage.setItem('adminToken', data.token);
-      
-        closeAdminLogin();
-        openAdminDashboard();
-      
-        if (typeof showNotification === 'function') {
-          showNotification('success', 'Welcome!', `Logged in as ${data.user?.name || userId}`);
-        }
-      } else {
-        if (errorEl) {
-          errorEl.textContent = data.error || 'Invalid credentials. Please try again.';
-          errorEl.classList.add('active');
-        }
-      }
-    } catch (e) {
-      console.error('Login error:', e);
-      if (errorEl) {
-        errorEl.textContent = 'Connection error. Please try again.';
-        errorEl.classList.add('active');
-      }
-    }
-  }
-
-  function openAdminDashboard() {
-    const dashboard = document.getElementById('adminDashboard');
-    if (dashboard) {
-      dashboard.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    
-      // Load admin data
-      if (typeof loadAdminMemories === 'function') {
-        loadAdminMemories(true);
-      }
-      if (typeof buildAdminPanels === 'function') {
-        buildAdminPanels();
-      }
-    }
-  }
-
-  function adminLogout() {
-    state.adminToken = null;
-    state.adminUser = null;
-    localStorage.removeItem('adminToken');
-  
-    const dashboard = document.getElementById('adminDashboard');
-    if (dashboard) {
-      dashboard.classList.remove('active');
-    }
-    document.body.style.overflow = '';
-  
-    if (typeof showNotification === 'function') {
-      showNotification('info', 'Logged Out', 'You have been logged out.');
-    }
-  }
-
-  // Check for existing session on load
-  (function checkExistingSession() {
-    const token = localStorage.getItem('adminToken');
-    if (token && state) {
-      state.adminToken = token;
-    }
-  })();
-  (function checkExistingSession() {
-    const token = localStorage.getItem('adminToken');
-    if (token && state) {
-      state.adminToken = token;
-    }
-  })();
-
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // FEATURE TUTORIAL SYSTEM
-  // ═══════════════════════════════════════════════════════════════════════
-
-  window.startTutorial = function() {
-      const steps = [
-          { target: '#upload', title: 'Upload Memories', text: 'Share your favorite photos and videos from school here.' },
-          { target: '#memories', title: 'Memory Wall', text: 'View, like, and comment on memories shared by your friends.' },
-          { target: '#distanceMapSection', title: 'Destinations Globe', text: 'Pin your future university and see where everyone is going!' },
-          { target: '#gratitudeWall', title: 'Fun Features', text: 'Leave advice, dedicate songs, and drop wishes in the jar.' },
-          { target: '#logo', title: 'Admin Access', text: 'Admins: Click the logo 5 times rapidly to access the moderation dashboard.' }
-      ];
-
-      let currentStep = 0;
-
-      function showStep() {
-
-          if (currentStep >= steps.length) { 
-              closeTutorial(); 
-              return; 
-          }
-
-          const step = steps[currentStep];
-          const el = document.querySelector(step.target);
-
-          if (!el) { 
-              console.warn('Tutorial target not found:', step.target);
-              currentStep++; 
-              showStep(); 
-              return; 
-          }
-
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-          setTimeout(() => {
-
-              const rect = el.getBoundingClientRect();
-              const validRect = rect.width > 0 && rect.height > 0;
-
-              let overlay = document.getElementById('tutorialOverlay');
-
-              if (!overlay) {
-
-                  overlay = document.createElement('div');
-                  overlay.id = 'tutorialOverlay';
-                  overlay.className = 'feature-tour-overlay active';
-                  document.body.appendChild(overlay);
-
-                  const spotlight = document.createElement('div');
-                  spotlight.id = 'tutorialSpotlight';
-                  spotlight.className = 'feature-tour-spotlight';
-                  overlay.appendChild(spotlight);
-
-                  const card = document.createElement('div');
-                  card.id = 'tutorialCard';
-                  card.className = 'feature-tour-card';
-                  overlay.appendChild(card);
-
-              } else {
-                  overlay.classList.add('active');
-              }
-
-              const spotlight = document.getElementById('tutorialSpotlight');
-
-              if (validRect) {
-
-                  spotlight.style.left = (rect.left - 5) + 'px';
-                  spotlight.style.top = (rect.top - 5) + 'px';
-                  spotlight.style.width = (rect.width + 10) + 'px';
-                  spotlight.style.height = (rect.height + 10) + 'px';
-                  spotlight.style.transform = 'none';
-
-              } else {
-
-                  spotlight.style.left = '50%';
-                  spotlight.style.top = '50%';
-                  spotlight.style.width = '100px';
-                  spotlight.style.height = '100px';
-                  spotlight.style.transform = 'translate(-50%, -50%)';
-
-              }
-
-              const card = document.getElementById('tutorialCard');
-
-              card.innerHTML = `
-                  <h3>${step.title}</h3>
-                  <p>${step.text}</p>
-                  <div class="feature-tour-actions">
-                      <button class="btn btn-secondary" style="padding:8px 16px; font-size:0.85rem;" onclick="closeTutorial()">Skip Tour</button>
-                      <button class="btn btn-primary" style="padding:8px 16px; font-size:0.85rem;" onclick="nextTutorialStep()">
-                          ${currentStep === steps.length - 1 ? 'Finish ✓' : 'Next ➔'}
-                      </button>
-                  </div>
-              `;
-
-              let cardLeft = Math.max(20, rect.left + (rect.width/2) - 180);
-              let cardTop = rect.bottom + 20;
-
-              if (cardTop + 200 > window.innerHeight) {
-                  cardTop = Math.max(20, rect.top - 180);
-              }
-
-              if (cardLeft + 360 > window.innerWidth) {
-                  cardLeft = window.innerWidth - 380;
-              }
-
-              card.style.left = cardLeft + 'px';
-              card.style.top = cardTop + 'px';
-              card.style.transform = 'none';
-
-          }, 600);
-      }
-
-      window.nextTutorialStep = function() { 
-          currentStep++; 
-          showStep(); 
-      };
-
-      window.closeTutorial = function() { 
-          const o = document.getElementById('tutorialOverlay'); 
-          if (o) o.remove(); 
-      };
-
-      showStep();
-  };
-
   </script>
 
     <!-- FRAGMENT: hero -->
@@ -2422,11 +1962,12 @@ document.addEventListener('DOMContentLoaded', async () => {
    }
    }
 
-   // Prepare FormData - use correct field names matching server expectations
+   // Prepare FormData
    const formData = new FormData();
-   formData.append('name', studentName);
+   formData.append('studentName', studentName);
    formData.append('caption', caption);
-   formData.append('type', memoryType);
+   formData.append('memoryType', memoryType);
+ 
    selectedFiles.forEach(file => {
    formData.append('files', file);
    });
@@ -4606,29 +4147,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Get the image URL - handles both full URLs and relative paths
-   function getTeacherImageUrl(imageUrl) {
-   if (!imageUrl) return null;
-   const url = String(imageUrl).trim();
-   if (!url) return null;
-   // If it's already a full URL (http:// or https://), use it directly
-   if (url.startsWith('http://') || url.startsWith('https://')) {
-   return url;
-   }
-   // If it starts with //, it's a protocol-relative URL
-   if (url.startsWith('//')) {
-   return url;
-   }
-   // If it starts with /uploads/, use mediaUrl
-   if (url.startsWith('/uploads/')) {
-   return mediaUrl(url);
-   }
-   // If it starts with /, it's a relative path
-   if (url.startsWith('/')) {
-   return mediaUrl(url);
-   }
-   // Otherwise, assume it's a filename and prepend /uploads/
-   return mediaUrl('/uploads/' + url);
-   }
+    function getTeacherImageUrl(imageUrl) {
+      if (!imageUrl) return null;
+    
+      // If it's already a full URL (http:// or https://), use it directly
+      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        return imageUrl;
+      }
+    
+      // If it starts with //, it's a protocol-relative URL
+      if (imageUrl.startsWith('//')) {
+        return imageUrl;
+      }
+    
+      // Otherwise, treat it as a relative path and use mediaUrl
+      return mediaUrl(imageUrl);
+    }
 
     // Render teachers grid
     function renderTeachers() {
@@ -4652,8 +4186,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const hasAudio = !!audioTrack;
         const initials = getInitials(teacher.name || 'T');
       
-        // Use imageUrl or photo field (support both)
-   const imageUrl = getTeacherImageUrl(teacher.imageUrl || teacher.photo || teacher.image);
+        // Use imageUrl field (not photo)
+        const imageUrl = getTeacherImageUrl(teacher.imageUrl);
       
         return `
           <div class="teacher-card" data-teacher="${escapeAttr(teacher.name || '')}">
@@ -5604,45 +5138,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     // SHARE ADVICE
     // ═══════════════════════════════════════════════════════════════════════════
     window.shareAdvice = function(id) {
-   if (!adviceList || !Array.isArray(adviceList)) {
-   showNotification('error', 'Error', 'Advice data not loaded yet.');
-   return;
-   }
-   const advice = adviceList.find(a => a.id === id);
-   if (!advice) {
-   showNotification('error', 'Not Found', 'Could not find this advice.');
-   return;
-   }
-   const text = ` Senior Advice from ${advice.name || 'Anonymous'}:\n\n"${advice.text}"\n\n— Class of ${advice.batch || '2025'}`;
-   if (navigator.share) {
-   navigator.share({
-   title: 'Senior Advice',
-   text: text
-   }).catch(() => {});
-   } else if (navigator.clipboard && navigator.clipboard.writeText) {
-   // Fallback: copy to clipboard
-   navigator.clipboard.writeText(text).then(() => {
-   showNotification('success', 'Copied!', 'Advice copied to clipboard.');
-   }).catch(() => {
-   showNotification('error', 'Failed', 'Could not copy to clipboard.');
-   });
-   } else {
-   // Final fallback for older browsers
-   const textarea = document.createElement('textarea');
-   textarea.value = text;
-   textarea.style.position = 'fixed';
-   textarea.style.opacity = '0';
-   document.body.appendChild(textarea);
-   textarea.select();
-   try {
-   document.execCommand('copy');
-   showNotification('success', 'Copied!', 'Advice copied to clipboard.');
-   } catch (e) {
-   showNotification('error', 'Failed', 'Could not copy to clipboard.');
-   }
-   document.body.removeChild(textarea);
-   }
-   };
+      const advice = adviceList.find(a => a.id === id);
+      if (!advice) return;
+
+      const text = `💡 Senior Advice from ${advice.name || 'Anonymous'}:\n\n"${advice.text}"\n\n— Class of ${advice.batch || '2025'}`;
+
+      if (navigator.share) {
+        navigator.share({
+          title: 'Senior Advice',
+          text: text
+        }).catch(() => {});
+      } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(text).then(() => {
+          showNotification('success', 'Copied!', 'Advice copied to clipboard.');
+        }).catch(() => {
+          showNotification('error', 'Failed', 'Could not copy to clipboard.');
+        });
+      }
+    };
 
     // ═══════════════════════════════════════════════════════════════════════════
     // FILTER
@@ -5948,42 +5462,31 @@ document.addEventListener('DOMContentLoaded', async () => {
    let supCategories = [];
    let activeSection = 'All';
 
-    async function initSuperlatives() {
-   const grid = document.getElementById('superlativesGrid');
+   async function initSuperlatives() {
    try {
-   // Load superlatives
-   let supData = { categories: [] };
-   try {
-   const supRes = await fetch(apiUrl('/api/fun/superlatives'));
-   if (supRes.ok) {
-   supData = await supRes.json();
-   }
-   } catch (e) {
-   console.warn('[Superlatives] Could not load categories:', e);
-   }
-   supCategories = supData?.categories || [];
-   // Load student directory separately (don't fail if this fails)
-   try {
-   const studentRes = await fetch(apiUrl('/api/student-directory'));
-   if (studentRes.ok) {
+   const [supRes, studentRes] = await Promise.all([
+   fetch(apiUrl('/api/fun/superlatives')),
+   fetch(apiUrl('/api/student-directory'))
+   ]);
+ 
+   const supData = await supRes.json();
    const studentData = await studentRes.json();
+ 
+   supCategories = supData?.categories || [];
    superlativesStudentDirectory = (studentData?.students || []).map(s => ({
    name: String(s.name || '').trim(),
    section: String(s.section || '').trim(),
    photo: String(s.photo || '').trim()
    }));
-   }
-   } catch (e) {
-   console.warn('[Superlatives] Could not load student directory:', e);
-   superlativesStudentDirectory = [];
-   }
+
    renderTabs();
    renderSuperlatives();
    } catch (e) {
-   console.error('[Superlatives] Init error:', e);
-   if (grid) grid.innerHTML = `<div class="ff-empty">Failed to load superlatives. Please refresh the page.</div>`;
+   const grid = document.getElementById('superlativesGrid');
+   if (grid) grid.innerHTML = `<div class="ff-empty">Failed to load superlatives.</div>`;
    }
    }
+
    function getSections() {
    const sections = new Set(superlativesStudentDirectory.map(s => s.section).filter(Boolean));
    return ['All', ...Array.from(sections).sort()];
@@ -6606,24 +6109,16 @@ document.addEventListener('DOMContentLoaded', async () => {
    };
 
    window.startLeanBackMode = function() {
-      const memories = (window.state?.memories || []).filter(m => m.file_type === 'image' && m.file_url);
-    
-      if (!memories.length) {
-          if(typeof showNotification==='function') showNotification('info', 'No photos', 'Need approved photos first.');
-          return;
-      }
-    
-      // Process URLs through mediaUrl if available
-      stereoState.leanBackItems = memories.map(m => ({
-          ...m,
-          file_url: typeof mediaUrl === 'function' ? mediaUrl(m.file_url) : m.file_url
-      }));
-    
-      document.getElementById('leanBackOverlay').classList.add('active');
-      document.body.style.overflow = 'hidden';
-      stereoState.leanBackIndex = 0;
-      showLeanBackSlide();
-  };
+   stereoState.leanBackItems = (window.state?.memories || []).filter(m => m.file_type === 'image' && m.file_url);
+   if (!stereoState.leanBackItems.length) {
+   if(typeof showNotification==='function') showNotification('info', 'No photos', 'Need approved photos first.');
+   return;
+   }
+   document.getElementById('leanBackOverlay').classList.add('active');
+   document.body.style.overflow = 'hidden';
+   stereoState.leanBackIndex = 0;
+   showLeanBackSlide();
+   };
 
    window.stopLeanBackMode = function() {
    clearTimeout(stereoState.leanBackTimer);
@@ -7604,93 +7099,74 @@ document.addEventListener('DOMContentLoaded', async () => {
     // SAVE - Send TWO separate requests to match backend
     // ══════════════════════════════════════════════════════════════════════════
     async function saveAll() {
-   const name = $('globeName')?.value?.trim();
-   const btn = $('saveBtn');
-   if (!name) { msg('error', 'Enter your name'); $('globeName')?.focus(); return; }
-   if (!S.schoolLoc && !S.uniLoc) { msg('error', 'Select at least one location'); return; }
-   btn.disabled = true;
-   btn.innerHTML = ' Saving...';
-   const url = typeof apiUrl === 'function' ? apiUrl('/api/destinations/submit') : '/api/destinations/submit';
-   let successCount = 0;
-   let errors = [];
-   try {
-   // Save school location
-   if (S.schoolLoc) {
-   const parts = (S.schoolLoc.addr || '').split(',').map(x => x.trim()).filter(Boolean);
-   const payload = {
-   name: name,
-   type: 'school',
-   school: S.schoolLoc.name || '',
-   city: parts[parts.length - 2] || S.schoolLoc.name || 'Unknown',
-   country: parts[parts.length - 1] || 'Unknown',
-   lat: S.schoolLoc.lat,
-   lng: S.schoolLoc.lng,
-   note: S.schoolLoc.addr || ''
-   };
-   console.log('[Globe] Saving school:', payload);
-   try {
-   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-   const d = await r.json();
-   if (r.ok && d.success) { 
-   successCount++; 
-   } else { 
-   errors.push('School: ' + (d.error || 'Failed')); 
-   }
-   } catch (e) {
-   errors.push('School: Network error');
-   }
-   }
-   // Save university location
-   if (S.uniLoc) {
-   const payload = {
-   name: name,
-   type: 'university',
-   city: S.uniLoc.name || S.uniLoc.addr || 'Unknown',
-   country: S.uniLoc.addr ? S.uniLoc.addr.split(',').slice(-1)[0].trim() : 'Unknown',
-   lat: S.uniLoc.lat,
-   lng: S.uniLoc.lng,
-   school: S.uniLoc.name || '',
-   note: S.uniLoc.addr || ''
-   };
-   console.log('[Globe] Saving university:', payload);
-   try {
-   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-   const d = await r.json();
-   if (r.ok && d.success) { 
-   successCount++; 
-   } else { 
-   errors.push('University: ' + (d.error || 'Failed')); 
-   }
-   } catch (e) {
-   errors.push('University: Network error');
-   }
-   }
-   if (successCount > 0) {
-   // Show success with pending approval message
-   msg('success', `Submitted ${successCount} path(s)! Your pins will appear after admin approval. `);
-   closeModal();
-   // Reload data after a short delay
-   setTimeout(async () => {
-   await loadData();
-   }, 500);
-   // Trigger confetti if available
-   if (typeof triggerConfetti === 'function') {
-   triggerConfetti();
-   }
-   } else if (errors.length > 0) {
-   msg('error', errors.join(', '));
-   } else {
-   msg('error', 'No locations were saved. Please try again.');
-   }
-   } catch (e) {
-   console.error('[Globe] Save error:', e);
-   msg('error', 'Save failed: ' + e.message);
-   } finally {
-   btn.disabled = false;
-   btn.innerHTML = ' Save Paths';
-   }
-   }
+      const name = $('globeName')?.value?.trim();
+      const btn = $('saveBtn');
 
+      if (!name) { msg('error', 'Enter your name'); $('globeName')?.focus(); return; }
+      if (!S.schoolLoc && !S.uniLoc) { msg('error', 'Select at least one location'); return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Saving...';
+
+      const url = typeof apiUrl === 'function' ? apiUrl('/api/destinations/submit') : '/api/destinations/submit';
+      let success = true;
+      let errors = [];
+
+      try {
+        // Save school location
+        if (S.schoolLoc) {
+          const parts = (S.schoolLoc.addr || '').split(',').map(x => x.trim()).filter(Boolean);
+
+  const payload = {
+    name: name,
+    type: 'school',
+    school: S.schoolLoc.name || '',
+    city: parts[parts.length - 2] || S.schoolLoc.name || 'Unknown',
+    country: parts[parts.length - 1] || 'Unknown',
+    lat: S.schoolLoc.lat,
+    lng: S.schoolLoc.lng,
+    note: S.schoolLoc.addr || ''
+  };
+          console.log('[Globe] Saving school:', payload);
+          const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          const d = await r.json();
+          if (!r.ok || !d.success) { success = false; errors.push('School: ' + (d.error || 'Failed')); }
+        }
+
+        // Save university location
+        if (S.uniLoc) {
+          const payload = {
+            name: name,
+            type: 'university',
+            city: S.uniLoc.name || S.uniLoc.addr || 'Unknown',
+            country: S.uniLoc.addr ? S.uniLoc.addr.split(',').slice(-1)[0].trim() : 'Unknown',
+            lat: S.uniLoc.lat,
+            lng: S.uniLoc.lng,
+            school: S.uniLoc.name || '',
+            note: S.uniLoc.addr || ''
+          };
+          console.log('[Globe] Saving university:', payload);
+          const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          const d = await r.json();
+          if (!r.ok || !d.success) { success = false; errors.push('University: ' + (d.error || 'Failed')); }
+        }
+
+        if (success) {
+          msg('success', 'Your paths are now on the globe! 🎉');
+          closeModal();
+          await loadData();
+        } else {
+          msg('error', errors.join(', '));
+        }
+
+      } catch (e) {
+        console.error('[Globe] Save error:', e);
+        msg('error', 'Save failed: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🚀 Save Paths';
+      }
+    }
 
     function msg(t, m) {
       if (typeof showNotification === 'function') showNotification(t, t === 'success' ? 'Success' : 'Error', m);
@@ -11251,19 +10727,20 @@ let ffData = {
 
 function initFunfeaturesPanelContent() {
  console.log('✓ initFunfeaturesPanelContent called');
+ 
  const panel = document.getElementById('panelFunFeatures');
  if (!panel) {
- console.error(' Panel element #panelFunFeatures not found!');
- return;
+  console.error('❌ Panel element #panelFunFeatures not found!');
+  return;
  }
- // Always re-render to ensure fresh state
- panel.innerHTML = renderFunfeaturesPanelHtml();
- panel.dataset.initialized = 'true';
- console.log('✓ Panel HTML rendered');
- // Small delay to ensure DOM is ready
- setTimeout(() => {
+
+ if (panel.dataset.initialized !== 'true') {
+  panel.innerHTML = renderFunfeaturesPanelHtml();
+  panel.dataset.initialized = 'true';
+  console.log('✓ Panel HTML rendered');
+ }
+
  loadFunFeaturesData();
- }, 100);
 }
 
 function renderFunfeaturesPanelHtml() {
@@ -11398,28 +10875,15 @@ async function loadFunFeaturesData() {
 
 async function loadFunFeatureSettings() {
  try {
- const res = await fetch(apiUrl('/api/fun/settings'));
- if (!res.ok) {
- throw new Error(`HTTP ${res.status}`);
- }
- const data = await res.json();
- if (data.success) {
- ffSettings = data.settings || { enabled: {} };
- // Ensure enabled object exists
- if (!ffSettings.enabled) {
- ffSettings.enabled = {};
- }
- renderFunFeatureToggles();
- } else {
- console.warn(' Fun settings returned success=false');
- ffSettings = { enabled: { gratitude: true, superlatives: true, wishes: true, dedications: true, mood: true, capsules: true } };
- renderFunFeatureToggles();
- }
+  const res = await fetch(apiUrl('/api/fun/settings'));
+  const data = await res.json();
+  
+  if (data.success) {
+   ffSettings = data.settings || { enabled: {} };
+   renderFunFeatureToggles();
+  }
  } catch (e) {
- console.error(' Load fun settings error:', e);
- // Use defaults on error
- ffSettings = { enabled: { gratitude: true, superlatives: true, wishes: true, dedications: true, mood: true, capsules: true } };
- renderFunFeatureToggles();
+  console.error('❌ Load fun settings error:', e);
  }
 }
 
@@ -12281,19 +11745,20 @@ let adviceData = [];
 
 function initAdvicePanelContent() {
  console.log('✓ initAdvicePanelContent called');
+ 
  const panel = document.getElementById('panelAdvice');
  if (!panel) {
- console.error(' Panel #panelAdvice not found');
- return;
+  console.error('❌ Panel #panelAdvice not found');
+  return;
  }
- // Always re-render to ensure fresh state
- panel.innerHTML = renderAdvicePanelHtml();
- panel.dataset.initialized = 'true';
- console.log('✓ Panel HTML rendered');
- // Small delay to ensure DOM is ready before loading data
- setTimeout(() => {
+ 
+ if (panel.dataset.initialized !== 'true') {
+  panel.innerHTML = renderAdvicePanelHtml();
+  panel.dataset.initialized = 'true';
+  console.log('✓ Panel HTML rendered');
+ }
+ 
  loadAdviceData();
- }, 100);
 }
 
 function renderAdvicePanelHtml() {
@@ -12918,63 +12383,36 @@ async function importStudentsExcel() {
  const input = document.getElementById('studentsExcelFile');
  const file = input?.files?.[0];
  if (!file) return showNotification('error', 'Missing File', 'Select a file first.');
- // Check if XLSX is loaded, try to wait for it
- if (typeof XLSX === 'undefined') {
- showNotification('info', 'Loading...', 'Excel processor loading, please wait...');
- await new Promise(resolve => setTimeout(resolve, 1000));
- if (typeof XLSX === 'undefined') {
- return showNotification('error', 'Error', 'Excel processor not loaded. Please refresh the page.');
- }
- }
+ 
+ if (typeof XLSX === 'undefined') return showNotification('error', 'Error', 'Excel processor not loaded. Refresh the page.');
+
  try {
  const arrayBuffer = await file.arrayBuffer();
  const workbook = XLSX.read(arrayBuffer, { type: 'array' });
- if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
- return showNotification('error', 'Invalid File', 'No sheets found in the file.');
- }
  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
- const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+ const rows = XLSX.utils.sheet_to_json(firstSheet);
+ 
  if (!rows.length) return showNotification('error', 'Empty', 'No data found in the file.');
- console.log('[Students] Raw rows:', rows.length, rows[0]);
- // Standardize columns - handle many possible column name variations
- const validRows = rows.map(r => {
- // Find name field (case-insensitive)
- const nameKey = Object.keys(r).find(k => 
- /^(name|student|student.?name|full.?name)$/i.test(k.trim())
- );
- // Find section field (case-insensitive)
- const sectionKey = Object.keys(r).find(k => 
- /^(section|class|grade|division)$/i.test(k.trim())
- );
- return {
- name: String(r[nameKey] || r.name || r.Name || r.Student || r['Student Name'] || '').trim(),
- section: String(r[sectionKey] || r.section || r.Section || r.Class || r.Grade || '').trim(),
- photo: String(r.photo || r.Photo || r.image || r.Image || '').trim(),
- quote: String(r.quote || r.Quote || '').trim(),
- destination: String(r.destination || r.Destination || '').trim()
- };
- }).filter(s => s.name);
- if (!validRows.length) {
- return showNotification('error', 'No Valid Data', 'No valid student names found. Make sure you have a "Name" or "Student" column.');
- }
+
+ // Standardize columns
+ const validRows = rows.map(r => ({
+ name: String(r.name || r.Name || r.Student || '').trim(),
+ section: String(r.section || r.Section || r.Class || '').trim()
+ })).filter(s => s.name);
+
  window.__importBuffer = validRows;
+ 
  // Render Preview
- const previewContainer = document.getElementById('excelPreviewContainer');
- if (previewContainer) previewContainer.style.display = 'block';
+ document.getElementById('excelPreviewContainer').style.display = 'block';
+ 
  const headers = document.getElementById('excelPreviewHeaders');
- if (headers) headers.innerHTML = `<th>Name</th><th>Section</th>`;
+ headers.innerHTML = `<th>Name</th><th>Section</th>`;
+ 
  const tbody = document.getElementById('excelPreviewTable');
- if (tbody) {
- tbody.innerHTML = validRows.slice(0, 100).map(r => 
- `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.section)}</td></tr>`
- ).join('');
- if (validRows.length > 100) {
- tbody.innerHTML += `<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">... and ${validRows.length - 100} more rows</td></tr>`;
- }
- }
- showNotification('success', 'Preview Ready', `Found ${validRows.length} students. Click "Overwrite Directory" to apply.`);
+ tbody.innerHTML = validRows.map(r => `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.section)}</td></tr>`).join('');
+ 
+ showNotification('info', 'Preview Ready', `Previewing ${validRows.length} rows.`);
  } catch (e) {
- console.error('[Students] Import error:', e);
  showNotification('error', 'Import Failed', e.message);
  }
 }

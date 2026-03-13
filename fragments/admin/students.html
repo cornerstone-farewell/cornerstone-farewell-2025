@@ -1,656 +1,252 @@
-Get professional email like '@your-company.com'
-Plus 2 TB of storage per user, longer video calls and more with Google Workspace
-
-Terms · Privacy · Programme Policies
- 0 minutes ago
-Details
 <!-- FRAGMENT: admin_students -->
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+<style data-fragment-style="admin_students">
+/* Excel Table Preview Styling */
+.excel-preview-wrapper {
+ max-height: 400px;
+ overflow-y: auto;
+ background: rgba(0,0,0,0.3);
+ border-radius: 12px;
+ border: 1px solid rgba(255,255,255,0.15);
+ margin-top: 15px;
+ scrollbar-width: thin;
+ scrollbar-color: var(--primary-gold) rgba(0,0,0,0.2);
+}
+.excel-preview-wrapper table {
+ width: 100%;
+ border-collapse: collapse;
+ font-size: 0.85rem;
+ text-align: left;
+}
+.excel-preview-wrapper th {
+ position: sticky;
+ top: 0;
+ background: var(--navy-dark);
+ padding: 12px 16px;
+ color: var(--primary-gold);
+ font-weight: 700;
+ border-bottom: 2px solid rgba(212,175,55,0.3);
+ z-index: 10;
+ text-transform: capitalize;
+}
+.excel-preview-wrapper td {
+ padding: 10px 16px;
+ border-bottom: 1px solid rgba(255,255,255,0.05);
+ color: var(--text-light);
+}
+.excel-preview-wrapper tr:hover td {
+ background: rgba(212,175,55,0.1);
+}
+.bulk-instruction-list li { margin-left: 20px; margin-bottom: 5px; color: var(--text-muted); }
+</style>
 
 <script data-fragment-script="admin_students">
-// ═══════════════════════════════════════════════════════════════════════════════
-// STUDENT DIRECTORY ADMIN PANEL
-// Supports manual edit + CSV/Excel bulk import + photo mapping
-// ═══════════════════════════════════════════════════════════════════════════════
-
 let studentDirectoryData = [];
 
 function initStudentsPanelContent() {
-  const panel = document.getElementById('panelStudents');
-  if (!panel) return;
-
-  if (panel.dataset.initialized !== 'true') {
-    panel.innerHTML = renderStudentsPanelHtml();
-    panel.dataset.initialized = 'true';
-    wireStudentsPanel();
-  }
-
-  loadStudentDirectoryData();
+ const panel = document.getElementById('panelStudents');
+ if (!panel) return;
+ if (panel.dataset.initialized !== 'true') {
+ panel.innerHTML = renderStudentsPanelHtml();
+ panel.dataset.initialized = 'true';
+ }
+ loadStudentDirectoryData();
 }
 
 function renderStudentsPanelHtml() {
-  return `
-    <div class="stat-card" style="text-align:left; margin-bottom:20px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-        <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">🎓 Student Directory</h3>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="admin-btn admin-btn-secondary" onclick="loadStudentDirectoryData()">🔄 Refresh</button>
-          <button class="admin-btn admin-btn-secondary" onclick="exportStudentDirectoryCsv()">📥 Export CSV</button>
-          <button class="admin-btn admin-btn-primary" onclick="saveStudentDirectory()">💾 Save All</button>
-        </div>
-      </div>
-      <p style="color:var(--text-muted); margin-top:10px;">
-        Manage class members for sections 10A, 10B, 10C, 10D. Supports bulk import from CSV and Excel files.
-      </p>
-    </div>
+ return `
+ <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+ <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+ <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;"> Student Directory</h3>
+ <div style="display:flex; gap:10px;">
+ <button class="admin-btn admin-btn-secondary" onclick="exportStudentDirectoryCsv()"> Export CSV</button>
+ <button class="admin-btn admin-btn-primary" onclick="saveStudentDirectory()"> Save All Changes</button>
+ </div>
+ </div>
+ <p style="color:var(--text-muted); margin-top:10px;">Manage class members. Used for mapping superlative images and standardizing names.</p>
+ </div>
 
-    <div class="admin-stats">
-      <div class="stat-card">
-        <div class="stat-number" id="studentsTotalCount">0</div>
-        <div class="stat-label">Total Students</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number" id="students10ACount">0</div>
-        <div class="stat-label">Section 10A</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number" id="students10BCount">0</div>
-        <div class="stat-label">Section 10B</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number" id="students10CCount">0</div>
-        <div class="stat-label">Section 10C</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number" id="students10DCount">0</div>
-        <div class="stat-label">Section 10D</div>
-      </div>
-    </div>
+ <div class="ff-admin-card">
+ <div class="ff-admin-card-header">
+ <div class="ff-admin-card-title"> Bulk Import (CSV / Excel)</div>
+ </div>
+ <div class="callout" style="margin-bottom:14px;">
+ <strong>Required Columns:</strong> <code>name</code>, <code>section</code> <br>
+ <strong>Optional Columns:</strong> <code>photo</code>, <code>quote</code>, <code>destination</code>
+ </div>
+ <div style="display:flex; gap:15px; flex-wrap:wrap; align-items:flex-end;">
+ <div style="flex:1; min-width:200px;">
+ <label style="display:block; margin-bottom:8px; font-size:.85rem; color:var(--text-muted);">Select Excel/CSV File</label>
+ <input type="file" id="studentsExcelFile" class="form-input" accept=".xlsx,.xls,.csv" style="padding:10px;">
+ </div>
+ <button class="admin-btn admin-btn-primary" onclick="importStudentsExcel()" style="padding:12px 20px; height: 46px;">Preview Import</button>
+ </div>
 
-    <div class="ff-admin-card">
-      <div class="ff-admin-card-header">
-        <div class="ff-admin-card-title">📦 Bulk Import</div>
-      </div>
+ <!-- PREVIEW CONTAINER -->
+ <div id="excelPreviewContainer" style="display:none; margin-top: 25px;">
+ <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+ <h4 style="color:var(--primary-gold);">Data Preview</h4>
+ <button class="admin-btn admin-btn-danger" onclick="replaceStudentsFromImported()">⚠️ Overwrite Directory with Preview</button>
+ </div>
+ <div class="excel-preview-wrapper">
+ <table>
+ <thead><tr id="excelPreviewHeaders"></tr></thead>
+ <tbody id="excelPreviewTable"></tbody>
+ </table>
+ </div>
+ </div>
+ </div>
 
-      <div class="callout" style="margin-bottom:14px;">
-        <strong>Expected Columns:</strong> name, section, photo, quote, destination
-        <br>
-        <strong>Valid Sections:</strong> 10A, 10B, 10C, 10D
-        <br>
-        <strong>Supported Formats:</strong> CSV (.csv), Excel (.xlsx, .xls)
-      </div>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:14px;">
-        <div>
-          <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:.85rem;">📄 Import CSV File</label>
-          <input type="file" id="studentsCsvFile" class="form-input" accept=".csv,text/csv" style="padding:12px;">
-        </div>
-        <div>
-          <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:.85rem;">📊 Import Excel File</label>
-          <input type="file" id="studentsExcelFile" class="form-input" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style="padding:12px;">
-        </div>
-        <div>
-          <label style="display:block; margin-bottom:8px; color:var(--text-muted); font-size:.85rem;">🖼️ Bulk Upload Photos</label>
-          <input type="file" id="studentsPhotoFiles" class="form-input" accept="image/*" multiple style="padding:12px;">
-        </div>
-      </div>
-
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
-        <button class="admin-btn admin-btn-primary" onclick="importStudentsCsv()">📥 Import CSV</button>
-        <button class="admin-btn admin-btn-primary" onclick="importStudentsExcel()">📊 Import Excel</button>
-        <button class="admin-btn admin-btn-secondary" onclick="uploadStudentPhotosBulk()">🖼️ Upload & Map Photos</button>
-        <button class="admin-btn admin-btn-danger" onclick="replaceStudentsFromImported()">⚠️ Replace All With Imported</button>
-      </div>
-
-      <div id="studentsImportStatus" style="margin-top:14px; color:var(--text-muted); font-size:.9rem;"></div>
-
-      <!-- Excel Sheet Preview -->
-      <div id="excelPreviewContainer" style="margin-top:14px; display:none;">
-        <h4 style="color:var(--primary-gold); margin-bottom:10px;">📋 Sheet Preview</h4>
-        <select id="excelSheetSelect" onchange="previewExcelSheet()" style="margin-bottom:10px; padding:8px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(212,175,55,0.2); color:#fff;">
-          <!-- Options will be added dynamically -->
-        </select>
-        <div id="excelPreview" style="max-height:400px; overflow-y:auto; padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-          <table style="width:100%; border-collapse:collapse; font-size:.85rem;">
-            <tbody id="excelPreviewTable">
-              <!-- Preview rows will be added here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="ff-admin-card">
-      <div class="ff-admin-card-header">
-        <div class="ff-admin-card-title">➕ Manual Add / Edit</div>
-        <button class="admin-btn admin-btn-secondary" onclick="addStudentRow()">+ Add Row</button>
-      </div>
-
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-        <input class="form-input" id="studentsSearch" placeholder="Search student..." style="max-width:260px;" oninput="renderStudentDirectoryEditor()">
-        <select class="form-select" id="studentsSectionFilter" style="max-width:180px;" onchange="renderStudentDirectoryEditor()">
-          <option value="all">All Sections</option>
-          <option value="10A">10A</option>
-          <option value="10B">10B</option>
-          <option value="10C">10C</option>
-          <option value="10D">10D</option>
-        </select>
-      </div>
-
-      <div id="studentDirectoryEditor" style="display:grid; gap:14px;">
-        <div class="ff-empty">Loading student directory...</div>
-      </div>
-    </div>
-  `;
-}
-
-function wireStudentsPanel() {
-  // no-op for now
+ <div class="ff-admin-card" style="margin-top:20px;">
+ <div class="ff-admin-card-header">
+ <div class="ff-admin-card-title"> Manual Editor</div>
+ <button class="admin-btn admin-btn-secondary" onclick="addStudentRow()">+ Add Blank Row</button>
+ </div>
+ <div id="studentDirectoryEditor" style="display:grid; gap:14px;">
+ <div class="ff-empty">Loading directory...</div>
+ </div>
+ </div>
+ `;
 }
 
 async function loadStudentDirectoryData() {
-  try {
-    const res = await fetch(apiUrl('/api/student-directory'));
-    const data = await res.json();
-
-    if (!data.success) {
-      showNotification('error', 'Failed', data.error || 'Could not load student directory.');
-      return;
-    }
-
-    studentDirectoryData = (data.students || []).map(normalizeStudent);
-    renderStudentStats();
-    renderStudentDirectoryEditor();
-  } catch (e) {
-    showNotification('error', 'Error', e.message);
-  }
-}
-
-function normalizeStudent(s) {
-  return {
-    name: String(s.name || '').trim(),
-    section: normalizeSection(s.section || ''),
-    photo: String(s.photo || '').trim(),
-    quote: String(s.quote || '').trim(),
-    destination: String(s.destination || '').trim()
-  };
-}
-
-function normalizeSection(section) {
-  const s = String(section || '').trim().toUpperCase().replace(/\s+/g, '');
-  if (['10A','10B','10C','10D'].includes(s)) return s;
-  return s || '';
-}
-
-function renderStudentStats() {
-  const counts = {
-    total: studentDirectoryData.length,
-    '10A': studentDirectoryData.filter(s => s.section === '10A').length,
-    '10B': studentDirectoryData.filter(s => s.section === '10B').length,
-    '10C': studentDirectoryData.filter(s => s.section === '10C').length,
-    '10D': studentDirectoryData.filter(s => s.section === '10D').length,
-  };
-
-  const set = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = String(val);
-  };
-
-  set('studentsTotalCount', counts.total);
-  set('students10ACount', counts['10A']);
-  set('students10BCount', counts['10B']);
-  set('students10CCount', counts['10C']);
-  set('students10DCount', counts['10D']);
+ try {
+ const res = await fetch(apiUrl('/api/student-directory'));
+ const data = await res.json();
+ if (data.success) {
+ studentDirectoryData = data.students || [];
+ renderStudentDirectoryEditor();
+ }
+ } catch (e) { showNotification('error', 'Error', e.message); }
 }
 
 function renderStudentDirectoryEditor() {
-  const editor = document.getElementById('studentDirectoryEditor');
-  if (!editor) return;
-
-  const q = (document.getElementById('studentsSearch')?.value || '').trim().toLowerCase();
-  const sectionFilter = document.getElementById('studentsSectionFilter')?.value || 'all';
-
-  let filtered = studentDirectoryData.map((student, idx) => ({ student, idx }));
-
-  if (sectionFilter !== 'all') {
-    filtered = filtered.filter(x => x.student.section === sectionFilter);
-  }
-
-  if (q) {
-    filtered = filtered.filter(x =>
-      x.student.name.toLowerCase().includes(q) ||
-      x.student.section.toLowerCase().includes(q) ||
-      x.student.destination.toLowerCase().includes(q)
-    );
-  }
-
-  if (!filtered.length) {
-    editor.innerHTML = `<div class="ff-empty">No students match the current filter.</div>`;
-    return;
-  }
-
-  editor.innerHTML = filtered.map(({ student, idx }) => `
-    <div style="padding:16px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);">
-      <div style="display:grid; grid-template-columns:1fr 180px; gap:12px;">
-        <div class="form-group" style="margin:0;">
-          <label>Name</label>
-          <input class="form-input" value="${escapeAttr(student.name)}" onchange="updateStudentField(${idx}, 'name', this.value)">
-        </div>
-        <div class="form-group" style="margin:0;">
-          <label>Section</label>
-          <select class="form-select" onchange="updateStudentField(${idx}, 'section', this.value)">
-            <option value="">Select</option>
-            <option value="10A" ${student.section === '10A' ? 'selected' : ''}>10A</option>
-            <option value="10B" ${student.section === '10B' ? 'selected' : ''}>10B</option>
-            <option value="10C" ${student.section === '10C' ? 'selected' : ''}>10C</option>
-            <option value="10D" ${student.section === '10D' ? 'selected' : ''}>10D</option>
-          </select>
-        </div>
-      </div>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
-        <div class="form-group" style="margin:0;">
-          <label>Photo URL</label>
-          <input class="form-input" value="${escapeAttr(student.photo)}" onchange="updateStudentField(${idx}, 'photo', this.value)">
-        </div>
-        <div class="form-group" style="margin:0;">
-          <label>Destination</label>
-          <input class="form-input" value="${escapeAttr(student.destination)}" onchange="updateStudentField(${idx}, 'destination', this.value)">
-        </div>
-      </div>
-
-      <div class="form-group" style="margin-top:12px;">
-        <label>Quote</label>
-        <textarea class="form-textarea" style="min-height:80px;" onchange="updateStudentField(${idx}, 'quote', this.value)">${escapeHtml(student.quote)}</textarea>
-      </div>
-
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:10px;">
-        <div style="color:var(--text-muted); font-size:.82rem;">
-          ${student.photo ? '🖼️ Photo set' : 'No photo'} ${student.section ? `• Section ${escapeHtml(student.section)}` : ''}
-        </div>
-        <button class="admin-btn admin-btn-danger" onclick="removeStudentRow(${idx})">🗑️ Remove</button>
-      </div>
-    </div>
-  `).join('');
+ const editor = document.getElementById('studentDirectoryEditor');
+ if (!editor) return;
+ if (!studentDirectoryData.length) {
+ editor.innerHTML = `<div class="ff-empty">No students found. Import an Excel file above!</div>`;
+ return;
+ }
+ editor.innerHTML = studentDirectoryData.map((s, i) => `
+ <div style="padding:14px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:12px;">
+ <div style="display:grid; grid-template-columns:1fr 100px; gap:12px;">
+ <div><label style="font-size:0.75rem;color:var(--text-muted);">Name</label><input class="form-input" style="padding:8px;" value="${escapeAttr(s.name)}" onchange="updateStudentField(${i}, 'name', this.value)"></div>
+ <div><label style="font-size:0.75rem;color:var(--text-muted);">Section</label><input class="form-input" style="padding:8px;" value="${escapeAttr(s.section)}" onchange="updateStudentField(${i}, 'section', this.value)"></div>
+ </div>
+ <button class="admin-btn admin-btn-danger" style="margin-top:10px; font-size:0.75rem; padding:6px 12px;" onclick="removeStudentRow(${i})">Remove Row</button>
+ </div>
+ `).join('');
 }
 
-function addStudentRow() {
-  studentDirectoryData.push(normalizeStudent({
-    name: '',
-    section: '',
-    photo: '',
-    quote: '',
-    destination: ''
-  }));
-  renderStudentStats();
-  renderStudentDirectoryEditor();
-}
-
-function removeStudentRow(i) {
-  if (!confirm('Remove this student row?')) return;
-  studentDirectoryData.splice(i, 1);
-  renderStudentStats();
-  renderStudentDirectoryEditor();
-}
-
-function updateStudentField(i, field, value) {
-  if (!studentDirectoryData[i]) return;
-  studentDirectoryData[i][field] = field === 'section' ? normalizeSection(value) : String(value || '');
-  renderStudentStats();
-}
+function addStudentRow() { studentDirectoryData.unshift({ name: '', section: '', photo: '' }); renderStudentDirectoryEditor(); }
+function removeStudentRow(i) { studentDirectoryData.splice(i, 1); renderStudentDirectoryEditor(); }
+function updateStudentField(i, field, val) { studentDirectoryData[i][field] = val; }
 
 async function saveStudentDirectory() {
-  try {
-    const cleaned = studentDirectoryData
-      .map(normalizeStudent)
-      .filter(s => s.name);
-
-    const res = await fetch(apiUrl('/api/admin/student-directory'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${state.adminToken}`
-      },
-      body: JSON.stringify({ students: cleaned })
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      studentDirectoryData = cleaned;
-      renderStudentStats();
-      renderStudentDirectoryEditor();
-      showNotification('success', 'Saved', 'Student directory updated successfully.');
-    } else {
-      showNotification('error', 'Failed', data.error || 'Could not save student directory.');
-    }
-  } catch (e) {
-    showNotification('error', 'Error', e.message);
-  }
-}
-
-function exportStudentDirectoryCsv() {
-  if (!studentDirectoryData.length) {
-    return showNotification('info', 'Empty', 'No student data to export.');
-  }
-
-  const header = ['name', 'section', 'photo', 'quote', 'destination'];
-  const lines = [
-    header.join(','),
-    ...studentDirectoryData.map(s => header.map(h => `"${String(s[h] || '').replaceAll('"', '""')}"`).join(','))
-  ];
-
-  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `student-directory-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-async function importStudentsCsv() {
-  const input = document.getElementById('studentsCsvFile');
-  const status = document.getElementById('studentsImportStatus');
-  const file = input?.files?.[0];
-
-  if (!file) {
-    return showNotification('error', 'Missing file', 'Please choose a CSV file.');
-  }
-
-  try {
-    const text = await file.text();
-    const rows = parseCsv(text);
-
-    if (!rows.length) {
-      return showNotification('error', 'Empty file', 'No rows found in CSV.');
-    }
-
-    const students = rows.map(row => normalizeStudent({
-      name: row.name || row.Name || '',
-      section: row.section || row.Section || '',
-      photo: row.photo || row.Photo || '',
-      quote: row.quote || row.Quote || '',
-      destination: row.destination || row.Destination || ''
-    })).filter(s => s.name);
-
-    if (!students.length) {
-      return showNotification('error', 'No valid students', 'CSV did not contain usable student rows.');
-    }
-
-    window.__importedStudentsBuffer = students;
-
-    if (status) {
-      status.innerHTML = `
-        <span style="color:#8ff09a;">✅ Imported ${students.length} students from CSV into buffer.</span>
-        <br>
-        Use <strong>Replace All With Imported</strong> to overwrite current list.
-      `;
-    }
-
-    showNotification('success', 'Imported', `${students.length} students loaded into import buffer.`);
-  } catch (e) {
-    showNotification('error', 'Import failed', e.message);
-  }
+ try {
+ const cleaned = studentDirectoryData.filter(s => s.name.trim() !== '');
+ const res = await fetch(apiUrl('/api/admin/student-directory'), {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.adminToken}` },
+ body: JSON.stringify({ students: cleaned })
+ });
+ const data = await res.json();
+ if (data.success) {
+ showNotification('success', 'Saved!', 'Directory updated successfully.');
+ loadStudentDirectoryData();
+ } else showNotification('error', 'Failed', data.error);
+ } catch (e) { showNotification('error', 'Error', e.message); }
 }
 
 async function importStudentsExcel() {
-  const input = document.getElementById('studentsExcelFile');
-  const status = document.getElementById('studentsImportStatus');
-  const file = input?.files?.[0];
-
-  if (!file) {
-    return showNotification('error', 'Missing file', 'Please choose an Excel file (.xlsx or .xls).');
-  }
-
-  try {
-    // Check if XLSX library is loaded
-    if (typeof XLSX === 'undefined') {
-      return showNotification('error', 'Error', 'Excel library not loaded. Please refresh the page.');
-    }
-
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-
-    // Store sheets list for preview
-    window.__excelSheets = [];
-    const sheetSelect = document.getElementById('excelSheetSelect');
-    if (sheetSelect) {
-      sheetSelect.innerHTML = '';
-      workbook.SheetNames.forEach((name, idx) => {
-        const option = document.createElement('option');
-        option.value = idx;
-        option.textContent = name;
-        sheetSelect.appendChild(option);
-      });
-    }
-
-    // Process first sheet by default
-    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(firstSheet);
-
-    if (!rows.length) {
-      return showNotification('error', 'Empty sheet', 'No data found in the first sheet.');
-    }
-
-    // Store all sheets data for later
-    window.__excelData = {};
-    workbook.SheetNames.forEach((name, idx) => {
-      window.__excelData[idx] = XLSX.utils.sheet_to_json(workbook.Sheets[name]);
-    });
-
-    // Convert and validate students from first sheet
-    const students = rows.map(row => normalizeStudent({
-      name: row.name || row.Name || row.student_name || row.Student_Name || '',
-      section: row.section || row.Section || row.class || row.Class || '',
-      photo: row.photo || row.Photo || row.image || row.Image || '',
-      quote: row.quote || row.Quote || row.motivation || row.Motivation || '',
-      destination: row.destination || row.Destination || row.dream || row.Dream || ''
-    })).filter(s => s.name);
-
-    if (!students.length) {
-      return showNotification('error', 'No valid students', 'Excel sheet did not contain usable student rows.');
-    }
-
-    window.__importedStudentsBuffer = students;
-
-    // Show preview container
-    const previewContainer = document.getElementById('excelPreviewContainer');
-    if (previewContainer) {
-      previewContainer.style.display = 'block';
-      previewExcelSheet();
-    }
-
-    if (status) {
-      status.innerHTML = `
-        <span style="color:#8ff09a;">✅ Loaded ${students.length} students from Excel (${workbook.SheetNames[0]}).</span>
-        <br>
-        Review the preview above, then use <strong>Replace All With Imported</strong> to apply.
-      `;
-    }
-
-    showNotification('success', 'Excel loaded', `${students.length} students from Excel loaded into buffer. Review preview below.`);
-  } catch (e) {
-    console.error('Excel import error:', e);
-    showNotification('error', 'Import failed', `Excel error: ${e.message}`);
-  }
-}
-
-function previewExcelSheet() {
-  const sheetSelect = document.getElementById('excelSheetSelect');
-  const previewTable = document.getElementById('excelPreviewTable');
-  
-  if (!sheetSelect || !previewTable) return;
-
-  const sheetIdx = parseInt(sheetSelect.value);
-  const sheetData = window.__excelData?.[sheetIdx] || [];
-
-  if (!sheetData.length) {
-    previewTable.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No data in this sheet</td></tr>';
-    return;
-  }
-
-  // Get column keys from first row
-  const keys = Object.keys(sheetData[0]);
-  const columns = ['name', 'section', 'photo', 'quote', 'destination']
-    .filter(col => keys.some(k => k.toLowerCase().includes(col)));
-
-  // Build table header
-  let html = '<tr style="background:rgba(212,175,55,0.2); border-bottom:1px solid rgba(212,175,55,0.3);">';
-  columns.forEach(col => {
-    html += `<th style="padding:8px; text-align:left; color:var(--primary-gold); font-weight:600; border-right:1px solid rgba(255,255,255,0.1);">${col}</th>`;
-  });
-  html += '</tr>';
-
-  // Add preview rows (max 10)
-  sheetData.slice(0, 10).forEach((row, idx) => {
-    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.08); ${idx % 2 === 0 ? 'background:rgba(0,0,0,0.2);' : ''} ">`;
-    columns.forEach(col => {
-      const value = String(row[col] || row[col.charAt(0).toUpperCase() + col.slice(1)] || '').substring(0, 50);
-      html += `<td style="padding:8px; border-right:1px solid rgba(255,255,255,0.08);">${escapeHtml(value)}</td>`;
-    });
-    html += '</tr>';
-  });
-
-  if (sheetData.length > 10) {
-    html += `<tr style="background:rgba(0,0,0,0.3);">
-      <td colspan="${columns.length}" style="padding:8px; text-align:center; color:var(--text-muted); font-size:.85rem;">
-        ... and ${sheetData.length - 10} more rows
-      </td>
-    </tr>`;
-  }
-
-  previewTable.innerHTML = html;
+ const input = document.getElementById('studentsExcelFile');
+ const file = input?.files?.[0];
+ if (!file) return showNotification('error', 'Missing File', 'Select a file first.');
+ // Check if XLSX is loaded, try to wait for it
+ if (typeof XLSX === 'undefined') {
+ showNotification('info', 'Loading...', 'Excel processor loading, please wait...');
+ await new Promise(resolve => setTimeout(resolve, 1000));
+ if (typeof XLSX === 'undefined') {
+ return showNotification('error', 'Error', 'Excel processor not loaded. Please refresh the page.');
+ }
+ }
+ try {
+ const arrayBuffer = await file.arrayBuffer();
+ const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+ if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+ return showNotification('error', 'Invalid File', 'No sheets found in the file.');
+ }
+ const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+ const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+ if (!rows.length) return showNotification('error', 'Empty', 'No data found in the file.');
+ console.log('[Students] Raw rows:', rows.length, rows[0]);
+ // Standardize columns - handle many possible column name variations
+ const validRows = rows.map(r => {
+ // Find name field (case-insensitive)
+ const nameKey = Object.keys(r).find(k => 
+ /^(name|student|student.?name|full.?name)$/i.test(k.trim())
+ );
+ // Find section field (case-insensitive)
+ const sectionKey = Object.keys(r).find(k => 
+ /^(section|class|grade|division)$/i.test(k.trim())
+ );
+ return {
+ name: String(r[nameKey] || r.name || r.Name || r.Student || r['Student Name'] || '').trim(),
+ section: String(r[sectionKey] || r.section || r.Section || r.Class || r.Grade || '').trim(),
+ photo: String(r.photo || r.Photo || r.image || r.Image || '').trim(),
+ quote: String(r.quote || r.Quote || '').trim(),
+ destination: String(r.destination || r.Destination || '').trim()
+ };
+ }).filter(s => s.name);
+ if (!validRows.length) {
+ return showNotification('error', 'No Valid Data', 'No valid student names found. Make sure you have a "Name" or "Student" column.');
+ }
+ window.__importBuffer = validRows;
+ // Render Preview
+ const previewContainer = document.getElementById('excelPreviewContainer');
+ if (previewContainer) previewContainer.style.display = 'block';
+ const headers = document.getElementById('excelPreviewHeaders');
+ if (headers) headers.innerHTML = `<th>Name</th><th>Section</th>`;
+ const tbody = document.getElementById('excelPreviewTable');
+ if (tbody) {
+ tbody.innerHTML = validRows.slice(0, 100).map(r => 
+ `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.section)}</td></tr>`
+ ).join('');
+ if (validRows.length > 100) {
+ tbody.innerHTML += `<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">... and ${validRows.length - 100} more rows</td></tr>`;
+ }
+ }
+ showNotification('success', 'Preview Ready', `Found ${validRows.length} students. Click "Overwrite Directory" to apply.`);
+ } catch (e) {
+ console.error('[Students] Import error:', e);
+ showNotification('error', 'Import Failed', e.message);
+ }
 }
 
 function replaceStudentsFromImported() {
-  const imported = window.__importedStudentsBuffer || [];
-  if (!imported.length) {
-    return showNotification('error', 'No import buffer', 'Import a CSV or Excel file first.');
-  }
-
-  if (!confirm(`Replace current student directory with ${imported.length} imported students?`)) return;
-
-  studentDirectoryData = imported.map(normalizeStudent);
-  renderStudentStats();
-  renderStudentDirectoryEditor();
-  
-  // Hide preview
-  const previewContainer = document.getElementById('excelPreviewContainer');
-  if (previewContainer) previewContainer.style.display = 'none';
-  
-  showNotification('success', 'Replaced', 'Student directory replaced with imported data.');
+ const buffer = window.__importBuffer;
+ if (!buffer || !buffer.length) return;
+ if (!confirm(`Are you sure you want to OVERWRITE the entire directory with these ${buffer.length} students?`)) return;
+ 
+ studentDirectoryData = buffer;
+ document.getElementById('excelPreviewContainer').style.display = 'none';
+ renderStudentDirectoryEditor();
+ showNotification('success', 'Replaced', 'Preview applied. Remember to click "Save All Changes" to finalize!');
 }
 
-async function uploadStudentPhotosBulk() {
-  const input = document.getElementById('studentsPhotoFiles');
-  const files = Array.from(input?.files || []);
-  if (!files.length) {
-    return showNotification('error', 'Missing files', 'Please choose one or more images.');
-  }
-
-  const formData = new FormData();
-  files.forEach(f => formData.append('photos', f));
-
-  try {
-    const res = await fetch(apiUrl('/api/admin/student-directory/photos-bulk'), {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${state.adminToken}`
-      },
-      body: formData
-    });
-
-    const data = await res.json();
-    if (!data.success) {
-      return showNotification('error', 'Upload failed', data.error || 'Could not upload photos.');
-    }
-
-    const mapped = data.mapped || [];
-    let applied = 0;
-
-    // apply returned mapping into current editor data by exact name match
-    mapped.forEach(m => {
-      const idx = studentDirectoryData.findIndex(s => normalizeNameKey(s.name) === normalizeNameKey(m.name));
-      if (idx >= 0) {
-        studentDirectoryData[idx].photo = m.photo;
-        applied++;
-      }
-    });
-
-    renderStudentDirectoryEditor();
-    showNotification('success', 'Photos mapped', `Mapped ${applied} student photos.`);
-  } catch (e) {
-    showNotification('error', 'Upload failed', e.message);
-  }
-}
-
-function normalizeNameKey(s) {
-  return String(s || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-function parseCsv(csvText) {
-  const lines = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(Boolean);
-  if (!lines.length) return [];
-
-  const rows = lines.map(parseCsvLine);
-  const header = rows[0].map(h => String(h || '').trim());
-  const out = [];
-
-  for (let i = 1; i < rows.length; i++) {
-    const obj = {};
-    header.forEach((h, idx) => obj[h] = rows[i][idx] ?? '');
-    out.push(obj);
-  }
-
-  return out;
-}
-
-function parseCsvLine(line) {
-  const out = [];
-  let cur = '';
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    const next = line[i + 1];
-
-    if (ch === '"' && inQuotes && next === '"') {
-      cur += '"';
-      i++;
-      continue;
-    }
-
-    if (ch === '"') {
-      inQuotes = !inQuotes;
-      continue;
-    }
-
-    if (ch === ',' && !inQuotes) {
-      out.push(cur);
-      cur = '';
-      continue;
-    }
-
-    cur += ch;
-  }
-
-  out.push(cur);
-  return out;
+function exportStudentDirectoryCsv() {
+ const lines = ['name,section', ...studentDirectoryData.map(s => `"${s.name}","${s.section}"`)];
+ const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+ const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+ a.download = 'students.csv'; a.click();
 }
 
 window.initStudentsPanelContent = initStudentsPanelContent;
-window.loadStudentDirectoryData = loadStudentDirectoryData;
 window.addStudentRow = addStudentRow;
 window.removeStudentRow = removeStudentRow;
 window.updateStudentField = updateStudentField;
 window.saveStudentDirectory = saveStudentDirectory;
-window.importStudentsCsv = importStudentsCsv;
 window.importStudentsExcel = importStudentsExcel;
-window.previewExcelSheet = previewExcelSheet;
 window.replaceStudentsFromImported = replaceStudentsFromImported;
-window.uploadStudentPhotosBulk = uploadStudentPhotosBulk;
 window.exportStudentDirectoryCsv = exportStudentDirectoryCsv;
-window.renderStudentDirectoryEditor = renderStudentDirectoryEditor;
-
-console.log('✅ Admin Students loaded (with Excel support)');
 </script>

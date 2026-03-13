@@ -198,9 +198,63 @@
     opacity: 0; 
   }
   
-  .mobile-menu-btn.active span:nth-child(3) { 
-    transform: rotate(-45deg) translate(7px, -6px); 
-  }
+  .mobile-menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -6px); }
+
+/* Tutorial Overlay Styles */
+.feature-tour-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 10000;
+    display: none;
+    pointer-events: auto;
+}
+
+.feature-tour-overlay.active {
+    display: block;
+}
+
+.feature-tour-spotlight {
+    position: absolute;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    border: 2px solid var(--primary-gold);
+    pointer-events: none;
+    transition: all 0.4s ease;
+    min-width: 50px;
+    min-height: 50px;
+}
+
+.feature-tour-card {
+    position: absolute;
+    background: rgba(26, 26, 46, 0.98);
+    border: 1px solid var(--primary-gold);
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 360px;
+    z-index: 10001;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.feature-tour-card h3 {
+    color: var(--primary-gold);
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.feature-tour-card p {
+    color: var(--text-light);
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.feature-tour-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
 }
 </style>
 
@@ -460,4 +514,138 @@ function adminLogout() {
     state.adminToken = token;
   }
 })();
+(function checkExistingSession() {
+  const token = localStorage.getItem('adminToken');
+  if (token && state) {
+    state.adminToken = token;
+  }
+})();
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// FEATURE TUTORIAL SYSTEM
+// ═══════════════════════════════════════════════════════════════════════
+
+window.startTutorial = function() {
+    const steps = [
+        { target: '#upload', title: 'Upload Memories', text: 'Share your favorite photos and videos from school here.' },
+        { target: '#memories', title: 'Memory Wall', text: 'View, like, and comment on memories shared by your friends.' },
+        { target: '#distanceMapSection', title: 'Destinations Globe', text: 'Pin your future university and see where everyone is going!' },
+        { target: '#gratitudeWall', title: 'Fun Features', text: 'Leave advice, dedicate songs, and drop wishes in the jar.' },
+        { target: '#logo', title: 'Admin Access', text: 'Admins: Click the logo 5 times rapidly to access the moderation dashboard.' }
+    ];
+
+    let currentStep = 0;
+
+    function showStep() {
+
+        if (currentStep >= steps.length) { 
+            closeTutorial(); 
+            return; 
+        }
+
+        const step = steps[currentStep];
+        const el = document.querySelector(step.target);
+
+        if (!el) { 
+            console.warn('Tutorial target not found:', step.target);
+            currentStep++; 
+            showStep(); 
+            return; 
+        }
+
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        setTimeout(() => {
+
+            const rect = el.getBoundingClientRect();
+            const validRect = rect.width > 0 && rect.height > 0;
+
+            let overlay = document.getElementById('tutorialOverlay');
+
+            if (!overlay) {
+
+                overlay = document.createElement('div');
+                overlay.id = 'tutorialOverlay';
+                overlay.className = 'feature-tour-overlay active';
+                document.body.appendChild(overlay);
+
+                const spotlight = document.createElement('div');
+                spotlight.id = 'tutorialSpotlight';
+                spotlight.className = 'feature-tour-spotlight';
+                overlay.appendChild(spotlight);
+
+                const card = document.createElement('div');
+                card.id = 'tutorialCard';
+                card.className = 'feature-tour-card';
+                overlay.appendChild(card);
+
+            } else {
+                overlay.classList.add('active');
+            }
+
+            const spotlight = document.getElementById('tutorialSpotlight');
+
+            if (validRect) {
+
+                spotlight.style.left = (rect.left - 5) + 'px';
+                spotlight.style.top = (rect.top - 5) + 'px';
+                spotlight.style.width = (rect.width + 10) + 'px';
+                spotlight.style.height = (rect.height + 10) + 'px';
+                spotlight.style.transform = 'none';
+
+            } else {
+
+                spotlight.style.left = '50%';
+                spotlight.style.top = '50%';
+                spotlight.style.width = '100px';
+                spotlight.style.height = '100px';
+                spotlight.style.transform = 'translate(-50%, -50%)';
+
+            }
+
+            const card = document.getElementById('tutorialCard');
+
+            card.innerHTML = `
+                <h3>${step.title}</h3>
+                <p>${step.text}</p>
+                <div class="feature-tour-actions">
+                    <button class="btn btn-secondary" style="padding:8px 16px; font-size:0.85rem;" onclick="closeTutorial()">Skip Tour</button>
+                    <button class="btn btn-primary" style="padding:8px 16px; font-size:0.85rem;" onclick="nextTutorialStep()">
+                        ${currentStep === steps.length - 1 ? 'Finish ✓' : 'Next ➔'}
+                    </button>
+                </div>
+            `;
+
+            let cardLeft = Math.max(20, rect.left + (rect.width/2) - 180);
+            let cardTop = rect.bottom + 20;
+
+            if (cardTop + 200 > window.innerHeight) {
+                cardTop = Math.max(20, rect.top - 180);
+            }
+
+            if (cardLeft + 360 > window.innerWidth) {
+                cardLeft = window.innerWidth - 380;
+            }
+
+            card.style.left = cardLeft + 'px';
+            card.style.top = cardTop + 'px';
+            card.style.transform = 'none';
+
+        }, 600);
+    }
+
+    window.nextTutorialStep = function() { 
+        currentStep++; 
+        showStep(); 
+    };
+
+    window.closeTutorial = function() { 
+        const o = document.getElementById('tutorialOverlay'); 
+        if (o) o.remove(); 
+    };
+
+    showStep();
+};
+
 </script>

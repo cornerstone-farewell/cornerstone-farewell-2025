@@ -22,4 +22,29 @@
 </div>
 <div class="dedications-list" id="dedicationsList"><div class="ff-empty">No dedications yet. Be first!</div></div>
 </div>
+<script data-fragment-script="dedications">
+(function() {
+ async function loadDedications() {
+ const l = document.getElementById('dedicationsList'); if(!l) return;
+ try {
+ const d = await fetch(apiUrl('/api/fun/dedications')).then(r=>r.json());
+ if(d.success && d.entries?.length) {
+ l.innerHTML = d.entries.map(d => `<div class="dedication-card"><div class="dedication-vinyl">🎵</div><div class="dedication-content"><div class="dedication-song">${escapeHtml(d.song)}</div>${d.message?`<div class="dedication-msg">"${escapeHtml(d.message)}"</div>`:''}<div class="dedication-meta">From <strong>${escapeHtml(d.from)}</strong> → To <strong>${escapeHtml(d.to)}</strong> · ${timeAgo(d.createdAt)}</div></div></div>`).join('');
+ } else l.innerHTML = '<div class="ff-empty">No dedications yet. Be first! 🎧</div>';
+ } catch(_) {}
+ }
+ window.submitDedication = async function() {
+ const from = document.getElementById('dedFrom')?.value?.trim();
+ const to = document.getElementById('dedTo')?.value?.trim();
+ const song = document.getElementById('dedSong')?.value?.trim();
+ const message = document.getElementById('dedMsg')?.value?.trim();
+ if(!from || !to || !song) { if(typeof showNotification==='function') showNotification('error','Missing','Fill all required fields!'); return; }
+ try {
+ const d = await fetch(apiUrl('/api/fun/dedications'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({from,to,song,message})}).then(r=>r.json());
+ if(d.success) { ['dedFrom','dedTo','dedSong','dedMsg'].forEach(id => document.getElementById(id).value=''); if(typeof showNotification==='function') showNotification('success','Dedicated!','Song added! 🎶'); loadDedications(); }
+ } catch(e){}
+ };
+ document.addEventListener('DOMContentLoaded', loadDedications);
+})();
+</script>
 </section>

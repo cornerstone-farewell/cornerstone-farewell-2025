@@ -160,22 +160,29 @@
   }
 
   // Get the image URL - handles both full URLs and relative paths
-  function getTeacherImageUrl(imageUrl) {
-    if (!imageUrl) return null;
-    
-    // If it's already a full URL (http:// or https://), use it directly
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-    
-    // If it starts with //, it's a protocol-relative URL
-    if (imageUrl.startsWith('//')) {
-      return imageUrl;
-    }
-    
-    // Otherwise, treat it as a relative path and use mediaUrl
-    return mediaUrl(imageUrl);
-  }
+ function getTeacherImageUrl(imageUrl) {
+ if (!imageUrl) return null;
+ const url = String(imageUrl).trim();
+ if (!url) return null;
+ // If it's already a full URL (http:// or https://), use it directly
+ if (url.startsWith('http://') || url.startsWith('https://')) {
+ return url;
+ }
+ // If it starts with //, it's a protocol-relative URL
+ if (url.startsWith('//')) {
+ return url;
+ }
+ // If it starts with /uploads/, use mediaUrl
+ if (url.startsWith('/uploads/')) {
+ return mediaUrl(url);
+ }
+ // If it starts with /, it's a relative path
+ if (url.startsWith('/')) {
+ return mediaUrl(url);
+ }
+ // Otherwise, assume it's a filename and prepend /uploads/
+ return mediaUrl('/uploads/' + url);
+ }
 
   // Render teachers grid
   function renderTeachers() {
@@ -199,8 +206,8 @@
       const hasAudio = !!audioTrack;
       const initials = getInitials(teacher.name || 'T');
       
-      // Use imageUrl field (not photo)
-      const imageUrl = getTeacherImageUrl(teacher.imageUrl);
+      // Use imageUrl or photo field (support both)
+ const imageUrl = getTeacherImageUrl(teacher.imageUrl || teacher.photo || teacher.image);
       
       return `
         <div class="teacher-card" data-teacher="${escapeAttr(teacher.name || '')}">

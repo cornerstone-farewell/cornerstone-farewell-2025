@@ -3774,11 +3774,11 @@
       "sha256": "727b595595d64a84f9f903aab4ed2fd690d7186944c7902c2ec238b4d1ae371b",
       "approved": 1,
       "featured": 0,
-      "likes": 0,
+      "likes": 1,
       "deletedAt": null,
       "purgedAt": null,
       "created_at": "2026-03-06T15:02:42.807Z",
-      "updated_at": "2026-03-09T07:54:50.255Z"
+      "updated_at": "2026-03-13T16:34:48.661Z"
     },
     {
       "id": 215,

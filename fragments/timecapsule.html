@@ -32,4 +32,34 @@
 </div>
 <div class="capsule-sealed-list" id="capsuleSealedList"></div>
 </div>
+<script data-fragment-script="capsule">
+(function() {
+ async function loadTimeCapsules() {
+ const list = document.getElementById('capsuleSealedList'); if(!list) return;
+ try {
+ const d = await fetch(apiUrl('/api/fun/capsules')).then(r=>r.json());
+ if(d.success && d.entries?.length) {
+ list.innerHTML = d.entries.map(c => `<div class="capsule-sealed-item"><div class="capsule-lock">🔒</div><div><div class="capsule-from">${escapeHtml(c.name)}</div><div class="capsule-open">Opens ${new Date(c.revealDate).toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'})}</div></div></div>`).join('');
+ } else list.innerHTML='';
+ } catch(_) {}
+ }
+ window.submitTimeCapsule = async function() {
+ const name = document.getElementById('capsuleName')?.value?.trim();
+ const revealDate = document.getElementById('capsuleRevealDate')?.value;
+ const letter = document.getElementById('capsuleLetter')?.value?.trim();
+ if(!name || !revealDate || !letter) { if(typeof showNotification==='function') showNotification('error','Missing','Fill all fields.'); return; }
+ if(letter.length < 20) { if(typeof showNotification==='function') showNotification('error','Too short','Write at least 20 characters.'); return; }
+ if(new Date(revealDate) <= new Date()) { if(typeof showNotification==='function') showNotification('error','Invalid','Pick a future date.'); return; }
+ try {
+ const d = await fetch(apiUrl('/api/fun/capsules'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,revealDate,letter})}).then(r=>r.json());
+ if(d.success) { document.getElementById('capsuleName').value=''; document.getElementById('capsuleLetter').value=''; if(typeof showNotification==='function') showNotification('success','Sealed!','Your time capsule is locked 🔒'); if(typeof triggerConfetti==='function') triggerConfetti(); loadTimeCapsules(); }
+ } catch(e){}
+ };
+ document.addEventListener('DOMContentLoaded', () => {
+ const ri = document.getElementById('capsuleRevealDate');
+ if(ri && !ri.value) { const d = new Date(); d.setFullYear(d.getFullYear()+1); ri.value = d.toISOString().split('T')[0]; }
+ loadTimeCapsules();
+ });
+})();
+</script>
 </section>

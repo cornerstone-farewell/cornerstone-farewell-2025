@@ -386,95 +386,94 @@
 </style>
 
 <div class="admin-overlay" id="adminOverlay">
-  <button class="admin-close" onclick="closeAdminLogin()">✕</button>
-  <div class="admin-login-card">
-    <h2>Admin Access</h2>
-    <p>Login with your Admin ID + password</p>
-    <div class="admin-login-error" id="adminLoginError">Invalid credentials. Please try again.</div>
-    <div class="form-group">
-      <label>Admin ID</label>
-      <input class="form-input" id="adminUserId" placeholder="super" type="text"/>
-      <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">Tip: Super Admin ID is <strong>super</strong>.</p>
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input class="form-input" id="adminPassword" placeholder="Enter password" type="password"/>
-    </div>
-    <button class="btn btn-primary" onclick="adminLogin()" style="width: 100%;">Login</button>
+ <button class="admin-close" onclick="closeAdminLogin()">✕</button>
+ <div class="admin-login-card">
+  <h2>🔐 Admin Access</h2>
+  <p>Login with your Admin ID + password</p>
+  <div class="admin-login-error" id="adminLoginError">Invalid credentials. Please try again.</div>
+  <div class="form-group">
+   <label>Admin ID</label>
+   <input class="form-input" id="adminUserId" placeholder="super" type="text"/>
+   <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">Tip: Super Admin ID is <strong>super</strong>.</p>
   </div>
+  <div class="form-group">
+   <label>Password</label>
+   <input class="form-input" id="adminPassword" placeholder="Enter password" type="password"/>
+  </div>
+  <button class="btn btn-primary" onclick="adminLogin()" style="width: 100%;">Login</button>
+ </div>
 </div>
 
 <div class="admin-dashboard" id="adminDashboard">
-  <div class="admin-header">
-    <h1 class="admin-title">⚙️ Admin Dashboard</h1>
-    <div class="admin-actions">
-      <button class="admin-btn admin-btn-primary" onclick="approveAllPending()">✓ Approve All</button>
-      <button class="admin-btn admin-btn-secondary" onclick="downloadAllApproved()">📦 Download ZIP</button>
-      <button class="admin-btn admin-btn-danger" onclick="adminLogout()">🚪 Logout</button>
-    </div>
+ <div class="admin-header">
+  <h1 class="admin-title">⚙️ Admin Dashboard</h1>
+  <div class="admin-actions">
+   <button class="admin-btn admin-btn-primary" onclick="approveAllPending()">✓ Approve All</button>
+   <button class="admin-btn admin-btn-secondary" onclick="downloadAllApproved()">📦 Download ZIP</button>
+   <button class="admin-btn admin-btn-danger" onclick="adminLogout()">🚪 Logout</button>
   </div>
-
-  <div class="admin-content">
-    <div class="admin-tabs" id="adminTabs">
-      <!-- Core -->
-      <div class="admin-tab active" onclick="switchAdminTab('moderation')">📋 Moderation</div>
-      <div class="admin-tab" onclick="switchAdminTab('settings')">⚙️ Settings</div>
-      <div class="admin-tab" onclick="switchAdminTab('theme')">🎨 Theme</div>
-      <div class="admin-tab" onclick="switchAdminTab('users')">👥 Users</div>
-      <div class="admin-tab" onclick="switchAdminTab('compilations')">🎬 Compilations</div>
-      <!-- Fun Features -->
-      <div class="admin-tab" onclick="switchAdminTab('funfeatures')">🎉 Fun Features</div>
-      <div class="admin-tab" onclick="switchAdminTab('destinations')">🌍 Destinations</div>
-      <div class="admin-tab" onclick="switchAdminTab('advice')">💡 Advice</div>
-      <div class="admin-tab" onclick="switchAdminTab('papernotes')">✈️ Paper Notes</div>
-      <div class="admin-tab" onclick="switchAdminTab('teachers')">👨‍🏫 Teachers</div>
-      <div class="admin-tab" onclick="switchAdminTab('students')">🎓 Students</div>
-      <!-- Security -->
-      <div class="admin-tab" onclick="switchAdminTab('security')">🔐 Security</div>
-    </div>
-
-    <!-- All panels - empty with data-initialized -->
-    <div class="admin-panel active" id="panelModeration" data-initialized="false"></div>
-    <div class="admin-panel" id="panelSettings" data-initialized="false"></div>
-    <div class="admin-panel" id="panelTheme" data-initialized="false"></div>
-    <div class="admin-panel" id="panelUsers" data-initialized="false"></div>
-    <div class="admin-panel" id="panelCompilations" data-initialized="false"></div>
-    <div class="admin-panel" id="panelFunFeatures" data-initialized="false"></div>
-    <div class="admin-panel" id="panelDestinations" data-initialized="false"></div>
-    <div class="admin-panel" id="panelAdvice" data-initialized="false"></div>
-    <div class="admin-panel" id="panelPapernotes" data-initialized="false"></div>
-    <div class="admin-panel" id="panelStudents" data-initialized="false"></div>
-    <div class="admin-panel" id="panelSecurity" data-initialized="false"></div>
+ </div>
+ 
+ <div class="admin-content">
+  <div class="admin-tabs" id="adminTabs">
+   <!-- Core -->
+   <div class="admin-tab active" onclick="switchAdminTab('moderation')">📋 Moderation</div>
+   <div class="admin-tab" onclick="switchAdminTab('settings')">⚙️ Settings</div>
+   <div class="admin-tab" onclick="switchAdminTab('theme')">🎨 Theme</div>
+   <div class="admin-tab" onclick="switchAdminTab('users')">👥 Users</div>
+   <div class="admin-tab" onclick="switchAdminTab('compilations')">🎬 Compilations</div>
+   <!-- Fun Features -->
+   <div class="admin-tab" onclick="switchAdminTab('funfeatures')">🎉 Fun Features</div>
+   <div class="admin-tab" onclick="switchAdminTab('destinations')">🌍 Destinations</div>
+   <div class="admin-tab" onclick="switchAdminTab('advice')">💡 Advice</div>
+   <div class="admin-tab" onclick="switchAdminTab('papernotes')">✉️ Paper Notes</div>
+   <div class="admin-tab" onclick="switchAdminTab('teachers')">👨‍🏫 Teachers</div>
+   <div class="admin-tab" onclick="switchAdminTab('students')">📚 Students</div>
+   <!-- Security -->
+   <div class="admin-tab" onclick="switchAdminTab('security')">🔒 Security</div>
   </div>
+  
+  <!-- All panels -->
+  <div class="admin-panel active" id="panelModeration" data-initialized="false"></div>
+  <div class="admin-panel" id="panelSettings" data-initialized="false"></div>
+  <div class="admin-panel" id="panelTheme" data-initialized="false"></div>
+  <div class="admin-panel" id="panelUsers" data-initialized="false"></div>
+  <div class="admin-panel" id="panelCompilations" data-initialized="false"></div>
+  <div class="admin-panel" id="panelFunFeatures" data-initialized="false"></div>
+  <div class="admin-panel" id="panelDestinations" data-initialized="false"></div>
+  <div class="admin-panel" id="panelAdvice" data-initialized="false"></div>
+  <div class="admin-panel" id="panelPapernotes" data-initialized="false"></div>
+  <div class="admin-panel" id="panelTeachers" data-initialized="false"></div>
+  <div class="admin-panel" id="panelStudents" data-initialized="false"></div>
+  <div class="admin-panel" id="panelSecurity" data-initialized="false"></div>
+ </div>
 </div>
 
 <script data-fragment-script="admin_nav_top">
 // ═══════════════════════════════════════════════════════════════════════════════
 // PERMISSION SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════════
-
 function can(permission) {
-  if (!state.adminUser) return false;
-  const role = state.adminUser.role || 'viewer';
-  if (role === 'superadmin') return true;
-  const permissions = {
-    admin: ['moderation', 'editMemory', 'bulk', 'replaceFile', 'viewStats'],
-    moderator: ['moderation', 'viewStats'],
-    viewer: ['viewStats']
-  };
-  const rolePerms = permissions[role] || [];
-  return rolePerms.includes(permission);
+ if (!state?.adminUser) return false;
+ const role = state.adminUser.role || 'viewer';
+ if (role === 'superadmin') return true;
+ const permissions = {
+  admin: ['moderation', 'editMemory', 'bulk', 'replaceFile', 'viewStats'],
+  moderator: ['moderation', 'viewStats'],
+  viewer: ['viewStats']
+ };
+ return (permissions[role] || []).includes(permission);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ADMIN TAB SWITCHING
+// ADMIN TAB SWITCHING - FIXED
 // ═══════════════════════════════════════════════════════════════════════════════
-
 function switchAdminTab(tab) {
- console.log('switchAdminTab:', tab);
+ console.log('→ switchAdminTab:', tab);
+ 
  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
-
+ 
  const tabMap = {
   moderation: { panelId: 'panelModeration', init: 'initModerationPanelContent' },
   settings: { panelId: 'panelSettings', init: 'initSettingsPanelContent' },
@@ -485,155 +484,174 @@ function switchAdminTab(tab) {
   destinations: { panelId: 'panelDestinations', init: 'initDestinationsPanelContent' },
   advice: { panelId: 'panelAdvice', init: 'initAdvicePanelContent' },
   papernotes: { panelId: 'panelPapernotes', init: 'initPapernotesPanelContent' },
+  teachers: { panelId: 'panelTeachers', init: 'initTeachersPanelContent' },
   students: { panelId: 'panelStudents', init: 'initStudentsPanelContent' },
   security: { panelId: 'panelSecurity', init: 'initSecurityPanelContent' }
  };
-
+ 
  const cfg = tabMap[tab];
  if (!cfg) {
-  console.warn('Unknown admin tab:', tab);
+  console.warn('❌ Unknown admin tab:', tab);
   return;
  }
-
+ 
+ // Activate tab button
  document.querySelectorAll('.admin-tab').forEach(t => {
   const onclick = t.getAttribute('onclick') || '';
   if (onclick.includes(`'${tab}'`)) t.classList.add('active');
  });
-
+ 
+ // Show panel
  const panel = document.getElementById(cfg.panelId);
- if (panel) {
-  panel.classList.add('active');
- } else {
-  console.warn('Panel not found:', cfg.panelId);
+ if (!panel) {
+  console.error('❌ Panel not found:', cfg.panelId);
+  return;
  }
-
+ 
+ panel.classList.add('active');
+ 
+ // Initialize panel if needed
  if (typeof window[cfg.init] === 'function') {
-  window[cfg.init]();
+  try {
+   window[cfg.init]();
+  } catch (e) {
+   console.error(`❌ Error initializing ${cfg.init}:`, e);
+  }
  } else {
-  console.warn('Init function not found:', cfg.init);
+  console.warn('⚠️ Init function not found:', cfg.init);
  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ADMIN LOGIN/LOGOUT
 // ═══════════════════════════════════════════════════════════════════════════════
-
 function openAdminLogin() {
-  const overlay = document.getElementById('adminOverlay');
-  if (overlay) overlay.classList.add('active');
+ const overlay = document.getElementById('adminOverlay');
+ if (overlay) overlay.classList.add('active');
 }
 
 function closeAdminLogin() {
-  const overlay = document.getElementById('adminOverlay');
-  if (overlay) overlay.classList.remove('active');
-  const errorEl = document.getElementById('adminLoginError');
-  if (errorEl) errorEl.classList.remove('active');
+ const overlay = document.getElementById('adminOverlay');
+ if (overlay) overlay.classList.remove('active');
+ const errorEl = document.getElementById('adminLoginError');
+ if (errorEl) errorEl.classList.remove('active');
 }
 
 async function adminLogin() {
-  const userId = document.getElementById('adminUserId')?.value?.trim();
-  const password = document.getElementById('adminPassword')?.value;
-  const errorEl = document.getElementById('adminLoginError');
-
-  if (!userId || !password) {
-    if (errorEl) {
-      errorEl.textContent = 'Please enter both Admin ID and password.';
-      errorEl.classList.add('active');
-    }
-    return;
+ const userId = document.getElementById('adminUserId')?.value?.trim();
+ const password = document.getElementById('adminPassword')?.value;
+ const errorEl = document.getElementById('adminLoginError');
+ 
+ if (!userId || !password) {
+  if (errorEl) {
+   errorEl.textContent = 'Please enter both Admin ID and password.';
+   errorEl.classList.add('active');
   }
-
-  try {
-    const res = await fetch(apiUrl('/api/admin/login'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, password })
-    });
-    const data = await res.json();
-
-    if (data.success && data.token) {
-      state.adminToken = data.token;
-      state.adminUser = data.user || { userId, role: 'admin' };
-      localStorage.setItem('adminToken', data.token);
-      closeAdminLogin();
-      openAdminDashboard();
-      showNotification('success', 'Welcome!', `Logged in as ${data.user?.userId || userId}`);
-    } else {
-      if (errorEl) {
-        errorEl.textContent = data.error || 'Invalid credentials.';
-        errorEl.classList.add('active');
-      }
-    }
-  } catch (e) {
-    console.error('Admin login error:', e);
-    if (errorEl) {
-      errorEl.textContent = 'Connection error. Please try again.';
-      errorEl.classList.add('active');
-    }
+  return;
+ }
+ 
+ try {
+  const res = await fetch(apiUrl('/api/admin/login'), {
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({ userId, password })
+  });
+  
+  const data = await res.json();
+  
+  if (data.success && data.token) {
+   state.adminToken = data.token;
+   state.adminUser = data.user || { userId, role: 'admin' };
+   localStorage.setItem('adminToken', data.token);
+   
+   closeAdminLogin();
+   openAdminDashboard();
+   
+   showNotification('success', 'Welcome!', `Logged in as ${data.user?.userId || userId}`);
+  } else {
+   if (errorEl) {
+    errorEl.textContent = data.error || 'Invalid credentials.';
+    errorEl.classList.add('active');
+   }
   }
+ } catch (e) {
+  console.error('❌ Admin login error:', e);
+  if (errorEl) {
+   errorEl.textContent = 'Connection error. Please try again.';
+   errorEl.classList.add('active');
+  }
+ }
 }
 
 function openAdminDashboard() {
-  const dashboard = document.getElementById('adminDashboard');
-  if (dashboard) {
-    dashboard.classList.add('active');
-    switchAdminTab('moderation');
-  }
+ const dashboard = document.getElementById('adminDashboard');
+ if (dashboard) {
+  dashboard.classList.add('active');
+  switchAdminTab('moderation');
+ }
 }
 
 function adminLogout() {
-  state.adminToken = null;
-  state.adminUser = null;
-  localStorage.removeItem('adminToken');
-
-  // Reset all panels
-  document.querySelectorAll('.admin-panel').forEach(p => {
-    p.dataset.initialized = 'false';
-    p.innerHTML = '';
-  });
-
-  const dashboard = document.getElementById('adminDashboard');
-  if (dashboard) dashboard.classList.remove('active');
-
-  showNotification('info', 'Logged out', 'You have been logged out.');
+ if (!confirm('Logout from admin panel?')) return;
+ 
+ state.adminToken = null;
+ state.adminUser = null;
+ localStorage.removeItem('adminToken');
+ 
+ // Reset all panels
+ document.querySelectorAll('.admin-panel').forEach(p => {
+  p.dataset.initialized = 'false';
+  p.innerHTML = '';
+ });
+ 
+ const dashboard = document.getElementById('adminDashboard');
+ if (dashboard) dashboard.classList.remove('active');
+ 
+ showNotification('info', 'Logged out', 'You have been logged out.');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PLACEHOLDER FUNCTIONS
+// HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════════
-
 async function approveAllPending() {
-  if (!state.adminToken) return showNotification('error', 'Login required', 'Please log in again.');
-  try {
-    const res = await fetch(apiUrl('/api/admin/approve-all'), {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${state.adminToken}` }
-    });
-    const data = await res.json();
-    if (data.success) {
-      showNotification('success', 'Approved', `Approved ${data.count || 0} memories.`);
-      if (typeof loadAdminMemories === 'function') loadAdminMemories(true);
-      if (typeof loadMemories === 'function') loadMemories(true);
-    } else {
-      showNotification('error', 'Failed', data.error || 'Could not approve all.');
-    }
-  } catch (e) {
-    showNotification('error', 'Error', e.message);
+ if (!state?.adminToken) {
+  showNotification('error', 'Login required', 'Please log in again.');
+  return;
+ }
+ 
+ try {
+  const res = await fetch(apiUrl('/api/admin/approve-all'), {
+   method: 'POST',
+   headers: { 'Authorization': `Bearer ${state.adminToken}` }
+  });
+  
+  const data = await res.json();
+  
+  if (data.success) {
+   showNotification('success', 'Approved', `Approved ${data.count || 0} memories.`);
+   if (typeof loadAdminMemories === 'function') loadAdminMemories(true);
+   if (typeof loadMemories === 'function') loadMemories(true);
+  } else {
+   showNotification('error', 'Failed', data.error || 'Could not approve all.');
   }
+ } catch (e) {
+  console.error('❌ Approve all error:', e);
+  showNotification('error', 'Error', e.message);
+ }
 }
 
 function downloadAllApproved() {
-  if (typeof _downloadAllApproved === 'function') _downloadAllApproved();
-  else {
-    const token = state.adminToken;
-    if (token) window.open(apiUrl(`/api/admin/download-all?token=${token}`), '_blank');
-  }
+ if (!state?.adminToken) {
+  showNotification('error', 'Login required', 'Please log in again.');
+  return;
+ }
+ 
+ window.open(apiUrl(`/api/admin/download-all?token=${state.adminToken}`), '_blank');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // EXPOSE GLOBALLY
 // ═══════════════════════════════════════════════════════════════════════════════
-
 window.can = can;
 window.switchAdminTab = switchAdminTab;
 window.openAdminLogin = openAdminLogin;

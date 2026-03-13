@@ -1,15 +1,76 @@
 <!-- FRAGMENT: mood -->
 <style data-fragment-style="mood">
-#moodBoardSection{background:var(--navy-medium)}.mood-options{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:28px}.mood-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 22px;clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);border:none;background:rgba(255,255,255,.06);cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1);font-family:var(--font-body);color:#fff;min-width:100px;min-height:100px;position:relative}.mood-btn:hover{transform:translateY(-6px) scale(1.1);background:rgba(212,175,55,.15);filter:drop-shadow(0 0 12px rgba(212,175,55,.5))}.mood-btn.voted{background:rgba(212,175,55,.2);filter:drop-shadow(0 0 16px rgba(212,175,55,.7))}.mood-emoji{font-size:2.2rem}.mood-label{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;opacity:.8}.mood-count{font-size:.85rem;color:var(--primary-gold);font-weight:700}.mood-bar-wrap{max-width:700px;margin:0 auto;display:grid;gap:10px}.mood-bar-row{display:grid;grid-template-columns:100px 1fr 50px;align-items:center;gap:10px}.mood-bar-bg{height:10px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden}.mood-bar-fill{height:100%;border-radius:5px;background:var(--gradient-gold);transition:width .7s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}.mood-bar-fill::after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:barScan 2s linear infinite}
+#moodBoardSection{background:var(--navy-medium)}.mood-options{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:28px}.mood-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 22px;clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);border:none;background:rgba(255,255,255,.06);cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1);font-family:var(--font-body);color:#fff;min-width:100px;min-height:100px;position:relative}.mood-btn:hover{transform:translateY(-6px) scale(1.1);background:rgba(212,175,55,.15);filter:drop-shadow(0 0 12px rgba(212,175,55,.5))}.mood-btn.voted{background:rgba(212,175,55,.2);filter:drop-shadow(0 0 16px rgba(212,175,55,.7)); border: 2px solid var(--primary-gold);}.mood-emoji{font-size:2.2rem}.mood-label{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;opacity:.8}.mood-count{font-size:.85rem;color:var(--primary-gold);font-weight:700}.mood-bar-wrap{max-width:700px;margin:0 auto;display:grid;gap:10px}.mood-bar-row{display:grid;grid-template-columns:100px 1fr 50px;align-items:center;gap:10px}.mood-bar-bg{height:10px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden}.mood-bar-fill{height:100%;border-radius:5px;background:var(--gradient-gold);transition:width .7s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}.mood-bar-fill::after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:barScan 2s linear infinite}
 </style>
 <section class="ff-section-hidden" id="moodBoardSection">
 <div class="container">
 <div class="section-header">
 <span class="section-badge">Class Vibe Check</span>
 <h2 class="section-title">How We <span class="highlight">Feel</span></h2>
-<p class="section-description">One tap — tell the class how you're feeling about Farewell.</p>
+<p class="section-description">Select how you're feeling about Farewell. You can click another option to change your vote.</p>
 </div>
 <div class="mood-options" id="moodOptions"></div>
 <div class="mood-bar-wrap" id="moodBars"></div>
 </div>
 </section>
+
+<script data-fragment-script="mood">
+(function() {
+ const MOOD_DATA=[{key:'happy',emoji:'😀',label:'Excited',color:'#FFD700'},{key:'proud',emoji:'🎓',label:'Proud',color:'#A8E6CF'},{key:'nostalgic',emoji:'📸',label:'Nostalgic',color:'#FFB347'},{key:'thankful',emoji:'🙏',label:'Grateful',color:'#DDA0DD'},{key:'bittersweet',emoji:'🥺',label:'Bittersweet',color:'#FFE66D'},{key:'nervous',emoji:'🦋',label:'Nervous',color:'#74B9FF'}];
+ let moodData = {};
+
+ async function loadMoodBoard() {
+ try {
+ const res = await fetch(apiUrl('/api/fun/mood'));
+ const d = await res.json();
+ if (d.success && d.votes) {
+ // Count votes locally since the array is returned
+ const counts = {};
+ d.votes.forEach(v => counts[v.mood] = (counts[v.mood] || 0) + 1);
+ moodData = counts;
+ }
+ } catch (_) {}
+ renderMoodBoard();
+ }
+
+ function renderMoodBoard() {
+ const opts = document.getElementById('moodOptions');
+ const bars = document.getElementById('moodBars');
+ if (!opts || !bars) return;
+ 
+ const myVote = localStorage.getItem('moodVote');
+ const total = Object.values(moodData).reduce((s, v) => s + v, 0) || 1;
+ 
+ opts.innerHTML = MOOD_DATA.map(m => `<button class="mood-btn ${myVote === m.key ? 'voted' : ''}" type="button" onclick="voteMood('${m.key}')"><span class="mood-emoji">${m.emoji}</span><span class="mood-label">${m.label}</span><span class="mood-count">${moodData[m.key] || 0}</span></button>`).join('');
+ 
+ bars.innerHTML = MOOD_DATA.map(m => {
+ const pct = Math.round(((moodData[m.key] || 0) / total) * 100);
+ return `<div class="mood-bar-row"><div style="text-align:right;font-size:.9rem;">${m.emoji} ${m.label}</div><div class="mood-bar-bg"><div class="mood-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${m.color},${m.color}aa)"></div></div><div style="font-size:.82rem;color:var(--primary-gold);text-align:left;">${pct}%</div></div>`;
+ }).join('');
+ }
+
+ window.voteMood = async function(key) {
+ const previousVote = localStorage.getItem('moodVote');
+ if (previousVote === key) return; // Same vote, do nothing
+
+ // Optimistically update UI
+ moodData[key] = (moodData[key] || 0) + 1;
+ if (previousVote && moodData[previousVote] > 0) {
+ moodData[previousVote] -= 1;
+ }
+ localStorage.setItem('moodVote', key);
+ renderMoodBoard();
+
+ try {
+ await fetch(apiUrl('/api/fun/mood'), {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ mood: key, oldMood: previousVote })
+ });
+ if(typeof showNotification==='function') showNotification('success', 'Vibe Updated!', 'Your mood has been changed.');
+ } catch(_) {}
+ };
+
+ document.addEventListener('DOMContentLoaded', loadMoodBoard);
+})();
+</script>

@@ -84,3 +84,28 @@ node server.js
 ## 📜 License
 
 MIT License - Cornerstone International School 2025
+
+
+compilations in admin is not working
+fun features in admin is not wokring
+detinations approve all says no admin token found please lgon again
+watch as movie says it need admin approved images
+clicking on drag and drop ur files is ding nothing
+memory compilations say comp memories somethingis not defined, so no playing o ememory compilatiins
+turoail button is not there for the website with no tutroial for stuff
+navbar does not cotain all rutes
+senior advice says cannot read properties of undefined, push somehting
+student import list has to be better, it does ot hae a fixed thing for the bulk thingie
+timeline also did not load, it shows old one...
+though i kept messae in gratitude wall i the thing, it is not reflecting for acceptance on admin side
+for class superlative, it has to be section wise same list duplicated with diff students i have to import the student sin the thing in the admin thingie
+i poted in wish jar,but not reflectingn admin side
+i posted i song dedications, but not reflectig on admin side
+a person has to be able toedit thir mood in the thig
+mood not reflecting in admin dashboard, though no approvl i sneeded
+time capsule adin approvial not appraring
+destinations approve ll saying no admin toke n found and all...
+music config in setting has ot be upload the music mode... or select existing music fro aerver... not tyoe the path, for all this is same
+boombox ui is way too bad
+memory compilations appeared twice
+for some reason, we have two mail garbage tht is there
