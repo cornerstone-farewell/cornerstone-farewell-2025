@@ -1,68 +1,40 @@
 {
   "entries": [
     {
-      "id": 1,
-      "from": "Anish",
-      "to": "Anish",
-      "message": "I am you",
-      "createdAt": "2026-03-11T09:10:01.006Z"
+      "id": 10,
+      "from": "Robert Frost",
+      "to": "Sam",
+      "message": "Thank you for being part of some of the best memories of my school life",
+      "createdAt": "2026-03-14T09:13:07.092Z"
     },
     {
-      "id": 2,
-      "from": "fghjkl'",
-      "to": "fghjkl'",
-      "message": "fghjkl",
-      "createdAt": "2026-03-12T04:26:55.335Z"
+      "id": 11,
+      "from": "Brooklyn",
+      "to": "Jess",
+      "message": "Your presence made the tough days easier and the good days even better.",
+      "createdAt": "2026-03-14T09:13:37.379Z"
     },
     {
-      "id": 3,
-      "from": "dnfsdnkjghj",
-      "to": "jdnfgsndjkfnfdsnjlfnkj",
-      "message": "dsjnfljskdjfngds",
-      "createdAt": "2026-03-12T04:44:29.093Z"
+      "id": 12,
+      "from": "Evarah",
+      "to": "Aira",
+      "message": "I’m thankful for the small moments that turned into unforgettable memories.",
+      "createdAt": "2026-03-14T09:13:58.309Z"
     },
     {
-      "id": 4,
-      "from": "kjdfgnjv",
-      "to": "fndsjnvn",
-      "message": "infkldsnjfnk",
-      "createdAt": "2026-03-12T04:50:56.669Z"
+      "id": 13,
+      "from": "Vedanth",
+      "to": "Thaneesh",
+      "message": "Thanks for the laughs, the chaos, and the unforgettable memories, bro.",
+      "createdAt": "2026-03-14T09:15:04.661Z"
     },
     {
-      "id": 5,
-      "from": "cvbnm,./",
-      "to": "g hbnm,.",
-      "message": "cgfv bjnm,.cfvbhjmk ,",
-      "createdAt": "2026-03-12T16:30:18.207Z"
-    },
-    {
-      "id": 6,
-      "from": "fgnfgn",
-      "to": "nghnghngh",
-      "message": "nghnghnghnhgn",
-      "createdAt": "2026-03-13T05:33:19.500Z"
-    },
-    {
-      "id": 7,
-      "from": "sfdcdc",
-      "to": "csaddscssacscscdsdc",
-      "message": "vifnvkv djvkfv vnjd v",
-      "createdAt": "2026-03-13T13:08:18.255Z"
-    },
-    {
-      "id": 8,
-      "from": "lfdjdxknkjgsnfkln",
-      "to": "fkjsdnkgjnsjkdnkj",
-      "message": "kfmesjgnkjsnkgnrfnkedsnrb",
-      "createdAt": "2026-03-13T14:38:56.855Z"
-    },
-    {
-      "id": 9,
-      "from": "GDEF MNS MN",
-      "to": "KJNG SKJNDGKJNS",
-      "message": "NSDJKXZGJSNKDJNGNKERKE",
-      "createdAt": "2026-03-13T16:51:45.295Z"
+      "id": 14,
+      "from": "Shakespeare",
+      "to": "Wordsworth",
+      "message": "We came for school, but we stayed for the friendship.",
+      "createdAt": "2026-03-14T09:15:41.376Z"
     }
   ],
-  "nextId": 10
+  "nextId": 15
 }

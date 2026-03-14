@@ -97,8 +97,38 @@
       "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-14T05:21:34.180Z"
+    },
+    {
+      "id": 8,
+      "name": "nhgnh",
+      "school": "Narayana",
+      "city": "Sarangpur Tahsil",
+      "country": "Rajgarh",
+      "lat": 23.6964345,
+      "lng": 76.6391063,
+      "type": "school",
+      "emoji": "🎓",
+      "note": "Naranya, Sarangpur Tahsil, Rajgarh",
+      "approved": false,
+      "deletedAt": null,
+      "createdAt": "2026-03-14T09:30:20.032Z"
+    },
+    {
+      "id": 9,
+      "name": "nhgnh",
+      "school": "Standford Lane",
+      "city": "Standford Lane",
+      "country": "East Hampshire",
+      "lat": 51.1060711,
+      "lng": -0.8370457,
+      "type": "university",
+      "emoji": "🎓",
+      "note": "Headley, Standford, East Hampshire",
+      "approved": false,
+      "deletedAt": null,
+      "createdAt": "2026-03-14T09:30:20.091Z"
     }
   ],
   "submissions": [],
-  "nextId": 8
+  "nextId": 10
 }

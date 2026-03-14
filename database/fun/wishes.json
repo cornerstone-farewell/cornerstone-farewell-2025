@@ -1,40 +1,33 @@
 {
   "entries": [
     {
-      "id": 1,
-      "name": "Anish Kilari",
-      "category": "funny",
-      "text": "monkey banana",
-      "createdAt": "2026-03-11T09:12:00.166Z"
-    },
-    {
-      "id": 2,
-      "name": "anonymous",
+      "id": 7,
+      "name": "Linda",
       "category": "dream",
-      "text": "hi people",
-      "createdAt": "2026-03-12T06:57:06.400Z"
+      "text": "Dreaming of turning curiosity into a lifelong career.",
+      "createdAt": "2026-03-14T09:18:51.877Z"
     },
     {
-      "id": 3,
-      "name": "anonymous",
-      "category": "dream",
-      "text": "hi peple",
-      "createdAt": "2026-03-13T13:09:40.559Z"
-    },
-    {
-      "id": 4,
-      "name": "rkdngjndrfngjedrngfnjlb",
+      "id": 8,
+      "name": "Vedanth",
       "category": "advice",
-      "text": "gjrlnsgkjnfkdfjhjnkrdjfjlhkjrtfhdlktrjgfnhj",
-      "createdAt": "2026-03-13T14:39:22.511Z"
+      "text": "Choose friends who help you grow, not just pass time.",
+      "createdAt": "2026-03-14T09:19:19.283Z"
     },
     {
-      "id": 5,
-      "name": "ENMDFGSKNEKDJ",
-      "category": "hope",
-      "text": "SENRHKFNDKNGJNSKEN,HND  EJD HF NTD H  TEDMFS NB",
-      "createdAt": "2026-03-13T16:52:06.663Z"
+      "id": 9,
+      "name": "Frost",
+      "category": "funny",
+      "text": "I still don’t know where all my pens disappear to.",
+      "createdAt": "2026-03-14T09:19:53.678Z"
+    },
+    {
+      "id": 10,
+      "name": "Anonymous",
+      "category": "funny",
+      "text": "My biggest talent is remembering random facts during exams… except the answers.",
+      "createdAt": "2026-03-14T09:20:17.150Z"
     }
   ],
-  "nextId": 6
+  "nextId": 11
 }

@@ -8761,7 +8761,21 @@
       "action": "save-settings",
       "meta": {},
       "createdAt": "2026-03-14T05:58:45.047Z"
+    },
+    {
+      "id": 1071,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-14T09:18:04.864Z"
+    },
+    {
+      "id": 1072,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-14T09:33:39.969Z"
     }
   ],
-  "nextId": 1071
+  "nextId": 1073
 }
