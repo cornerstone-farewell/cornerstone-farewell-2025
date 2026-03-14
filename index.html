@@ -505,7 +505,7 @@ html.hard-refresh-top, body.hard-refresh-top { scroll-behavior: auto !important;
 // UNIFIED CONFIG
 // =========================
 const CONFIG = {
-  API_BASE: localStorage.getItem('farewell_api_base') || "https://cowboy-remaining-ate-occurred.trycloudflare.com",
+  API_BASE: localStorage.getItem('farewell_api_base') || "https://creating-figures-maybe-render.trycloudflare.com",
   REFRESH_INTERVAL: 60000,
   MAX_FILE_SIZE: 100 * 1024 * 1024,
   MAX_TOTAL_SIZE: 200 * 1024 * 1024,
@@ -973,11 +973,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     text-transform: uppercase;
   }
 
-  .nav-links { 
-    display: flex; 
-    gap: 40px; 
-    list-style: none; 
-  }
+   .nav-links { 
+  display: flex; 
+  align-items: center; /* FIX: Centers the items vertically */
+  gap: 40px; 
+  list-style: none; 
+ }
 
   .nav-links a {
     color: var(--text-light);
@@ -1008,15 +1009,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     width: 100%; 
   }
 
-  .nav-cta {
-    background: var(--gradient-gold);
-    color: var(--navy-dark) !important;
-    padding: 12px 28px !important;
-    border-radius: 30px;
-    font-weight: 600 !important;
-    box-shadow: var(--shadow-gold);
-    transition: var(--transition-smooth) !important;
-  }
+   .nav-cta {
+  display: inline-flex; /* FIX: Respects top/bottom padding */
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap; /* FIX: Stops text from breaking onto two lines */
+  line-height: 1;
+  background: var(--gradient-gold);
+  color: var(--navy-dark) !important;
+  padding: 12px 28px !important;
+  border-radius: 30px;
+  font-weight: 600 !important;
+  box-shadow: var(--shadow-gold);
+  transition: var(--transition-smooth) !important;
+ }
 
   .nav-cta::after { 
     display: none !important; 
@@ -1090,14 +1096,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     .mobile-menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -6px); }
 
   /* Tutorial Overlay Styles */
-  .feature-tour-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 10000;
-      display: none;
-      pointer-events: auto;
-  }
+  /* FIX: Robust Tutorial Styles */
+#tutorialOverlay {
+  position: fixed; inset: 0; z-index: 10500; display: none;
+  background: transparent !important; /* CRITICAL: Lets spotlight shadow do the dimming */
+  pointer-events: auto;
+}
+#tutorialOverlay.active { display: block; }
+#tutorialSpotlight {
+  position: fixed; /* CRITICAL: Matches viewport coordinates */
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85) !important;
+  pointer-events: none;
+  transition: all 0.4s ease;
+  z-index: 10501;
+  border: 3px solid var(--primary-gold);
+}
+#tutorialCard {
+  position: fixed;
+  background: var(--navy-medium);
+  border: 1px solid var(--primary-gold);
+  border-radius: 16px; 
+  padding: 22px;
+  width: 320px; 
+  max-width: 90vw;
+  z-index: 10502;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+  transition: all 0.4s ease;
+  font-family: var(--font-body);
+}
 
   .feature-tour-overlay.active {
       display: block;
@@ -1415,129 +1442,110 @@ document.addEventListener('DOMContentLoaded', async () => {
   // FEATURE TUTORIAL SYSTEM
   // ═══════════════════════════════════════════════════════════════════════
 
-  window.startTutorial = function() {
-      const steps = [
-          { target: '#upload', title: 'Upload Memories', text: 'Share your favorite photos and videos from school here.' },
-          { target: '#memories', title: 'Memory Wall', text: 'View, like, and comment on memories shared by your friends.' },
-          { target: '#distanceMapSection', title: 'Destinations Globe', text: 'Pin your future university and see where everyone is going!' },
-          { target: '#gratitudeWall', title: 'Fun Features', text: 'Leave advice, dedicate songs, and drop wishes in the jar.' },
-          { target: '#logo', title: 'Admin Access', text: 'Admins: Click the logo 5 times rapidly to access the moderation dashboard.' }
-      ];
+    window.startTutorial = function() {
+  console.log("Tutorial started!");
+  
+  // 1. Inject guaranteed CSS directly so it cannot fail
+  if (!document.getElementById('tutorialDynamicStyles')) {
+   const style = document.createElement('style');
+   style.id = 'tutorialDynamicStyles';
+   style.innerHTML = `
+    #tutorialOverlay { position: fixed; inset: 0; z-index: 10500; background: transparent; pointer-events: auto; }
+    #tutorialSpotlight { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85); pointer-events: none; transition: all 0.4s ease; z-index: 10501; border: 3px solid #D4AF37; }
+    #tutorialCard { position: fixed; background: #16213e; border: 1px solid #D4AF37; border-radius: 16px; padding: 22px; width: 320px; max-width: 90vw; z-index: 10502; box-shadow: 0 15px 50px rgba(0,0,0,0.6); transition: all 0.4s ease; font-family: "Poppins", sans-serif; }
+   `;
+   document.head.appendChild(style);
+  }
 
-      let currentStep = 0;
+  const steps = [
+   { target: '#upload', title: 'Upload Memories', text: 'Share your favorite photos and videos from school here.' },
+   { target: '#memories', title: 'Memory Wall', text: 'View, like, and comment on memories shared by your friends.' },
+   { target: '#distanceMapSection', title: 'Destinations Globe', text: 'Pin your future university and see where everyone is going!' },
+   { target: '#gratitudeWall', title: 'Fun Features', text: 'Leave advice, dedicate songs, and drop wishes in the jar.' },
+   { target: '#logo', title: 'Admin Access', text: 'Admins: Click the logo 5 times rapidly to access the moderation dashboard.' }
+  ];
+  
+  let currentStep = 0;
 
-      function showStep() {
+  function showStep() {
+   if (currentStep >= steps.length) { window.closeTutorial(); return; }
+   const step = steps[currentStep];
+   const el = document.querySelector(step.target);
 
-          if (currentStep >= steps.length) { 
-              closeTutorial(); 
-              return; 
-          }
+   // FIX: Safe visibility check (ignores offsetParent issues for fixed items)
+   if (!el || window.getComputedStyle(el).display === 'none') {
+    console.log("Skipping hidden element:", step.target);
+    currentStep++;
+    showStep();
+    return;
+   }
 
-          const step = steps[currentStep];
-          const el = document.querySelector(step.target);
+   // Scroll to the item
+   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-          if (!el) { 
-              console.warn('Tutorial target not found:', step.target);
-              currentStep++; 
-              showStep(); 
-              return; 
-          }
+   // Wait for smooth scrolling to finish before drawing the spotlight
+   setTimeout(() => {
+    const rect = el.getBoundingClientRect();
+    let overlay = document.getElementById('tutorialOverlay');
 
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!overlay) {
+     overlay = document.createElement('div');
+     overlay.id = 'tutorialOverlay';
+     document.body.appendChild(overlay);
 
-          setTimeout(() => {
+     const spotlight = document.createElement('div');
+     spotlight.id = 'tutorialSpotlight';
+     overlay.appendChild(spotlight);
 
-              const rect = el.getBoundingClientRect();
-              const validRect = rect.width > 0 && rect.height > 0;
+     const card = document.createElement('div');
+     card.id = 'tutorialCard';
+     overlay.appendChild(card);
+    }
+    
+    // Ensure overlay is visible
+    overlay.style.display = 'block';
 
-              let overlay = document.getElementById('tutorialOverlay');
+    const spotlight = document.getElementById('tutorialSpotlight');
+    spotlight.style.left = (rect.left - 10) + 'px';
+    spotlight.style.top = (rect.top - 10) + 'px';
+    spotlight.style.width = (rect.width + 20) + 'px';
+    spotlight.style.height = (rect.height + 20) + 'px';
 
-              if (!overlay) {
+    const card = document.getElementById('tutorialCard');
+    card.innerHTML = `
+     <h3 style="color:#D4AF37; margin-bottom:8px; font-size:1.1rem; margin-top:0;">${step.title}</h3>
+     <p style="color:#fff; margin-bottom:15px; font-size:0.9rem; line-height:1.5;">${step.text}</p>
+     <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-secondary" style="padding:6px 14px; font-size:0.85rem;" onclick="window.closeTutorial()">Skip Tour</button>
+      <button class="btn btn-primary" style="padding:6px 14px; font-size:0.85rem;" onclick="window.nextTutorialStep()">
+       ${currentStep === steps.length - 1 ? 'Finish ✓' : 'Next ➔'}
+      </button>
+     </div>
+    `;
 
-                  overlay = document.createElement('div');
-                  overlay.id = 'tutorialOverlay';
-                  overlay.className = 'feature-tour-overlay active';
-                  document.body.appendChild(overlay);
+    // Smart positioning so the card doesn't go off-screen
+    let cardTop = rect.bottom + 25;
+    if (cardTop + 150 > window.innerHeight) {
+     cardTop = Math.max(20, rect.top - 160);
+    }
+    let cardLeft = rect.left + (rect.width / 2) - 160;
+    if (cardLeft < 20) cardLeft = 20; 
+    if (cardLeft + 320 > window.innerWidth) cardLeft = window.innerWidth - 340; 
 
-                  const spotlight = document.createElement('div');
-                  spotlight.id = 'tutorialSpotlight';
-                  spotlight.className = 'feature-tour-spotlight';
-                  overlay.appendChild(spotlight);
+    card.style.left = cardLeft + 'px';
+    card.style.top = cardTop + 'px';
 
-                  const card = document.createElement('div');
-                  card.id = 'tutorialCard';
-                  card.className = 'feature-tour-card';
-                  overlay.appendChild(card);
+   }, 600); // 600ms gives the screen time to finish scrolling
+  }
 
-              } else {
-                  overlay.classList.add('active');
-              }
-
-              const spotlight = document.getElementById('tutorialSpotlight');
-
-              if (validRect) {
-
-                  spotlight.style.left = (rect.left - 5) + 'px';
-                  spotlight.style.top = (rect.top - 5) + 'px';
-                  spotlight.style.width = (rect.width + 10) + 'px';
-                  spotlight.style.height = (rect.height + 10) + 'px';
-                  spotlight.style.transform = 'none';
-
-              } else {
-
-                  spotlight.style.left = '50%';
-                  spotlight.style.top = '50%';
-                  spotlight.style.width = '100px';
-                  spotlight.style.height = '100px';
-                  spotlight.style.transform = 'translate(-50%, -50%)';
-
-              }
-
-              const card = document.getElementById('tutorialCard');
-
-              card.innerHTML = `
-                  <h3>${step.title}</h3>
-                  <p>${step.text}</p>
-                  <div class="feature-tour-actions">
-                      <button class="btn btn-secondary" style="padding:8px 16px; font-size:0.85rem;" onclick="closeTutorial()">Skip Tour</button>
-                      <button class="btn btn-primary" style="padding:8px 16px; font-size:0.85rem;" onclick="nextTutorialStep()">
-                          ${currentStep === steps.length - 1 ? 'Finish ✓' : 'Next ➔'}
-                      </button>
-                  </div>
-              `;
-
-              let cardLeft = Math.max(20, rect.left + (rect.width/2) - 180);
-              let cardTop = rect.bottom + 20;
-
-              if (cardTop + 200 > window.innerHeight) {
-                  cardTop = Math.max(20, rect.top - 180);
-              }
-
-              if (cardLeft + 360 > window.innerWidth) {
-                  cardLeft = window.innerWidth - 380;
-              }
-
-              card.style.left = cardLeft + 'px';
-              card.style.top = cardTop + 'px';
-              card.style.transform = 'none';
-
-          }, 600);
-      }
-
-      window.nextTutorialStep = function() { 
-          currentStep++; 
-          showStep(); 
-      };
-
-      window.closeTutorial = function() { 
-          const o = document.getElementById('tutorialOverlay'); 
-          if (o) o.remove(); 
-      };
-
-      showStep();
+  window.nextTutorialStep = function() { currentStep++; showStep(); };
+  window.closeTutorial = function() { 
+   const o = document.getElementById('tutorialOverlay'); 
+   if (o) o.remove(); 
   };
 
-  </script>
+  showStep();
+ };</script>
 
     <!-- FRAGMENT: hero -->
   <style data-fragment-style="hero">
@@ -2187,7 +2195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   <option value="Other">Other</option>
   </select>
   </div>
-  <button class="btn btn-primary" id="submitUpload" style="width: 100%;" type="button">📤 Upload Memory</button>
+  <button class="btn btn-primary" id="submitUpload" style="width: 100%;" type="button" onclick="window.submitUpload ? window.submitUpload() : submitUpload()"> Upload Memory</button>
   </div>
 
   <div class="upload-progress" id="uploadProgress">
@@ -2211,21 +2219,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ═══════════════════════════════════════════════════════════════════════════════
   // UPLOAD FUNCTIONALITY - COMPLETE REWRITE
   // ═══════════════════════════════════════════════════════════════════════════════
-    document.addEventListener("DOMContentLoaded", function () {
-    const dropzone = document.getElementById("dropzone");
-    const fileInput = document.getElementById("file-input");
-
-    // Open file picker when dropzone is clicked
-    dropzone.addEventListener("click", () => {
-        fileInput.click();
-    });
-
-    // Handle file selection
-    fileInput.addEventListener("change", (event) => {
-        const files = event.target.files;
-        console.log("Selected files:", files);
-    });
-});
+    
   let selectedFiles = [];
 
   function initUpload() {
@@ -2242,11 +2236,13 @@ document.addEventListener('DOMContentLoaded', async () => {
    }
 
    // Click to browse
-   dropzone.addEventListener('click', (e) => {
-   e.preventDefault();
-   console.log('📁 Dropzone clicked, opening file browser...');
-   fileInput.click();
-   });
+    // Click to browse
+ dropzone.addEventListener('click', (e) => {
+  if (e.target === fileInput) return; // FIX: Stops the infinite click loop
+  e.preventDefault();
+  console.log(' 📁 Dropzone clicked, opening file browser...');
+  fileInput.click();
+ });
 
    // File input change
    fileInput.addEventListener('change', (e) => {
@@ -2285,9 +2281,18 @@ document.addEventListener('DOMContentLoaded', async () => {
    }
 
    // Submit button
-   if (submitBtn) {
-   submitBtn.addEventListener('click', submitUpload);
+    // Submit button
+ if (submitBtn) {
+  submitBtn.addEventListener('click', (e) => {
+   e.preventDefault();
+   // Force it to use the robust global patch if available
+   if (typeof window.submitUpload === 'function') {
+    window.submitUpload();
+   } else {
+    submitUpload();
    }
+  });
+ }
 
    // Upload status callout
    updateUploadStatusCallout();
@@ -6407,279 +6412,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   </script>
   </section>
 
-    <!-- FRAGMENT: stereodeck -->
-  <style data-fragment-style="stereodeck">
-  /* Floating Sleek Boombox */
-  #boomboxDock {
-   position: fixed;
-   bottom: 20px;
-   right: 20px;
-   z-index: 5000;
-   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-   display: flex;
-   flex-direction: column;
-   align-items: flex-end;
-  }
-  #boomboxDock.minimized {
-   transform: translateY(calc(100% - 48px));
-  }
-  #boomboxToggle {
-   background: var(--gradient-gold);
-   color: var(--navy-dark);
-   border: none;
-   border-radius: 12px 12px 0 0;
-   padding: 8px 20px;
-   font-weight: bold;
-   cursor: pointer;
-   font-family: var(--font-body);
-   box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
-   font-size: 0.9rem;
-   display: flex;
-   align-items: center;
-   gap: 8px;
-  }
-  #boomboxUnit {
-   width: 320px;
-   background: rgba(26, 26, 46, 0.95);
-   backdrop-filter: blur(15px);
-   border: 1px solid var(--primary-gold);
-   border-radius: 16px 0 16px 16px;
-   padding: 20px;
-   box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-  }
-  .boombox-brand {
-   font-family: var(--font-display);
-   color: var(--primary-gold);
-   font-size: 1.2rem;
-   text-align: center;
-   margin-bottom: 15px;
-   border-bottom: 1px solid rgba(212,175,55,0.2);
-   padding-bottom: 10px;
-  }
-  .boombox-door {
-   height: 60px;
-   border-radius: 10px;
-   border: 1px solid rgba(255,255,255,0.1);
-   background: #0a0a0c;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   color: var(--text-muted);
-   font-size: 0.85rem;
-   margin-bottom: 15px;
-   overflow: hidden;
-   position: relative;
-  }
-  .boombox-door.has-tape {
-   border-color: var(--primary-gold);
-   background: linear-gradient(90deg, #111, #222, #111);
-  }
-  .tape-spool {
-   width: 30px; height: 30px;
-   border: 2px solid #555;
-   border-radius: 50%;
-   border-top-color: #fff;
-   animation: spin 2s linear infinite;
-   position: absolute;
-  }
-  .tape-spool.left { left: 20px; }
-  .tape-spool.right { right: 20px; }
-
-  #cassetteRack {
-   display: grid;
-   grid-template-columns: 1fr 1fr;
-   gap: 8px;
-   margin-bottom: 15px;
-  }
-  .cassette {
-   padding: 8px;
-   border-radius: 8px;
-   background: rgba(255,255,255,0.05);
-   border: 1px solid rgba(255,255,255,0.1);
-   color: var(--text-light);
-   font-size: 0.8rem;
-   cursor: pointer;
-   transition: all 0.3s ease;
-  }
-  .cassette:hover, .cassette.active {
-   background: rgba(212,175,55,0.2);
-   border-color: var(--primary-gold);
-   color: var(--primary-gold);
-  }
-  .boombox-controls {
-   display: flex;
-   gap: 10px;
-  }
-  .boombox-controls button {
-   flex: 1;
-   padding: 8px;
-   border-radius: 8px;
-   background: rgba(244,67,54,0.2);
-   color: #ffb3ad;
-   border: 1px solid rgba(244,67,54,0.4);
-   cursor: pointer;
-   transition: 0.3s;
-   font-weight: bold;
-  }
-  .boombox-controls button:hover { background: rgba(244,67,54,0.4); }
-
-  /* Lean Back Mode */
-  #leanBackOverlay{position:fixed;inset:0;background:#000;z-index:9000;display:none;overflow:hidden;}
-  #leanBackOverlay.active{display:block;}
-  #leanBackStage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
-  #leanBackStage img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:16px;box-shadow:0 30px 100px rgba(0,0,0,0.7);transition:transform 7s ease,opacity 0.8s ease;}
-  #leanBackControls{position:absolute;left:20px;right:20px;bottom:20px;display:flex;justify-content:space-between;align-items:center;z-index:2;}
-  #leanBackStatus{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);color:#fff;padding:10px 16px;border-radius:999px;backdrop-filter:blur(12px);font-size:0.9rem;}
-  </style>
-
-  <div id="leanBackOverlay">
-   <div id="leanBackStage"></div>
-   <div id="leanBackControls">
-   <div id="leanBackStatus">Lean Back Mode</div>
-   <button class="btn btn-danger" onclick="stopLeanBackMode()" type="button">Exit</button>
-   </div>
-  </div>
-
-  <div id="boomboxDock" class="minimized">
-   <button id="boomboxToggle" onclick="document.getElementById('boomboxDock').classList.toggle('minimized')">
-   📻 StereoDeck <span style="font-size:0.7rem;">▲/▼</span>
-   </button>
-   <div id="boomboxUnit">
-   <div class="boombox-brand">Cornerstone Tunes</div>
-   <div class="boombox-door" id="boomboxDoor">Pick a vibe below</div>
-   <div id="cassetteRack"></div>
-   <div class="boombox-controls">
-   <button id="ejectTapeBtn" onclick="ejectTape()">⏏ Eject / Stop</button>
-   </div>
-   </div>
-  </div>
-
-  <script data-fragment-script="stereodeck">
-  (function() {
-   const stereoState = { currentAudio: null, activeTape: null, leanBackTimer: null, leanBackIndex: 0, leanBackItems: [] };
-
-   function initBoombox() {
-   const rack = document.getElementById('cassetteRack');
-   if (!rack || rack.dataset.built) return;
-   rack.dataset.built = '1';
- 
-   const tapes = [
-   { name: '🎓 Graduation Vibes', key: 'graduation' },
-   { name: '🥺 Sad Boi Hours', key: 'sadboi' },
-   { name: '🔥 Hype Track', key: 'hype' },
-   { name: '✨ Lo-Fi Chill', key: 'lofi' } // Fallback
-   ];
-
-   tapes.forEach(tape => {
-   const btn = document.createElement('button');
-   btn.className = 'cassette';
-   btn.textContent = tape.name;
-   btn.onclick = () => playTape(tape.name, tape.key, btn);
-   rack.appendChild(btn);
-   });
-
-   // Append Lean Back button to hero programmatically
-   const heroBtns = document.querySelector('.hero-buttons');
-   if(heroBtns && !document.getElementById('watchMovieBtn')) {
-   const btn = document.createElement('button');
-   btn.className = 'btn btn-secondary';
-   btn.id = 'watchMovieBtn';
-   btn.innerHTML = '🎬 Watch as Movie';
-   btn.onclick = startLeanBackMode;
-   heroBtns.appendChild(btn);
-   }
-   }
-
-   function playTape(name, key, btnEl) {
-   const door = document.getElementById('boomboxDoor');
-   if(stereoState.currentAudio) { stereoState.currentAudio.pause(); stereoState.currentAudio = null; }
- 
-   document.querySelectorAll('.cassette').forEach(b => b.classList.remove('active'));
-   btnEl.classList.add('active');
-
-   const musicSettings = window.state?.settings?.music || {};
-   const musicFile = musicSettings['boombox' + key.charAt(0).toUpperCase() + key.slice(1)] || `/music/${key}.mp3`; // fallback route
-
-   try {
-   stereoState.currentAudio = new Audio(musicFile);
-   stereoState.currentAudio.loop = true;
-   stereoState.currentAudio.volume = 0.4;
-   stereoState.currentAudio.play().catch(e => console.log('Audio playback blocked until interaction', e));
- 
-   door.classList.add('has-tape');
-   door.innerHTML = `
-   <div class="tape-spool left"></div>
-   <div style="text-align:center; z-index:2; font-weight:bold; color:var(--primary-gold);">${name}</div>
-   <div class="tape-spool right"></div>
-   `;
-   } catch (e) { console.error('Audio fail', e); }
-   }
-
-   window.ejectTape = function() {
-   if(stereoState.currentAudio) { stereoState.currentAudio.pause(); stereoState.currentAudio = null; }
-   document.querySelectorAll('.cassette').forEach(b => b.classList.remove('active'));
-   const door = document.getElementById('boomboxDoor');
-   if(door) {
-   door.classList.remove('has-tape');
-   door.innerHTML = 'Music Stopped';
-   }
-   };
-
-   window.startLeanBackMode = function() {
-      const memories = (window.state?.memories || []).filter(m => m.file_type === 'image' && m.file_url);
     
-      if (!memories.length) {
-          if(typeof showNotification==='function') showNotification('info', 'No photos', 'Need approved photos first.');
-          return;
-      }
-    
-      // Process URLs through mediaUrl if available
-      stereoState.leanBackItems = memories.map(m => ({
-          ...m,
-          file_url: typeof mediaUrl === 'function' ? mediaUrl(m.file_url) : m.file_url
-      }));
-    
-      document.getElementById('leanBackOverlay').classList.add('active');
-      document.body.style.overflow = 'hidden';
-      stereoState.leanBackIndex = 0;
-      showLeanBackSlide();
-  };
-
-   window.stopLeanBackMode = function() {
-   clearTimeout(stereoState.leanBackTimer);
-   document.getElementById('leanBackOverlay').classList.remove('active');
-   document.body.style.overflow = '';
-   };
-
-   function showLeanBackSlide() {
-   const stage = document.getElementById('leanBackStage');
-   if (!stage || !stereoState.leanBackItems.length) return;
-   const item = stereoState.leanBackItems[stereoState.leanBackIndex % stereoState.leanBackItems.length];
- 
-   stage.innerHTML = '';
-   const img = document.createElement('img');
-   img.src = item.file_url;
-   img.style.opacity = '0';
-   img.style.transform = 'scale(1.05)';
-   stage.appendChild(img);
- 
-   requestAnimationFrame(() => {
-   img.style.opacity = '1';
-   img.style.transform = 'scale(1.15)';
-   });
-
-   const status = document.getElementById('leanBackStatus');
-   if (status) status.textContent = `Movie Mode • ${stereoState.leanBackIndex + 1} / ${stereoState.leanBackItems.length}`;
-
-   stereoState.leanBackTimer = setTimeout(() => {
-   stereoState.leanBackIndex++;
-   showLeanBackSlide();
-   }, 5000);
-   }
-
-   document.addEventListener('DOMContentLoaded', () => setTimeout(initBoombox, 1000));
-  })();
-  </script>
 
     <!-- FRAGMENT: globe -->
   <style data-fragment-style="globe">
@@ -14068,14 +13801,15 @@ console.log('✅ Admin Security loaded');
     if (!dropzone.dataset.farewellBound) {
       dropzone.dataset.farewellBound = '1';
 
-      dropzone.addEventListener('click', (e) => {
-        // only trigger if uploads are enabled (if admin disabled uploads, keep it blocked)
-        try {
-          if (typeof state !== 'undefined' && state?.settings && state.settings.uploadsEnabled === false) return;
-        } catch (_) {}
-        e.preventDefault();
-        try { fileInput.click(); } catch (_) {}
-      });
+       dropzone.addEventListener('click', (e) => {
+  if (e.target === fileInput) return; // FIX: Stops the infinite click loop
+  // only trigger if uploads are enabled (if admin disabled uploads, keep it blocked)
+  try {
+   if (typeof state !== 'undefined' && state?.settings && state.settings.uploadsEnabled === false) return;
+  } catch (_) {}
+  e.preventDefault();
+  try { fileInput.click(); } catch (_) {}
+ });
 
       dropzone.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
