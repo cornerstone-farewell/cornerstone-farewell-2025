@@ -2247,7 +2247,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   <option value="Other">Other</option>
   </select>
   </div>
-  <button class="btn btn-primary" id="submitUpload" style="width: 100%;" type="button" onclick="window.submitUpload ? window.submitUpload() : submitUpload()"> Upload Memory</button>
+   <button class="btn btn-primary" id="submitUpload" style="width: 100%;" type="button"> Upload Memory</button>
   </div>
 
   <div class="upload-progress" id="uploadProgress">
@@ -3579,25 +3579,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      try {
-        const res = await fetch(apiUrl(`/api/comments/${memoryId}`), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, text, parentId: mem.replyingTo })
-        });
-        const data = await res.json();
-
-        if (!data.success) {
-          showNotification('error', 'Failed', data.error || 'Could not post comment.');
-          return;
-        }
-
-        document.getElementById('commentText').value = '';
-        mem.replyingTo = null;
-        updateReplyUI();
-        await loadComments(memoryId);
-        showNotification('success', 'Posted', 'Your comment was added!');
-      } catch (e) {
+       try {
+ // ── APPROVAL GATE ──
+ const _replyingTo = mem.replyingTo;
+ tdApprovals.queue({
+ type: 'comment',
+ label: 'Memory Comment',
+ icon: '💬',
+ preview: `"${text.slice(0,80)}${text.length>80?'…':''}"`,
+ meta: `By: ${name} | Memory ID: ${memoryId}`,
+ payload: { name, text, parentId: _replyingTo },
+ apiPath: `/api/comments/${memoryId}`,
+ onApprove: async () => { if(typeof loadComments==='function') await loadComments(memoryId); }
+ });
+ document.getElementById('commentText').value = '';
+ mem.replyingTo = null;
+ if(typeof updateReplyUI==='function') updateReplyUI();
+ showNotification('info', 'Submitted for Review', 'Your comment is pending admin approval ⏳');
+ } catch (e) {
         showNotification('error', 'Error', e.message);
       }
     }
@@ -5598,31 +5597,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (submitBtn) submitBtn.disabled = true;
 
-      try {
-        const res = await fetch(apiUrl('/api/fun/advice'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, batch, category, text })
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-          showNotification('success', 'Advice Shared!', 'Thank you for sharing your wisdom! 💡');
-        
-          // Reset form
-          document.getElementById('adviceForm')?.reset();
-          updateAdviceCharCount();
-        
-          // Reload advice
-          await loadAdvice();
-        
-          // Trigger confetti
-          if (typeof triggerConfetti === 'function') triggerConfetti();
-        } else {
-          showNotification('error', 'Failed', data.error || 'Could not submit advice.');
-        }
-      } catch (e) {
+       try {
+ // ── APPROVAL GATE ──
+ tdApprovals.queue({
+ type: 'advice',
+ label: 'Senior Advice',
+ icon: '💡',
+ preview: `"${text.slice(0,80)}${text.length>80?'…':''}"`,
+ meta: `From: ${name}${batch?' ('+batch+')':''} | Category: ${category}`,
+ payload: { name, batch, category, text },
+ apiPath: '/api/fun/advice',
+ onApprove: async () => { if(typeof loadAdvice==='function') await loadAdvice(); }
+ });
+ showNotification('info', 'Submitted for Review', 'Your advice is pending admin approval. ⏳');
+ document.getElementById('adviceForm')?.reset();
+ if(typeof updateAdviceCharCount==='function') updateAdviceCharCount();
+ if (typeof triggerConfetti === 'function') triggerConfetti();
+ } catch (e) {
         console.error('Submit advice error:', e);
         showNotification('error', 'Error', 'Failed to submit. Please try again.');
       } finally {
@@ -5870,9 +5861,219 @@ document.addEventListener('DOMContentLoaded', async () => {
    document.addEventListener('DOMContentLoaded', forceLoadTimeline);
    window.addEventListener('settingsUpdated', forceLoadTimeline);
   })();
-  </script>
-
-    <!-- FRAGMENT: quote -->
+  // ═══════════════════════════════════════════════════════════════════════════════
+// TD APPROVALS ENGINE — Admin approval queue for all user text submissions
+// ═══════════════════════════════════════════════════════════════════════════════
+(function() {
+ const STORAGE_KEY = 'td_approval_queue';
+ const tdApprovals = {
+ // ── Read queue from localStorage ──
+ getAll() {
+ try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+ catch(_) { return []; }
+ },
+ // ── Save queue ──
+ save(queue) {
+ localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+ tdApprovals.updateBadge();
+ },
+ // ── Add a pending item ──
+ queue(item) {
+ const queue = tdApprovals.getAll();
+ queue.push({
+ id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
+ status: 'pending',
+ submittedAt: new Date().toISOString(),
+ type: item.type,
+ label: item.label,
+ icon: item.icon,
+ preview: item.preview,
+ meta: item.meta,
+ payload: item.payload,
+ apiPath: item.apiPath,
+ onApproveFnName: null
+ });
+ tdApprovals.save(queue);
+ console.log('[Approvals] Queued:', item.type, item.preview);
+ },
+ // ── Update badge count on tab ──
+ updateBadge() {
+ const pending = tdApprovals.getAll().filter(i => i.status === 'pending');
+ const badge = document.getElementById('approvalsBadge');
+ if (badge) {
+ if (pending.length > 0) {
+ badge.textContent = pending.length;
+ badge.style.display = 'inline-block';
+ } else {
+ badge.style.display = 'none';
+ }
+ }
+ },
+ // ── Approve a single item ──
+ async approve(id) {
+ const queue = tdApprovals.getAll();
+ const item = queue.find(i => i.id === id);
+ if (!item) return;
+ try {
+ const res = await fetch(apiUrl(item.apiPath), {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify(item.payload)
+ });
+ const data = await res.json().catch(() => ({}));
+ if (res.ok && data.success !== false) {
+ item.status = 'approved';
+ item.approvedAt = new Date().toISOString();
+ tdApprovals.save(queue);
+ tdApprovals.reloadAfterApprove(item.type, item.apiPath);
+ showNotification('success', 'Approved!', `${item.icon} "${(item.preview||'').slice(0,50)}" is now live.`);
+ } else {
+ showNotification('error', 'Approval Failed', data.error || 'Server rejected the submission.');
+ }
+ } catch(e) {
+ showNotification('error', 'Network Error', e.message);
+ }
+ tdApprovals.renderPanel();
+ },
+ // ── Approve ALL pending ──
+ async approveAll() {
+ const pending = tdApprovals.getAll().filter(i => i.status === 'pending');
+ if (!pending.length) { showNotification('info','Nothing to approve','No pending submissions.'); return; }
+ if (!confirm(`Approve all ${pending.length} pending submission(s)?`)) return;
+ for (const item of pending) {
+ await tdApprovals.approve(item.id);
+ }
+ },
+ // ── Reject a single item ──
+ reject(id) {
+ const queue = tdApprovals.getAll();
+ const item = queue.find(i => i.id === id);
+ if (!item) return;
+ item.status = 'rejected';
+ item.rejectedAt = new Date().toISOString();
+ tdApprovals.save(queue);
+ showNotification('info', 'Rejected', `${item.icon} Submission removed.`);
+ tdApprovals.renderPanel();
+ },
+ // ── Clear approved/rejected history ──
+ clearHistory() {
+ const queue = tdApprovals.getAll().filter(i => i.status === 'pending');
+ tdApprovals.save(queue);
+ tdApprovals.renderPanel();
+ },
+ // ── Reload the relevant section after approve ──
+ reloadAfterApprove(type, apiPath) {
+ try {
+ if (type === 'advice' && typeof loadAdvice === 'function') loadAdvice();
+ if (type === 'gratitude' && typeof loadGratitudeNotes === 'function') loadGratitudeNotes();
+ if (type === 'wish' && typeof loadWishes === 'function') loadWishes();
+ if (type === 'dedication' && typeof loadDedications === 'function') loadDedications();
+ } catch(_) {}
+ },
+ // ── Render the Approvals admin panel ──
+ renderPanel() {
+ const panel = document.getElementById('panelApprovals');
+ if (!panel || !panel.classList.contains('active')) return;
+ const queue = tdApprovals.getAll();
+ const pending = queue.filter(i => i.status === 'pending');
+ const history = queue.filter(i => i.status !== 'pending').slice(-30).reverse();
+ const escH = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+ const timeAgoShort = iso => {
+ const diff = Date.now() - new Date(iso).getTime();
+ if (diff < 60000) return 'just now';
+ if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+ if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+ return Math.floor(diff/86400000) + 'd ago';
+ };
+ const statusColor = { approved: '#4CAF50', rejected: '#f44336', pending: '#D4AF37' };
+ panel.innerHTML = `
+ <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+ <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+ <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">✅ User Submission Approvals</h3>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;">
+ <button class="admin-btn admin-btn-primary" onclick="tdApprovals.approveAll()">✅ Approve All (${pending.length})</button>
+ <button class="admin-btn admin-btn-secondary" onclick="tdApprovals.clearHistory()">🧹 Clear History</button>
+ <button class="admin-btn admin-btn-secondary" onclick="tdApprovals.renderPanel()">🔄 Refresh</button>
+ </div>
+ </div>
+ <p style="color:var(--text-muted); margin-top:10px;">Review and approve or reject text submissions from users before they go live.</p>
+ </div>
+ <div class="admin-stats" style="margin-bottom:20px;">
+ <div class="stat-card"><div class="stat-number" style="color:var(--primary-gold);">${pending.length}</div><div class="stat-label">Pending</div></div>
+ <div class="stat-card"><div class="stat-number" style="color:#4CAF50;">${queue.filter(i=>i.status==='approved').length}</div><div class="stat-label">Approved</div></div>
+ <div class="stat-card"><div class="stat-number" style="color:#f44336;">${queue.filter(i=>i.status==='rejected').length}</div><div class="stat-label">Rejected</div></div>
+ <div class="stat-card"><div class="stat-number">${queue.length}</div><div class="stat-label">Total</div></div>
+ </div>
+ <div class="ff-admin-card" style="margin-bottom:24px;">
+ <div class="ff-admin-card-header">
+ <div class="ff-admin-card-title">⏳ Pending Review (${pending.length})</div>
+ </div>
+ <div class="ff-admin-list" style="max-height:600px;">
+ ${pending.length === 0
+ ? '<div class="ff-empty" style="padding:30px;text-align:center;">🎉 No pending submissions — all caught up!</div>'
+ : pending.map(item => `
+ <div class="ff-admin-item" style="border-left:3px solid var(--primary-gold);">
+ <div class="ff-admin-item-content" style="flex:1;min-width:0;">
+ <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+ <span style="font-size:1.3rem;">${escH(item.icon)}</span>
+ <strong style="color:var(--primary-gold);">${escH(item.label)}</strong>
+ <span class="mini-pill" style="background:rgba(212,175,55,0.15);color:var(--primary-gold);font-size:0.75rem;">${escH(item.type)}</span>
+ <span class="mini-pill" style="font-size:0.75rem;">${timeAgoShort(item.submittedAt)}</span>
+ </div>
+ <div style="color:var(--text-light);margin-bottom:6px;font-style:italic;word-break:break-word;">${escH(item.preview)}</div>
+ <div style="color:var(--text-muted);font-size:0.85rem;">${escH(item.meta)}</div>
+ </div>
+ <div class="ff-admin-item-actions" style="flex-direction:column;gap:6px;min-width:100px;">
+ <button class="admin-btn admin-btn-primary" style="padding:8px 14px;font-size:0.82rem;background:linear-gradient(135deg,#4CAF50,#45a049);" onclick="tdApprovals.approve('${item.id}')">✅ Approve</button>
+ <button class="admin-btn admin-btn-danger" style="padding:8px 14px;font-size:0.82rem;" onclick="tdApprovals.reject('${item.id}')">❌ Reject</button>
+ </div>
+ </div>
+ `).join('')
+ }
+ </div>
+ </div>
+ ${history.length > 0 ? `
+ <div class="ff-admin-card">
+ <div class="ff-admin-card-header">
+ <div class="ff-admin-card-title">📖 Recent History (last 30)</div>
+ </div>
+ <div class="ff-admin-list" style="max-height:400px;">
+ ${history.map(item => `
+ <div class="ff-admin-item" style="opacity:0.75;border-left:3px solid ${statusColor[item.status]||'#888'};">
+ <div class="ff-admin-item-content" style="flex:1;min-width:0;">
+ <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+ <span>${escH(item.icon)}</span>
+ <strong>${escH(item.label)}</strong>
+ <span class="mini-pill" style="background:${statusColor[item.status]||'#888'}22;color:${statusColor[item.status]||'#888'};font-size:0.75rem;text-transform:uppercase;">${item.status}</span>
+ <span class="mini-pill" style="font-size:0.72rem;">${timeAgoShort(item.approvedAt||item.rejectedAt||item.submittedAt)}</span>
+ </div>
+ <div style="color:var(--text-muted);font-size:0.85rem;word-break:break-word;">${escH(item.preview)}</div>
+ </div>
+ </div>
+ `).join('')}
+ </div>
+ </div>` : ''}
+ `;
+ }
+ };
+ // Expose globally
+ window.tdApprovals = tdApprovals;
+ // Init panel function called by switchAdminTab
+ window.initApprovalsPanelContent = function() {
+ const panel = document.getElementById('panelApprovals');
+ if (!panel) return;
+ panel.dataset.initialized = 'true';
+ tdApprovals.renderPanel();
+ };
+ // Update badge on load and periodically
+ document.addEventListener('DOMContentLoaded', () => {
+ tdApprovals.updateBadge();
+ setInterval(() => tdApprovals.updateBadge(), 5000);
+ });
+ console.log('✅ TD Approvals Engine loaded');
+})();
+ </script>
+ <!-- FRAGMENT: quote -->
   <style data-fragment-style="quote">
   #quote { background: var(--navy-dark); text-align: center; padding: 150px 20px; }.quote-content { max-width: 900px; margin: 0 auto; }.quote-icon { font-size: 4rem; color: var(--primary-gold); margin-bottom: 30px; opacity: 0.5; }.quote-text { font-family: var(--font-display); font-size: clamp(1.5rem, 4vw, 2.5rem); line-height: 1.5; font-style: italic; margin-bottom: 30px; }.quote-author { color: var(--primary-gold); font-size: 1.2rem; }
   </style>
@@ -5944,17 +6145,22 @@ document.addEventListener('DOMContentLoaded', async () => {
    if(!to) return ffNotify('error','Missing','Who is this note for?');
    if(!msg) return ffNotify('error','Missing','Write something kind!');
  
-   try {
-   const d = await ffPost('/api/fun/gratitude', {from, to, message:msg});
-   if(d.success) {
-   document.getElementById('gwFrom').value='';
-   document.getElementById('gwTo').value='';
-   document.getElementById('gwMsg').value='';
-   ffNotify('success','Posted!','Your sticky note is on the wall ');
-   if(typeof triggerConfetti==='function') triggerConfetti();
-   loadGratitudeNotes();
-   } else ffNotify('error','Failed',d.error);
-   } catch(e){ ffNotify('error','Error',e.message); }
+    // ── APPROVAL GATE ──
+ tdApprovals.queue({
+ type: 'gratitude',
+ label: 'Gratitude Note',
+ icon: '💖',
+ preview: `"${msg.slice(0,80)}${msg.length>80?'…':''}"`,
+ meta: `From: ${from} → To: ${to}`,
+ payload: { from, to, message: msg },
+ apiPath: '/api/fun/gratitude',
+ onApprove: async () => { if(typeof loadGratitudeNotes==='function') loadGratitudeNotes(); }
+ });
+ document.getElementById('gwFrom').value='';
+ document.getElementById('gwTo').value='';
+ document.getElementById('gwMsg').value='';
+ ffNotify('success','Submitted!','Your note is pending admin approval ⏳');
+ if(typeof triggerConfetti==='function') triggerConfetti();
    };
 
    // Load toggle settings
@@ -6260,10 +6466,19 @@ document.addEventListener('DOMContentLoaded', async () => {
    const category = document.getElementById('wishCategory')?.value || 'dream';
    const text = document.getElementById('wishText')?.value?.trim();
    if(!text) { if(typeof showNotification==='function') showNotification('error','Empty','Write your wish first!'); return; }
-   try {
-   const d = await fetch(apiUrl('/api/fun/wishes'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,category,text})}).then(r=>r.json());
-   if(d.success) { document.getElementById('wishText').value=''; if(typeof showNotification==='function') showNotification('success','Dropped!','Your wish is in the jar 🌟'); loadWishes(); }
-   } catch(e){}
+    // ── APPROVAL GATE ──
+ tdApprovals.queue({
+ type: 'wish',
+ label: 'Wish Jar',
+ icon: '✨',
+ preview: `"${text.slice(0,80)}${text.length>80?'…':''}"`,
+ meta: `From: ${name} | Category: ${category}`,
+ payload: { name, category, text },
+ apiPath: '/api/fun/wishes',
+ onApprove: async () => { if(typeof loadWishes==='function') loadWishes(); }
+ });
+ document.getElementById('wishText').value='';
+ if(typeof showNotification==='function') showNotification('success','Submitted!','Your wish is pending admin approval ⏳');
    };
    document.addEventListener('DOMContentLoaded', loadWishes);
   })();
@@ -6311,10 +6526,19 @@ document.addEventListener('DOMContentLoaded', async () => {
    const song = document.getElementById('dedSong')?.value?.trim();
    const message = document.getElementById('dedMsg')?.value?.trim();
    if(!from || !to || !song) { if(typeof showNotification==='function') showNotification('error','Missing','Fill all required fields!'); return; }
-   try {
-   const d = await fetch(apiUrl('/api/fun/dedications'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({from,to,song,message})}).then(r=>r.json());
-   if(d.success) { ['dedFrom','dedTo','dedSong','dedMsg'].forEach(id => document.getElementById(id).value=''); if(typeof showNotification==='function') showNotification('success','Dedicated!','Song added! 🎶'); loadDedications(); }
-   } catch(e){}
+    // ── APPROVAL GATE ──
+ tdApprovals.queue({
+ type: 'dedication',
+ label: 'Song Dedication',
+ icon: '🎵',
+ preview: `🎵 ${song}`,
+ meta: `From: ${from} → To: ${to}${message?' | "'+message.slice(0,50)+'"':''}`,
+ payload: { from, to, song, message },
+ apiPath: '/api/fun/dedications',
+ onApprove: async () => { if(typeof loadDedications==='function') loadDedications(); }
+ });
+ ['dedFrom','dedTo','dedSong','dedMsg'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+ if(typeof showNotification==='function') showNotification('success','Submitted!','Your dedication is pending admin approval ⏳');
    };
    document.addEventListener('DOMContentLoaded', loadDedications);
   })();
@@ -8127,8 +8351,11 @@ document.addEventListener('DOMContentLoaded', async () => {
      <div class="admin-tab" onclick="switchAdminTab('papernotes')">✉️ Paper Notes</div>
      <div class="admin-tab" onclick="switchAdminTab('teachers')">👨‍🏫 Teachers</div>
      <div class="admin-tab" onclick="switchAdminTab('students')">📚 Students</div>
-     <!-- Security -->
-     <div class="admin-tab" onclick="switchAdminTab('security')">🔒 Security</div>
+      <!-- Security -->
+ <div class="admin-tab" onclick="switchAdminTab('security')">🔒 Security</div>
+ <!-- Approvals -->
+ <div class="admin-tab" onclick="switchAdminTab('approvals')" id="approvalsTab" style="position:relative;">✅ Approvals <span id="approvalsBadge" style="display:none;background:#e94560;color:#fff;border-radius:999px;font-size:0.72rem;padding:1px 7px;margin-left:4px;font-weight:700;vertical-align:middle;"></span></div>
+ </div>
     </div>
   
     <!-- All panels -->
@@ -8142,10 +8369,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     <div class="admin-panel" id="panelAdvice" data-initialized="false"></div>
     <div class="admin-panel" id="panelPapernotes" data-initialized="false"></div>
     <div class="admin-panel" id="panelTeachers" data-initialized="false"></div>
-    <div class="admin-panel" id="panelStudents" data-initialized="false"></div>
-    <div class="admin-panel" id="panelSecurity" data-initialized="false"></div>
-   </div>
-  </div>
+     <div class="admin-panel" id="panelStudents" data-initialized="false"></div>
+ <div class="admin-panel" id="panelSecurity" data-initialized="false"></div>
+ <div class="admin-panel" id="panelApprovals" data-initialized="false"></div>
+ </div>
+ </div>
 
   <script data-fragment-script="admin_nav_top">
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -8183,9 +8411,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     advice: { panelId: 'panelAdvice', init: 'initAdvicePanelContent' },
     papernotes: { panelId: 'panelPapernotes', init: 'initPapernotesPanelContent' },
     teachers: { panelId: 'panelTeachers', init: 'initTeachersPanelContent' },
-    students: { panelId: 'panelStudents', init: 'initStudentsPanelContent' },
-    security: { panelId: 'panelSecurity', init: 'initSecurityPanelContent' }
-   };
+     students: { panelId: 'panelStudents', init: 'initStudentsPanelContent' },
+ security: { panelId: 'panelSecurity', init: 'initSecurityPanelContent' },
+ approvals: { panelId: 'panelApprovals', init: 'initApprovalsPanelContent' }
+ };
  
    const cfg = tabMap[tab];
    if (!cfg) {
