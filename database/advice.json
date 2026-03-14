@@ -8,7 +8,7 @@
       "batch": "2025",
       "category": "friends",
       "text": "The right friends will like you for who you are, not for pretending to be someone else.",
-      "likes": 0,
+      "likes": 1,
       "featured": false,
       "createdAt": "2026-03-14T09:07:24.573Z",
       "deletedAt": null
@@ -19,7 +19,7 @@
       "batch": "2025",
       "category": "teachers",
       "text": "Sometimes teachers are strict because they want the class to improve. Take the lesson from the scolding, not the emotion.",
-      "likes": 0,
+      "likes": 1,
       "featured": false,
       "createdAt": "2026-03-14T09:08:17.873Z",
       "deletedAt": null
@@ -30,7 +30,7 @@
       "batch": "2025",
       "category": "academics",
       "text": "One focused hour in class can save three hours of confusion later at home.",
-      "likes": 0,
+      "likes": 1,
       "featured": false,
       "createdAt": "2026-03-14T09:09:07.889Z",
       "deletedAt": null
@@ -41,7 +41,7 @@
       "batch": "2025",
       "category": "exams",
       "text": "Comparing scores with everyone can increase pressure. Focus on improving your own performance instead.",
-      "likes": 0,
+      "likes": 1,
       "featured": false,
       "createdAt": "2026-03-14T09:09:51.363Z",
       "deletedAt": null
@@ -52,7 +52,7 @@
       "batch": "2025",
       "category": "life",
       "text": "School days may feel long now, but later you’ll realize these years pass very quickly, so make good memories.",
-      "likes": 0,
+      "likes": 1,
       "featured": false,
       "createdAt": "2026-03-14T09:10:23.698Z",
       "deletedAt": null
@@ -63,7 +63,7 @@
       "batch": "2025",
       "category": "fun",
       "text": "One day you’ll look back and realize these fun moments were the highlights of your school life.",
-      "likes": 0,
+      "likes": 1,
       "featured": false,
       "createdAt": "2026-03-14T09:11:26.411Z",
       "deletedAt": null
@@ -74,7 +74,7 @@
       "batch": "2025",
       "category": "regrets",
       "text": "In school, many people feel like they must know exactly what they want to do in life. It’s completely normal to still be exploring.",
-      "likes": 0,
+      "likes": 1,
       "featured": false,
       "createdAt": "2026-03-14T09:12:06.195Z",
       "deletedAt": null
