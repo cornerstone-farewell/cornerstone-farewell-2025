@@ -127,8 +127,38 @@
       "approved": false,
       "deletedAt": null,
       "createdAt": "2026-03-14T09:30:20.091Z"
+    },
+    {
+      "id": 10,
+      "name": "Nischal",
+      "school": "Bowrampet",
+      "city": "Medchal–Malkajgiri",
+      "country": "Telangana",
+      "lat": 17.56103412493998,
+      "lng": 78.39822292327882,
+      "type": "school",
+      "emoji": "🎓",
+      "note": "Dundigal mandal, Medchal–Malkajgiri, Telangana",
+      "approved": false,
+      "deletedAt": null,
+      "createdAt": "2026-03-14T13:42:35.190Z"
+    },
+    {
+      "id": 11,
+      "name": "Nischal",
+      "school": "A.I.I.M.S.",
+      "city": "A.I.I.M.S.",
+      "country": "South Extension",
+      "lat": 28.566855631207908,
+      "lng": 77.20781564712526,
+      "type": "university",
+      "emoji": "🎓",
+      "note": "Aurobindo Marg, Yusuf Sarai Market, South Extension",
+      "approved": false,
+      "deletedAt": null,
+      "createdAt": "2026-03-14T13:42:35.283Z"
     }
   ],
   "submissions": [],
-  "nextId": 10
+  "nextId": 12
 }

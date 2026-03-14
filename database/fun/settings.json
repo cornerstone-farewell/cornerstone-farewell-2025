@@ -1,7 +1,7 @@
 {
   "enabled": {
     "gratitude": true,
-    "superlatives": false,
+    "superlatives": true,
     "wishes": true,
     "dedications": true,
     "mood": true,
@@ -12,6 +12,6 @@
     "moodBoard": true,
     "timeCapsule": true,
     "seniorAdvice": true,
-    "memoryMosaic": false
+    "memoryMosaic": true
   }
 }
