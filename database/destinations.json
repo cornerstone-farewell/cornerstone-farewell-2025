@@ -83,8 +83,22 @@
       "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-13T13:13:14.766Z"
+    },
+    {
+      "id": 7,
+      "name": "Bhai",
+      "school": "Changjin County",
+      "city": "South Hamgyong",
+      "country": "North Korea",
+      "lat": 40.3736611,
+      "lng": 127.0870417,
+      "type": "school",
+      "note": "South Hamgyong, North Korea",
+      "approved": true,
+      "deletedAt": null,
+      "createdAt": "2026-03-14T05:21:34.180Z"
     }
   ],
   "submissions": [],
-  "nextId": 7
+  "nextId": 8
 }

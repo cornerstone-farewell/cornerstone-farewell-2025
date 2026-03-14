@@ -6,7 +6,7 @@
     "contactEmail": "farewell2025@cornerstoneschool.edu.in",
     "locationLine": "Cornerstone School",
     "farewellIST": "2026-03-14T15:00",
-    "heroBadge": "10th Batch 2025",
+    "heroBadge": "9th Batch 2025-26",
     "heroTitle": "Farewell {year}",
     "heroSubtitle": "Where Memories Become Eternal",
     "heroDescription": "As we close this chapter and begin new journeys, let's celebrate the friendships, lessons, and memories that shaped us.",
@@ -46,19 +46,19 @@
       },
       {
         "name": "Mrs.Deepta",
-        "subject": "Vice Principal",
+        "subject": "Associate Vice Principal",
         "quote": "Behind you, all your memories. Before you, all your dreams & a world waiting for your light. Around you, all who love you. As you leave this school, carry your roots with pride and let your wings take you to horizons yet unseen. & As you step out to write your next chapter, remember that you will always have a home here at Cornerstone.",
         "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-16.png"
       },
       {
         "name": "Mrs.Kavitha",
-        "subject": "Financial Management",
+        "subject": "Financial Market  Management",
         "quote": "Money well managed builds wealth—but time, discipline, and integrity are the real investments that compound for a lifetime. Manage them wisely, and success will follow.",
         "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-19.png"
       },
       {
         "name": "Mr.Venkat",
-        "subject": "Mathematics-HOD",
+        "subject": "Vice Principal - 9 to 12",
         "quote": "Dear students,\nThis day marks an important milestone in your lives. The knowledge, values and experiences you gained here will always be your foundation for your next journey.\nSuccess is not only measured in marks but by the effort you put in, the courage you show and the character you build along the way. Dream big, stay focused and never stop learning. Your teachers and school will always be proud of you. \nWishing you success, happiness and endless opportunities ahead.",
         "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-28.png"
       },
@@ -72,11 +72,11 @@
         "name": "Mrs.Rajini",
         "subject": "English-HOD",
         "quote": "As i write these lines, my heart is filled with pride and nostalgia. Teaching you English was never just about lessons or grammar- it wasabout watching your thoughts grow and your voices become stronger each day.",
-        "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/11/englishhod.png"
+        "imageUrl": "https://ibb.co/5x15sNLS"
       },
       {
         "name": "Mrs.Ancy Thomas",
-        "subject": "Social Science-HOD",
+        "subject": "Social Science-HOD & 9-12 Coordinator",
         "quote": "You came here with tiny bags and big dreams—and handwriting we could barely read. Today you leave with bigger dreams… and handwriting we still can’t read! \n\nGo make the world proud—and don’t forget this place where it all began.",
         "imageUrl": "https://i.ibb.co/QS9w3YD/DSC0975.jpg"
       },
@@ -124,7 +124,7 @@
       },
       {
         "name": "Mrs.Smitha",
-        "subject": "English",
+        "subject": "English & Curriculum Coordinator",
         "quote": "Keep learning from the world, keep questioning it and write your own life story.",
         "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-26.png"
       },
@@ -138,30 +138,30 @@
         "name": "Mrs. Rashmi",
         "subject": "Hindi",
         "quote": "हमें आप पर गर्व है।\nआपकी मेहनत, अनुशासन और सपने आपको नई ऊँचाइयों तक ले जाएँगे।\nहमेशा सीखते रहिए, अच्छे इंसान बनिए और अपने माता-पिता व स्कूल का नाम रोशन कीजिए।\nआप सभी के उज्ज्वल भविष्य के लिए मेरी ढेर सारी शुभकामनाएँ",
-        "imageUrl": "https://i.ibb.co/YCLtygN/RAJINI-MAM.jpg"
+        "imageUrl": "[url=https://ibb.co/5x15sNLS][img]https://i.ibb.co/5x15sNLS/PHOTO-2026-03-14-10-30-05.jpg[/img][/url]"
       },
       {
         "name": "Mrs. Ushabharati",
-        "subject": "Social science",
+        "subject": "History & Civics",
         "quote": "Watching your stories unfold has been my greatest joy as a teacher. I have watched you edit your mistakes, refine your arguements and find your rythm. Your passing out grade 10 isn't the end - it's just the lead into a much bigger story.",
         "imageUrl": "https://i.ibb.co/SwsFdyFV/DSC0955.jpg"
       },
       {
         "name": "Mrs. Sridevi",
-        "subject": "Company Science- HOD",
+        "subject": "Computer Science- HOD",
         "quote": "Artificial Intelligence can process data, but only you can dream, question, and innovate. Keep learning, keep exploring, and never stop asking 'why?'",
         "imageUrl": "https://www.cornerstoneschool.edu.in/wp-content/uploads/2024/02/Rectangle-22.png"
       },
       {
         "name": "Mr. Ambaiah G",
-        "subject": "Mathematis- HOD",
+        "subject": "Mathematics",
         "quote": "Work hard in silence let success make the noise.",
         "imageUrl": "https://i.ibb.co/v4nTD83c/DSC0965.jpg"
       },
       {
         "name": "Mr. Surendra",
         "subject": "Sanskrit",
-        "quote": "Thank you all. I want to give my little advice for life. Please wit for god things to happen. Good things always take time. Never be scared to do something different. Love your family and country",
+        "quote": "Thank you all. I want to give my little advice for life. Please wait for good things to happen. Good things always take time. Never be scared to do something different. Love your family and country",
         "imageUrl": "https://i.ibb.co/D0jhBRJ/DSC0946.jpg"
       }
     ],
@@ -226,6 +226,7 @@
       "ghostPopupMusic": "",
       "notesPopupMusic": "",
       "lockerBangSound": ""
-    }
+    },
+    "musicPath": ""
   }
 }

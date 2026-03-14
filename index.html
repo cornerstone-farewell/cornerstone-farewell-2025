@@ -505,7 +505,7 @@ html.hard-refresh-top, body.hard-refresh-top { scroll-behavior: auto !important;
 // UNIFIED CONFIG
 // =========================
 const CONFIG = {
-  API_BASE: localStorage.getItem('farewell_api_base') || "https://productions-acrylic-dancing-rules.trycloudflare.com",
+  API_BASE: localStorage.getItem('farewell_api_base') || "https://cowboy-remaining-ate-occurred.trycloudflare.com",
   REFRESH_INTERVAL: 60000,
   MAX_FILE_SIZE: 100 * 1024 * 1024,
   MAX_TOTAL_SIZE: 200 * 1024 * 1024,
@@ -2094,7 +2094,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   .dropzone-subtitle { color: var(--text-muted); margin-bottom: 20px; }
   .dropzone-formats { font-size: 0.85rem; color: var(--text-muted); }
   .dropzone-formats span { background: rgba(212, 175, 55, 0.2); padding: 4px 10px; border-radius: 10px; margin: 0 3px; color: var(--primary-gold); }
-  #file-input { display: none; }
+  #file-input {
+ position: absolute;
+ left: -9999px;
+ width: 1px;
+ height: 1px;
+ opacity: 0;
+}
   .file-preview-container { margin-top: 30px; display: none; }
   .file-preview-container.has-files { display: block; }
   .file-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }
@@ -2205,7 +2211,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ═══════════════════════════════════════════════════════════════════════════════
   // UPLOAD FUNCTIONALITY - COMPLETE REWRITE
   // ═══════════════════════════════════════════════════════════════════════════════
+    document.addEventListener("DOMContentLoaded", function () {
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("file-input");
 
+    // Open file picker when dropzone is clicked
+    dropzone.addEventListener("click", () => {
+        fileInput.click();
+    });
+
+    // Handle file selection
+    fileInput.addEventListener("change", (event) => {
+        const files = event.target.files;
+        console.log("Selected files:", files);
+    });
+});
   let selectedFiles = [];
 
   function initUpload() {
