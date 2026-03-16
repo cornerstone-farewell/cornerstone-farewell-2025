@@ -11,7 +11,7 @@
       "type": "school",
       "note": "Itarsi Tahsil, Narmadapuram, Madhya Pradesh",
       "approved": true,
-      "deletedAt": null,
+      "deletedAt": "2026-03-15T00:49:27.591Z",
       "createdAt": "2026-03-13T05:19:52.207Z"
     },
     {
@@ -25,7 +25,7 @@
       "type": "university",
       "note": "Venkatapuram, Ramannapalem, Kotauratla",
       "approved": true,
-      "deletedAt": null,
+      "deletedAt": "2026-03-15T00:49:24.971Z",
       "createdAt": "2026-03-13T05:19:52.273Z"
     },
     {
@@ -39,7 +39,7 @@
       "type": "school",
       "note": "Kamle, Arunachal Pradesh, India",
       "approved": true,
-      "deletedAt": null,
+      "deletedAt": "2026-03-15T00:49:11.834Z",
       "createdAt": "2026-03-13T07:16:51.061Z"
     },
     {
@@ -53,7 +53,7 @@
       "type": "university",
       "note": "Poo district, Kinnaur, Himachal Pradesh",
       "approved": true,
-      "deletedAt": null,
+      "deletedAt": "2026-03-15T00:49:10.166Z",
       "createdAt": "2026-03-13T07:16:51.130Z"
     },
     {
@@ -67,7 +67,7 @@
       "type": "school",
       "note": "Mandi Bazar Rd, Warangal, Warangal mandal",
       "approved": true,
-      "deletedAt": null,
+      "deletedAt": "2026-03-15T00:49:07.849Z",
       "createdAt": "2026-03-13T13:13:14.662Z"
     },
     {
@@ -81,7 +81,7 @@
       "type": "university",
       "note": "Warangal mandal, Warangal, Telangana",
       "approved": true,
-      "deletedAt": null,
+      "deletedAt": "2026-03-15T00:48:56.742Z",
       "createdAt": "2026-03-13T13:13:14.766Z"
     },
     {
@@ -95,7 +95,7 @@
       "type": "school",
       "note": "South Hamgyong, North Korea",
       "approved": true,
-      "deletedAt": null,
+      "deletedAt": "2026-03-15T00:49:22.153Z",
       "createdAt": "2026-03-14T05:21:34.180Z"
     },
     {
@@ -109,7 +109,7 @@
       "type": "school",
       "emoji": "🎓",
       "note": "Naranya, Sarangpur Tahsil, Rajgarh",
-      "approved": false,
+      "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-14T09:30:20.032Z"
     },
@@ -124,7 +124,7 @@
       "type": "university",
       "emoji": "🎓",
       "note": "Headley, Standford, East Hampshire",
-      "approved": false,
+      "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-14T09:30:20.091Z"
     },
@@ -139,7 +139,7 @@
       "type": "school",
       "emoji": "🎓",
       "note": "Dundigal mandal, Medchal–Malkajgiri, Telangana",
-      "approved": false,
+      "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-14T13:42:35.190Z"
     },
@@ -154,7 +154,7 @@
       "type": "university",
       "emoji": "🎓",
       "note": "Aurobindo Marg, Yusuf Sarai Market, South Extension",
-      "approved": false,
+      "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-14T13:42:35.283Z"
     }

@@ -1,286 +1,35 @@
 {
   "sessions": [
     {
-      "sid": "47bfb1503a5f71d3",
-      "token": "admin-1773415661412-kallho0243o",
-      "expiresAt": "2026-03-14T15:27:41.412Z",
+      "token": "admin-1773558892970-b0b5daa20fa1f740992ebe7d6c6f74f6",
       "userId": "super",
-      "createdAt": "2026-03-13T15:27:41.412Z",
-      "ip": "49.43.225.184",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "sid": "eb2bcab37090b2ad",
-      "token": "admin-1773419567388-lmffc922ce",
-      "expiresAt": "2026-03-14T16:32:47.388Z",
-      "userId": "techteam",
-      "createdAt": "2026-03-13T16:32:47.389Z",
-      "ip": "115.98.228.30",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
-      "sid": "09019db00221af38",
-      "token": "admin-1773422315456-txt88opt88g",
-      "expiresAt": "2026-03-14T17:18:35.456Z",
-      "userId": "techteam",
-      "createdAt": "2026-03-13T17:18:35.457Z",
-      "ip": "115.98.228.30",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
-      "sid": "100348b05f7b7b8e",
-      "token": "admin-1773463298913-imlmld4t42p",
-      "expiresAt": "2026-03-15T04:41:38.913Z",
-      "userId": "techteam",
-      "createdAt": "2026-03-14T04:41:38.913Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "sid": "aeb6a634e1d77b9c",
-      "token": "admin-1773463351956-jbq8c4a2y6",
-      "expiresAt": "2026-03-15T04:42:31.956Z",
-      "userId": "techteam",
-      "createdAt": "2026-03-14T04:42:31.956Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "sid": "a4d803758600bb28",
-      "token": "admin-1773464831757-s6kql78abo",
-      "expiresAt": "2026-03-15T05:07:11.757Z",
-      "userId": "techteam",
-      "createdAt": "2026-03-14T05:07:11.757Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "sid": "12f1499358ca71e6",
-      "token": "admin-1773465617880-yatxj084c29",
-      "expiresAt": "2026-03-15T05:20:17.880Z",
-      "userId": "techteam",
-      "createdAt": "2026-03-14T05:20:17.880Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0"
-    },
-    {
-      "sid": "c7773a77805b0b24",
-      "token": "admin-1773465724721-snj1lpf4kq",
-      "expiresAt": "2026-03-15T05:22:04.721Z",
-      "userId": "techteam",
-      "createdAt": "2026-03-14T05:22:04.721Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0"
-    },
-    {
-      "sid": "281ad36f28811ffa",
-      "token": "admin-1773465797660-islbxxn7ytl",
-      "expiresAt": "2026-03-15T05:23:17.660Z",
-      "userId": "techteam",
-      "createdAt": "2026-03-14T05:23:17.660Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0"
-    },
-    {
-      "sid": "4aecb28e82f97e37",
-      "token": "admin-1773465870976-xfubf1vk1rq",
-      "expiresAt": "2026-03-15T05:24:30.976Z",
-      "userId": "techteam",
-      "createdAt": "2026-03-14T05:24:30.976Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "sid": "686a0e372b1920de",
-      "token": "admin-1773467875094-o4shhmzhp0l",
-      "expiresAt": "2026-03-15T05:57:55.094Z",
-      "userId": "techteam",
-      "createdAt": "2026-03-14T05:57:55.094Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773479884861-ece70807c29c142cc939a874b439bd34",
-      "userId": "super",
-      "expiresAt": "2026-03-15T09:18:04.862Z",
-      "createdAt": "2026-03-14T09:18:04.862Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773480819964-ac60c8d22e15cd70b4dd3492bd4c4c56",
-      "userId": "super",
-      "expiresAt": "2026-03-15T09:33:39.965Z",
-      "createdAt": "2026-03-14T09:33:39.965Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773483984959-9b9badca33f2f31eece2777989fa2ef9",
-      "userId": "super",
-      "expiresAt": "2026-03-15T10:26:24.959Z",
-      "createdAt": "2026-03-14T10:26:24.959Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773486363070-52cc82420f3eb4a3db43c14a80809997",
-      "userId": "techteam",
-      "expiresAt": "2026-03-15T11:06:03.070Z",
-      "createdAt": "2026-03-14T11:06:03.070Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773486396544-20f835922937102125646baf2ca66684",
-      "userId": "super",
-      "expiresAt": "2026-03-15T11:06:36.544Z",
-      "createdAt": "2026-03-14T11:06:36.544Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773488136639-ac664d05583628f1720392e73ead7a87",
-      "userId": "techteam",
-      "expiresAt": "2026-03-15T11:35:36.640Z",
-      "createdAt": "2026-03-14T11:35:36.640Z",
-      "ip": "122.177.241.112",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773488286712-a5463c527b9762e6360e97a7d871a5d1",
-      "userId": "techteam",
-      "expiresAt": "2026-03-15T11:38:06.712Z",
-      "createdAt": "2026-03-14T11:38:06.712Z",
-      "ip": "45.112.30.180",
-      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15"
-    },
-    {
-      "token": "admin-1773488563515-620aad9639be1c189a16b7c24e422f83",
-      "userId": "techteam",
-      "expiresAt": "2026-03-15T11:42:43.515Z",
-      "createdAt": "2026-03-14T11:42:43.515Z",
-      "ip": "122.177.241.112",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773488618164-939d741712de2adb3fa359f9e3f5cd4b",
-      "userId": "super",
-      "expiresAt": "2026-03-15T11:43:38.164Z",
-      "createdAt": "2026-03-14T11:43:38.164Z",
-      "ip": "183.82.127.79",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773488858948-64f1dd47a220dcabcb11fe358fe89fac",
-      "userId": "super",
-      "expiresAt": "2026-03-15T11:47:38.948Z",
-      "createdAt": "2026-03-14T11:47:38.948Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773488876735-f7ea8b387a9d8bbabf93b9577382ff0d",
-      "userId": "super",
-      "expiresAt": "2026-03-15T11:47:56.735Z",
-      "createdAt": "2026-03-14T11:47:56.735Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773488893558-872575df89c61f018cb544c0cca8ec9d",
-      "userId": "super",
-      "expiresAt": "2026-03-15T11:48:13.558Z",
-      "createdAt": "2026-03-14T11:48:13.558Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0"
-    },
-    {
-      "token": "admin-1773488978498-cef67aea794905f956092200cfdd278b",
-      "userId": "super",
-      "expiresAt": "2026-03-15T11:49:38.498Z",
-      "createdAt": "2026-03-14T11:49:38.498Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773489097594-7ddc0ae534bb953cc426d3229e888f7b",
-      "userId": "super",
-      "expiresAt": "2026-03-15T11:51:37.594Z",
-      "createdAt": "2026-03-14T11:51:37.594Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773489116003-bf0f6ba87a43aec393fa4f303396174b",
-      "userId": "super",
-      "expiresAt": "2026-03-15T11:51:56.004Z",
-      "createdAt": "2026-03-14T11:51:56.004Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773489229123-b21306d8029b78ee42558f270122f6f8",
-      "userId": "techteam",
-      "expiresAt": "2026-03-15T11:53:49.124Z",
-      "createdAt": "2026-03-14T11:53:49.124Z",
-      "ip": "122.177.241.112",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773489569034-dcb7837f05003faafef309c67510493f",
-      "userId": "techteam",
-      "expiresAt": "2026-03-15T11:59:29.034Z",
-      "createdAt": "2026-03-14T11:59:29.034Z",
-      "ip": "122.177.241.112",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773496563891-c06563e03d690118d87543cbbc182335",
-      "userId": "super",
-      "expiresAt": "2026-03-15T13:56:03.891Z",
-      "createdAt": "2026-03-14T13:56:03.892Z",
-      "ip": "2401:4900:92ec:3495:d8a1:9fff:febe:fa9c",
-      "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36"
-    },
-    {
-      "token": "admin-1773496564037-b0724f34a64d0793717285b9f0eb4684",
-      "userId": "super",
-      "expiresAt": "2026-03-15T13:56:04.037Z",
-      "createdAt": "2026-03-14T13:56:04.038Z",
-      "ip": "2401:4900:92ec:3495:d8a1:9fff:febe:fa9c",
-      "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36"
-    },
-    {
-      "token": "admin-1773497655452-cb9d7416c211901d116eefc0151da496",
-      "userId": "super",
-      "expiresAt": "2026-03-15T14:14:15.452Z",
-      "createdAt": "2026-03-14T14:14:15.452Z",
-      "ip": "2409:40f0:1121:931b:490:9ff:fe6c:7f1f",
-      "ua": "Mozilla/5.0 (Linux; U; Android 16; en-gb; CPH2487 Build/BP2A.250605.015) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.72 Mobile Safari/537.36 HeyTapBrowser/45.13.8.1"
-    },
-    {
-      "token": "admin-1773498604565-343040211200be76dd6536fa491544dd",
-      "userId": "techteam",
-      "expiresAt": "2026-03-15T14:30:04.565Z",
-      "createdAt": "2026-03-14T14:30:04.566Z",
-      "ip": "2401:4900:1cb2:1e39:adee:b309:54ea:7ff6",
-      "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36"
-    },
-    {
-      "token": "admin-1773499515928-5327ab58e71c18d0293000a342b8338e",
-      "userId": "super",
-      "expiresAt": "2026-03-15T14:45:15.928Z",
-      "createdAt": "2026-03-14T14:45:15.928Z",
+      "expiresAt": "2026-03-16T07:14:52.970Z",
+      "createdAt": "2026-03-15T07:14:52.970Z",
       "ip": "124.123.140.5",
-      "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36"
+      "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
     },
     {
-      "token": "admin-1773500047302-c94ce0bd06d650941d20fc58cfbb9f88",
-      "userId": "techteam",
-      "expiresAt": "2026-03-15T14:54:07.302Z",
-      "createdAt": "2026-03-14T14:54:07.302Z",
-      "ip": "122.177.241.112",
+      "token": "admin-1773569402865-4ac97d248c20c8e295b7691bfc0742fd",
+      "userId": "super",
+      "expiresAt": "2026-03-16T10:10:02.865Z",
+      "createdAt": "2026-03-15T10:10:02.865Z",
+      "ip": "124.123.140.5",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+    },
+    {
+      "token": "admin-1773626873290-69c002518ebeba11bb4ba4ab8f6f616b",
+      "userId": "super",
+      "expiresAt": "2026-03-17T02:07:53.293Z",
+      "createdAt": "2026-03-16T02:07:53.293Z",
+      "ip": "2405:201:c00a:aac4:8d16:487:e596:157e",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+    },
+    {
+      "token": "admin-1773643230704-07b996996e8a8031c05f4702a23f02f2",
+      "userId": "super",
+      "expiresAt": "2026-03-17T06:40:30.737Z",
+      "createdAt": "2026-03-16T06:40:30.738Z",
+      "ip": "183.82.115.234",
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
     }
   ]
