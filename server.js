@@ -102,8 +102,9 @@ const DB_PATHS = {
     studentDirectory: path.join(databaseDir, 'student_directory.json'),
     paperNotes: path.join(databaseDir, 'paper_notes.json'),
     advice: path.join(databaseDir, 'advice.json'),
-    bans: path.join(databaseDir, 'bans.json'),
-    // Fun features
+     bans: path.join(databaseDir, 'bans.json'),
+ farewellPics: path.join(databaseDir, 'farewell_pics.json'),
+ // Fun featuresn features
     gratitude: path.join(funDir, 'gratitude.json'),
     superlatives: path.join(funDir, 'superlatives.json'),
     wishes: path.join(funDir, 'wishes.json'),
@@ -145,8 +146,9 @@ const DB_DEFAULTS = {
     studentDirectory: { students: [] },
     paperNotes: { notes: [], nextId: 1 },
     advice: { entries: [], nextId: 1 },
-    bans: { bans: [], nextId: 1 },
-    gratitude: { entries: [], nextId: 1 },
+     bans: { bans: [], nextId: 1 },
+ farewellPics: { photos: [], nextId: 1 },
+ gratitude: { entries: [], nextId: 1 },
     superlatives: { categories: [], nextId: 1 },
     wishes: { entries: [], nextId: 1 },
     dedications: { entries: [], nextId: 1 },
@@ -1595,11 +1597,11 @@ app.post('/api/admin/users', (req, res) => {
         }
 
         const now = nowISO();
-        admins.users.push({
-            id: uid,
-            name: String(name || uid).trim().substring(0, 60),
-            role: role === 'admin' ? 'admin' : 'moderator',
-            password: String(password),
+         admins.users.push({
+ id: uid,
+ name: String(name || uid).trim().substring(0, 60),
+ role: role === 'admin' ? 'admin' : (role === 'photographer' ? 'photographer' : 'moderator'),
+ password: String(password),
             createdAt: now,
             updatedAt: now,
             disabled: false,
@@ -3886,6 +3888,103 @@ app.post('/api/admin/change-password', (req, res) => {
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });
     }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FAREWELL PICS API (PUBLIC & ADMIN)
+// ═══════════════════════════════════════════════════════════════════════════════
+app.get('/api/farewell-pics', (req, res) => {
+  try {
+    const data = db('farewellPics');
+    const photos = (data.photos || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json({ success: true, photos });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.post('/api/farewell-pics/:id/react', (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const data = db('farewellPics');
+    const photo = data.photos.find(p => p.id === id);
+    if (!photo) return res.status(404).json({ success: false, error: 'Photo not found' });
+    
+    photo.likes = (photo.likes || 0) + 1;
+    saveDb('farewellPics', data);
+    res.json({ success: true, likes: photo.likes });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.post('/api/admin/farewell-pics/upload', upload.array('files', 50), (req, res) => {
+  try {
+    const auth = requireAdmin(req, res);
+    if (!auth) return;
+    if (auth.user.role !== 'superadmin' && auth.user.role !== 'photographer') {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+
+    const files = req.files || [];
+    if (!files.length) return res.status(400).json({ success: false, error: 'No files provided' });
+
+    const data = db('farewellPics');
+    data.photos = data.photos || [];
+    data.nextId = data.nextId || 1;
+
+    const inserted = [];
+    files.forEach(file => {
+      const photo = {
+        id: data.nextId++,
+        file_path: file.filename,
+        file_url: `/uploads/${file.filename}`,
+        uploaderId: auth.user.id,
+        likes: 0,
+        createdAt: nowISO()
+      };
+      data.photos.push(photo);
+      inserted.push(photo);
+    });
+
+    saveDb('farewellPics', data);
+    res.json({ success: true, count: inserted.length, photos: inserted });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.delete('/api/admin/farewell-pics/:id', (req, res) => {
+  try {
+    const auth = requireAdmin(req, res);
+    if (!auth) return;
+    if (auth.user.role !== 'superadmin' && auth.user.role !== 'photographer') {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+
+    const id = parseInt(req.params.id);
+    const data = db('farewellPics');
+    const photoIdx = data.photos.findIndex(p => p.id === id);
+    
+    if (photoIdx === -1) return res.status(404).json({ success: false, error: 'Not found' });
+    
+    // Photographers can only delete their own uploads
+    if (auth.user.role === 'photographer' && data.photos[photoIdx].uploaderId !== auth.user.id) {
+        return res.status(403).json({ success: false, error: 'Can only delete your own uploads' });
+    }
+
+    const photo = data.photos[photoIdx];
+    const fp = path.join(uploadsDir, photo.file_path);
+    if (fs.existsSync(fp)) {
+      try { fs.unlinkSync(fp); } catch (e) { }
+    }
+
+    data.photos.splice(photoIdx, 1);
+    saveDb('farewellPics', data);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -157,8 +157,38 @@
       "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-14T13:42:35.283Z"
+    },
+    {
+      "id": 12,
+      "name": "Mary",
+      "school": "అమీన్పూర్",
+      "city": "సంగారెడ్డి",
+      "country": "Telangana",
+      "lat": 17.5236905,
+      "lng": 78.3317297,
+      "type": "school",
+      "emoji": "🎓",
+      "note": "Ameenpur mandal, సంగారెడ్డి, Telangana",
+      "approved": true,
+      "deletedAt": null,
+      "createdAt": "2026-03-17T12:44:46.356Z"
+    },
+    {
+      "id": 13,
+      "name": "Mary",
+      "school": "SRI CHAITANYA",
+      "city": "SRI CHAITANYA",
+      "country": "కుషాయిగూడ",
+      "lat": 17.4765539,
+      "lng": 78.5709824,
+      "type": "university",
+      "emoji": "🎓",
+      "note": "Kushaiguda Road, Sai Nagar, కుషాయిగూడ",
+      "approved": true,
+      "deletedAt": null,
+      "createdAt": "2026-03-17T12:44:46.481Z"
     }
   ],
   "submissions": [],
-  "nextId": 12
+  "nextId": 14
 }

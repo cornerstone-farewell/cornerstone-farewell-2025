@@ -9341,7 +9341,23 @@
       "action": "login",
       "meta": {},
       "createdAt": "2026-03-16T06:40:30.751Z"
+    },
+    {
+      "id": 1143,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-17T15:06:15.669Z"
+    },
+    {
+      "id": 1144,
+      "userId": "super",
+      "action": "destinations-approve",
+      "meta": {
+        "changed": 2
+      },
+      "createdAt": "2026-03-17T15:07:04.111Z"
     }
   ],
-  "nextId": 1143
+  "nextId": 1145
 }

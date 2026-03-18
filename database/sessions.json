@@ -1,36 +1,12 @@
 {
   "sessions": [
     {
-      "token": "admin-1773558892970-b0b5daa20fa1f740992ebe7d6c6f74f6",
+      "token": "admin-1773759975664-c0bad4b67b949383df3c5b28754af4bb",
       "userId": "super",
-      "expiresAt": "2026-03-16T07:14:52.970Z",
-      "createdAt": "2026-03-15T07:14:52.970Z",
-      "ip": "124.123.140.5",
-      "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773569402865-4ac97d248c20c8e295b7691bfc0742fd",
-      "userId": "super",
-      "expiresAt": "2026-03-16T10:10:02.865Z",
-      "createdAt": "2026-03-15T10:10:02.865Z",
-      "ip": "124.123.140.5",
+      "expiresAt": "2026-03-18T15:06:15.664Z",
+      "createdAt": "2026-03-17T15:06:15.665Z",
+      "ip": "2405:201:c00a:aac4:dda1:13ee:8136:639e",
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773626873290-69c002518ebeba11bb4ba4ab8f6f616b",
-      "userId": "super",
-      "expiresAt": "2026-03-17T02:07:53.293Z",
-      "createdAt": "2026-03-16T02:07:53.293Z",
-      "ip": "2405:201:c00a:aac4:8d16:487:e596:157e",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773643230704-07b996996e8a8031c05f4702a23f02f2",
-      "userId": "super",
-      "expiresAt": "2026-03-17T06:40:30.737Z",
-      "createdAt": "2026-03-16T06:40:30.738Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
     }
   ]
 }

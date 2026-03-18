@@ -1186,8 +1186,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     <ul class="nav-links" id="navLinks">
       <li><a href="#home">Home</a></li>
       <li><a href="#countdown">Countdown</a></li>
-      <li><a href="#memories">Memories</a></li>
-      <li><a href="#teachers">Teachers</a></li>
+       <li><a href="#memories">Memories</a></li>
+ <li><a href="#farewellPicsSection">Event Pics</a></li>
+ <li><a href="#teachers">Teachers</a></li>
       <li><a href="#adviceWall">Senior Advice</a></li>
       <li><a href="#timeline">Journey</a></li>
       <li><a href="#compilations">Compilations</a></li>
@@ -3646,10 +3647,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       init();
     }
-  })();
-  </script>
+   })();
+ </script>
+ <!-- FRAGMENT: farewell_pics -->
+ <style data-fragment-style="farewell_pics">
+ #farewellPicsSection { background: var(--navy-dark); }
+ .fw-masonry { column-count: 3; column-gap: 20px; }
+ .fw-item { break-inside: avoid; margin-bottom: 20px; position: relative; border-radius: 15px; overflow: hidden; background: var(--glass-bg); border: 1px solid var(--glass-border); transition: var(--transition-smooth); cursor: pointer; }
+ .fw-item:hover { transform: translateY(-5px); border-color: var(--primary-gold); box-shadow: var(--shadow-gold); }
+ .fw-item img { width: 100%; display: block; object-fit: cover; }
+ .fw-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); opacity: 0; transition: opacity 0.3s; display: flex; justify-content: space-between; align-items: flex-end; }
+ .fw-item:hover .fw-overlay { opacity: 1; }
+ .fw-like-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--primary-gold); color: var(--primary-gold); padding: 5px 12px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.3s; }
+ .fw-like-btn:hover { background: var(--primary-gold); color: var(--navy-dark); }
+ @media (max-width: 900px) { .fw-masonry { column-count: 2; } }
+ @media (max-width: 600px) { .fw-masonry { column-count: 1; } }
+ 
+ #fwFullOverlay { position: fixed; inset: 0; background: var(--navy-dark); z-index: 1500; display: none; overflow-y: auto; padding-bottom: 60px; }
+ #fwFullOverlay.active { display: block; }
+ .fw-header { position: sticky; top: 0; background: rgba(26,26,46,0.95); backdrop-filter: blur(10px); padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; border-bottom: 1px solid var(--glass-border); }
+ </style>
 
-    <!-- FRAGMENT: compilations -->
+ <section id="farewellPicsSection">
+   <div class="container">
+     <div class="section-header">
+       <span class="section-badge">Exclusive Captures</span>
+       <h2 class="section-title">Event <span class="highlight">Gallery</span></h2>
+       <p class="section-description">Professional photos from the Farewell Day</p>
+     </div>
+     <div class="fw-masonry" id="fwPreviewGrid">
+       <div class="loading-spinner"></div>
+     </div>
+     <div style="text-align: center; margin-top: 30px;">
+       <button class="btn btn-secondary" onclick="openFwFullGallery()">View All Event Photos</button>
+     </div>
+   </div>
+ </section>
+
+ <div id="fwFullOverlay">
+   <div class="fw-header">
+     <h2 style="color:var(--primary-gold); font-family:var(--font-display);">Event Gallery</h2>
+     <button class="all-memories-close" onclick="closeFwFullGallery()">✕</button>
+   </div>
+   <div class="container" style="padding-top: 30px;">
+     <div class="fw-masonry" id="fwFullGrid"></div>
+   </div>
+ </div>
+ <!-- FRAGMENT: compilations -->
   <style data-fragment-style="compilations">
   /* Player overlay */
   .compilation-player-overlay { 
@@ -8342,8 +8386,9 @@ document.addEventListener('DOMContentLoaded', async () => {
      <div class="admin-tab active" onclick="switchAdminTab('moderation')">📋 Moderation</div>
      <div class="admin-tab" onclick="switchAdminTab('settings')">⚙️ Settings</div>
      <div class="admin-tab" onclick="switchAdminTab('theme')">🎨 Theme</div>
-     <div class="admin-tab" onclick="switchAdminTab('users')">👥 Users</div>
-     <div class="admin-tab" onclick="switchAdminTab('compilations')">🎬 Compilations</div>
+      <div class="admin-tab" onclick="switchAdminTab('users')"> Users</div>
+ <div class="admin-tab" onclick="switchAdminTab('farewellpics')" id="tabFarewellPics"> Event Pics</div>
+ <div class="admin-tab" onclick="switchAdminTab('compilations')"> Compilations</div>
      <!-- Fun Features -->
      <div class="admin-tab" onclick="switchAdminTab('funfeatures')">🎉 Fun Features</div>
      <div class="admin-tab" onclick="switchAdminTab('destinations')">🌍 Destinations</div>
@@ -8362,8 +8407,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     <div class="admin-panel active" id="panelModeration" data-initialized="false"></div>
     <div class="admin-panel" id="panelSettings" data-initialized="false"></div>
     <div class="admin-panel" id="panelTheme" data-initialized="false"></div>
-    <div class="admin-panel" id="panelUsers" data-initialized="false"></div>
-    <div class="admin-panel" id="panelCompilations" data-initialized="false"></div>
+     <div class="admin-panel" id="panelUsers" data-initialized="false"></div>
+ <div class="admin-panel" id="panelFarewellPics" data-initialized="false"></div>
+ <div class="admin-panel" id="panelCompilations" data-initialized="false"></div>
     <div class="admin-panel" id="panelFunFeatures" data-initialized="false"></div>
     <div class="admin-panel" id="panelDestinations" data-initialized="false"></div>
     <div class="admin-panel" id="panelAdvice" data-initialized="false"></div>
@@ -8379,17 +8425,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ═══════════════════════════════════════════════════════════════════════════════
   // PERMISSION SYSTEM
   // ═══════════════════════════════════════════════════════════════════════════════
-  function can(permission) {
-   if (!state?.adminUser) return false;
-   const role = state.adminUser.role || 'viewer';
-   if (role === 'superadmin') return true;
-   const permissions = {
-    admin: ['moderation', 'editMemory', 'bulk', 'replaceFile', 'viewStats'],
-    moderator: ['moderation', 'viewStats'],
-    viewer: ['viewStats']
-   };
-   return (permissions[role] || []).includes(permission);
-  }
+   function can(permission) {
+ if (!state?.adminUser) return false;
+ const role = state.adminUser.role || 'viewer';
+ if (role === 'superadmin') return true;
+ if (role === 'photographer') return permission === 'farewellpics';
+ const permissions = {
+ admin: ['moderation', 'editMemory', 'bulk', 'replaceFile', 'viewStats'],
+ moderator: ['moderation', 'viewStats'],
+ viewer: ['viewStats']
+ };
+ return (permissions[role] || []).includes(permission);
+ }
 
   // ═══════════════════════════════════════════════════════════════════════════════
   // ADMIN TAB SWITCHING - FIXED
@@ -8404,8 +8451,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     moderation: { panelId: 'panelModeration', init: 'initModerationPanelContent' },
     settings: { panelId: 'panelSettings', init: 'initSettingsPanelContent' },
     theme: { panelId: 'panelTheme', init: 'initThemePanelContent' },
-    users: { panelId: 'panelUsers', init: 'initUsersPanelContent' },
-    compilations: { panelId: 'panelCompilations', init: 'initCompilationsPanelContent' },
+     users: { panelId: 'panelUsers', init: 'initUsersPanelContent' },
+ farewellpics: { panelId: 'panelFarewellPics', init: 'initFarewellPicsPanelContent' },
+ compilations: { panelId: 'panelCompilations', init: 'initCompilationsPanelContent' },
     funfeatures: { panelId: 'panelFunFeatures', init: 'initFunfeaturesPanelContent' },
     destinations: { panelId: 'panelDestinations', init: 'initDestinationsPanelContent' },
     advice: { panelId: 'panelAdvice', init: 'initAdvicePanelContent' },
@@ -8510,13 +8558,29 @@ document.addEventListener('DOMContentLoaded', async () => {
    }
   }
 
-  function openAdminDashboard() {
-   const dashboard = document.getElementById('adminDashboard');
-   if (dashboard) {
-    dashboard.classList.add('active');
-    switchAdminTab('moderation');
+   function openAdminDashboard() {
+ const dashboard = document.getElementById('adminDashboard');
+ if (dashboard) {
+ dashboard.classList.add('active');
+ 
+ // Hide tabs if photographer
+ document.querySelectorAll('.admin-tab').forEach(t => {
+   if (state.adminUser?.role === 'photographer') {
+     if (!t.getAttribute('onclick').includes('farewellpics')) {
+       t.style.display = 'none';
+     }
+   } else {
+     t.style.display = '';
    }
-  }
+ });
+
+ if (state.adminUser?.role === 'photographer') {
+     switchAdminTab('farewellpics');
+ } else {
+     switchAdminTab('moderation');
+ }
+ }
+ }
 
   function adminLogout() {
    if (!confirm('Logout from admin panel?')) return;
@@ -10738,12 +10802,12 @@ function renderUsersPanelHtml() {
         <div class="form-group"><label>Name</label><input class="form-input" id="newUserName" placeholder="Moderator" /></div>
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div class="form-group"><label>Password</label><input class="form-input" id="newUserPass" type="password" placeholder="min 8 chars" /></div>
-        <div class="form-group"><label>Role</label>
-          <select class="form-select" id="newUserRole">
-            <option value="moderator">moderator</option>
-            <option value="admin">admin</option>
-          </select>
+         <div class="form-group"><label>Role</label>
+ <select class="form-select" id="newUserRole">
+ <option value="moderator">moderator</option>
+ <option value="photographer">photographer</option>
+ <option value="admin">admin</option>
+ </select>
         </div>
       </div>
       <div class="mini-pill" style="margin:10px 0;">Permissions</div>
@@ -14716,8 +14780,185 @@ console.log('✅ Admin Security loaded');
     }
   }
 
-  // ---------- Boot hooks ----------
-  document.addEventListener('DOMContentLoaded', function(){
+  // ═══════════════════════════════════════════════════════════════════════════════
+// FAREWELL PICS (PUBLIC & ADMIN LOGIC)
+// ═══════════════════════════════════════════════════════════════════════════════
+let fwPicsData = [];
+
+async function loadPublicFwPics() {
+  try {
+    const res = await fetch(apiUrl('/api/farewell-pics'));
+    const data = await res.json();
+    if (data.success) {
+      fwPicsData = data.photos || [];
+      renderFwPicsPublic();
+    }
+  } catch (e) {
+    console.error('Error loading farewell pics:', e);
+  }
+}
+
+function renderFwPicsPublic() {
+  const previewGrid = document.getElementById('fwPreviewGrid');
+  const fullGrid = document.getElementById('fwFullGrid');
+  if (!previewGrid || !fullGrid) return;
+
+  if (fwPicsData.length === 0) {
+    previewGrid.innerHTML = '<div class="ff-empty">No professional photos uploaded yet.</div>';
+    fullGrid.innerHTML = '<div class="ff-empty">No professional photos uploaded yet.</div>';
+    return;
+  }
+
+  const generateHTML = (photos) => photos.map(p => `
+    <div class="fw-item" onclick="window._memOpenLightbox('fw', ${fwPicsData.indexOf(p)})">
+      <img src="${mediaUrl(p.file_url)}" loading="lazy" alt="Event Photo">
+      <div class="fw-overlay" onclick="event.stopPropagation()">
+        <button class="fw-like-btn" onclick="reactFwPic(${p.id}, this)">
+          <span>🤍</span> <span>${p.likes || 0}</span>
+        </button>
+        <button class="btn btn-primary" style="padding: 5px 12px; font-size: 0.8rem;" onclick="window.open('${mediaUrl(p.file_url)}', '_blank')">Download</button>
+      </div>
+    </div>
+  `).join('');
+
+  previewGrid.innerHTML = generateHTML(fwPicsData.slice(0, 6)); // Show first 6
+  fullGrid.innerHTML = generateHTML(fwPicsData);
+}
+
+function openFwFullGallery() {
+  const overlay = document.getElementById('fwFullOverlay');
+  if (overlay) {
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeFwFullGallery() {
+  const overlay = document.getElementById('fwFullOverlay');
+  if (overlay) {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+async function reactFwPic(id, btn) {
+  try {
+    const res = await fetch(apiUrl(`/api/farewell-pics/${id}/react`), { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      btn.style.background = 'var(--primary-gold)';
+      btn.style.color = 'var(--navy-dark)';
+      btn.querySelector('span:last-child').textContent = data.likes;
+    }
+  } catch (e) {}
+}
+
+// ── Admin Logic ──
+function initFarewellPicsPanelContent() {
+  const panel = document.getElementById('panelFarewellPics');
+  if (!panel) return;
+  panel.innerHTML = `
+    <div class="stat-card" style="text-align:left; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">📷 Event Gallery Admin</h3>
+        <label class="btn btn-primary" style="cursor:pointer;">
+          Upload Photos
+          <input type="file" multiple accept="image/*" style="display:none;" onchange="uploadFwPics(this)">
+        </label>
+      </div>
+      <p style="color:var(--text-muted); margin-top:10px;">Upload professional event photos here. Photographers can only delete their own uploads.</p>
+    </div>
+    <div id="fwAdminUploadStatus" style="color: var(--success-green); margin-bottom: 15px;"></div>
+    <div class="fw-masonry" id="fwAdminGrid"></div>
+  `;
+  panel.dataset.initialized = 'true';
+  loadPublicFwPics().then(renderFwPicsAdmin);
+}
+
+function renderFwPicsAdmin() {
+  const grid = document.getElementById('fwAdminGrid');
+  if (!grid) return;
+  
+  if (fwPicsData.length === 0) {
+    grid.innerHTML = '<div class="ff-empty">No photos uploaded.</div>';
+    return;
+  }
+
+  const userId = state.adminUser?.id || '';
+  const role = state.adminUser?.role;
+
+  grid.innerHTML = fwPicsData.map(p => {
+    // Photographers can only delete their own; superadmin can delete all
+    const canDelete = role === 'superadmin' || p.uploaderId === userId;
+    
+    return `
+    <div class="fw-item">
+      <img src="${mediaUrl(p.file_url)}">
+      <div style="padding: 10px; background: rgba(0,0,0,0.5);">
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 5px;">Likes: ${p.likes || 0}</div>
+        ${canDelete ? `<button class="btn btn-danger" style="width:100%; padding: 8px;" onclick="deleteFwPic(${p.id})">Delete</button>` : `<div style="font-size:0.8rem; color:#888;">Uploaded by another</div>`}
+      </div>
+    </div>
+  `}).join('');
+}
+
+async function uploadFwPics(input) {
+  const files = input.files;
+  if (!files || files.length === 0) return;
+  
+  const status = document.getElementById('fwAdminUploadStatus');
+  if (status) status.textContent = `Uploading ${files.length} photos...`;
+
+  const fd = new FormData();
+  for (let i = 0; i < files.length; i++) {
+    fd.append('files', files[i]);
+  }
+
+  try {
+    const res = await fetch(apiUrl('/api/admin/farewell-pics/upload'), {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + state.adminToken },
+      body: fd
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (status) status.textContent = `Successfully uploaded ${data.count} photos!`;
+      await loadPublicFwPics();
+      renderFwPicsAdmin();
+    } else {
+      if (status) status.textContent = `Upload failed: ${data.error}`;
+    }
+  } catch (e) {
+    if (status) status.textContent = `Upload error: ${e.message}`;
+  }
+}
+
+async function deleteFwPic(id) {
+  if (!confirm('Delete this event photo?')) return;
+  try {
+    const res = await fetch(apiUrl(`/api/admin/farewell-pics/${id}`), {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + state.adminToken }
+    });
+    const data = await res.json();
+    if (data.success) {
+      await loadPublicFwPics();
+      renderFwPicsAdmin();
+    } else {
+      alert(data.error);
+    }
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+// Ensure the new tab triggers the init function globally
+window.initFarewellPicsPanelContent = initFarewellPicsPanelContent;
+
+ // ---------- Boot hooks ----------
+ document.addEventListener('DOMContentLoaded', function(){
+   // Added: Load public farewell pics on boot
+   loadPublicFwPics();
     injectFileInputVisibilityHack();
     ensureTutorialFab();
     autoStartTutorialOnce();
