@@ -7,6 +7,14 @@
       "createdAt": "2026-03-17T15:06:15.665Z",
       "ip": "2405:201:c00a:aac4:dda1:13ee:8136:639e",
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+    },
+    {
+      "token": "admin-1773805405089-105d159245b5a14f641fd2aca8a06a0a",
+      "userId": "super",
+      "expiresAt": "2026-03-19T03:43:25.089Z",
+      "createdAt": "2026-03-18T03:43:25.090Z",
+      "ip": "183.82.115.234",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
     }
   ]
 }

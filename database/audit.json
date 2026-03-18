@@ -9357,7 +9357,14 @@
         "changed": 2
       },
       "createdAt": "2026-03-17T15:07:04.111Z"
+    },
+    {
+      "id": 1145,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-18T03:43:25.092Z"
     }
   ],
-  "nextId": 1145
+  "nextId": 1146
 }

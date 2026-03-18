@@ -1466,9 +1466,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 3. Define Targets (Every single feature on the site, top to bottom)
   const steps = [
    { target: '#countdown .section-header', title: 'The Countdown', text: 'Watch the clock tick down to the big day!' },
-   { target: '#memories .section-header', title: 'Memory Wall', text: 'View, like, and comment on memories shared by your friends.' },
-   { target: '#teachers .section-header', title: 'Beloved Teachers', text: 'Read quotes and listen to voice messages from our amazing mentors.' },
-   { target: '#adviceWall .section-header', title: 'Senior Advice', text: 'Read words of wisdom from seniors, or leave your own.' },
+    { target: '#memories .section-header', title: 'Memory Wall', text: 'View, like, and comment on memories shared by your friends.' },
+ { target: '#farewellPicsSection .section-header', title: 'Event Gallery', text: 'View and download professional photos from the Farewell Day.' },
+ { target: '#teachers .section-header', title: 'Beloved Teachers', text: 'Read quotes and listen to voice messages from our amazing mentors.' },
+ { target: '#adviceWall .section-header', title: 'Senior Advice', text: 'Read words of wisdom from seniors, or leave your own.' },
    { target: '#timeline .section-header', title: 'Our Journey', text: 'Take a trip down memory lane through the years.' },
    { target: '#compilations .section-header', title: 'Compilations', text: 'Watch beautiful curated video slideshows of our best moments.' },
    { target: '#upload .section-header', title: 'Upload Memories', text: 'Share your own photos and videos right here!' },
@@ -10797,19 +10798,20 @@ function renderUsersPanelHtml() {
     <!-- Create User -->
     <div style="margin-top:16px; border:1px solid var(--glass-border); border-radius:16px; padding:14px; background:rgba(255,255,255,0.03);">
       <h4 style="font-family:var(--font-display); color:var(--primary-gold); margin-bottom:10px;">➕ Create User</h4>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div class="form-group"><label>User ID</label><input class="form-input" id="newUserId" placeholder="moderator1" /></div>
-        <div class="form-group"><label>Name</label><input class="form-input" id="newUserName" placeholder="Moderator" /></div>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-         <div class="form-group"><label>Role</label>
- <select class="form-select" id="newUserRole">
- <option value="moderator">moderator</option>
- <option value="photographer">photographer</option>
- <option value="admin">admin</option>
- </select>
-        </div>
-      </div>
+       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+  <div class="form-group">
+    <label>Password</label>
+    <input class="form-input" id="newUserPass" type="password" placeholder="min 8 chars" />
+  </div>
+  <div class="form-group">
+    <label>Role</label>
+    <select class="form-select" id="newUserRole">
+      <option value="moderator">moderator</option>
+      <option value="photographer">photographer (Event Pics Only)</option>
+      <option value="admin">admin</option>
+    </select>
+  </div>
+ </div>
       <div class="mini-pill" style="margin:10px 0;">Permissions</div>
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px;">
         ${permCheckboxes}
@@ -14809,8 +14811,30 @@ function renderFwPicsPublic() {
     return;
   }
 
+    // Inject Dedicated Lightbox HTML if it doesn't exist
+  if (!document.getElementById('fwDedicatedLightbox')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="fwDedicatedLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction:column;">
+        <button onclick="document.getElementById('fwDedicatedLightbox').style.display='none'; document.body.style.overflow='';" style="position:absolute; top:20px; right:30px; background:none; border:none; color:#fff; font-size:2rem; cursor:pointer;">✕</button>
+        <img id="fwLightboxImg" src="" style="max-width:90vw; max-height:80vh; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.5); object-fit:contain;">
+        <div style="margin-top:20px; display:flex; gap:15px;">
+          <a id="fwLightboxDownload" href="#" target="_blank" class="btn btn-primary">Download High-Res</a>
+        </div>
+      </div>
+    `);
+  }
+
+  // Bind the custom lightbox to the images
+  window.openFwStandaloneViewer = function(url) {
+    const lb = document.getElementById('fwDedicatedLightbox');
+    document.getElementById('fwLightboxImg').src = url;
+    document.getElementById('fwLightboxDownload').href = url;
+    lb.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  };
+
   const generateHTML = (photos) => photos.map(p => `
-    <div class="fw-item" onclick="window._memOpenLightbox('fw', ${fwPicsData.indexOf(p)})">
+    <div class="fw-item" onclick="openFwStandaloneViewer('${mediaUrl(p.file_url)}')">
       <img src="${mediaUrl(p.file_url)}" loading="lazy" alt="Event Photo">
       <div class="fw-overlay" onclick="event.stopPropagation()">
         <button class="fw-like-btn" onclick="reactFwPic(${p.id}, this)">
