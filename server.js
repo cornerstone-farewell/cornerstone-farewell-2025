@@ -21,8 +21,8 @@ const cors = require('cors');
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'cornerstone2025';
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
-const MAX_TOTAL_SIZE = 200 * 1024 * 1024; // 200MB
-const MAX_FILES = 20;
+const MAX_TOTAL_SIZE = 20000 * 1024 * 1024; // 200MB
+const MAX_FILES = 200;
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const REACTION_TYPES = ['like', 'love', 'laugh', 'wow', 'sad'];
 
@@ -3918,13 +3918,11 @@ app.post('/api/farewell-pics/:id/react', (req, res) => {
   }
 });
 
-app.post('/api/admin/farewell-pics/upload', upload.array('files', 50), (req, res) => {
+app.post('/api/admin/farewell-pics/upload', upload.array('files', 200), (req, res) => {
   try {
     const auth = requireAdmin(req, res);
     if (!auth) return;
-    if (auth.user.role !== 'superadmin' && auth.user.role !== 'photographer') {
-      return res.status(403).json({ success: false, error: 'Forbidden' });
-    }
+    // Strict role check removed so any admin/moderator with access to the tab can upload
 
     const files = req.files || [];
     if (!files.length) return res.status(400).json({ success: false, error: 'No files provided' });
@@ -3958,9 +3956,6 @@ app.delete('/api/admin/farewell-pics/:id', (req, res) => {
   try {
     const auth = requireAdmin(req, res);
     if (!auth) return;
-    if (auth.user.role !== 'superadmin' && auth.user.role !== 'photographer') {
-      return res.status(403).json({ success: false, error: 'Forbidden' });
-    }
 
     const id = parseInt(req.params.id);
     const data = db('farewellPics');
@@ -3979,7 +3974,7 @@ app.delete('/api/admin/farewell-pics/:id', (req, res) => {
       try { fs.unlinkSync(fp); } catch (e) { }
     }
 
-        data.photos.splice(photoIdx, 1);
+            data.photos.splice(photoIdx, 1);
     saveDb('farewellPics', data);
     res.json({ success: true });
   } catch (e) {
@@ -3991,9 +3986,6 @@ app.post('/api/admin/farewell-pics/:id/edit', (req, res) => {
   try {
     const auth = requireAdmin(req, res);
     if (!auth) return;
-    if (auth.user.role !== 'superadmin' && auth.user.role !== 'photographer') {
-      return res.status(403).json({ success: false, error: 'Forbidden' });
-    }
 
     const id = parseInt(req.params.id);
     const { caption } = req.body;
