@@ -3979,9 +3979,37 @@ app.delete('/api/admin/farewell-pics/:id', (req, res) => {
       try { fs.unlinkSync(fp); } catch (e) { }
     }
 
-    data.photos.splice(photoIdx, 1);
+        data.photos.splice(photoIdx, 1);
     saveDb('farewellPics', data);
     res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+app.post('/api/admin/farewell-pics/:id/edit', (req, res) => {
+  try {
+    const auth = requireAdmin(req, res);
+    if (!auth) return;
+    if (auth.user.role !== 'superadmin' && auth.user.role !== 'photographer') {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+
+    const id = parseInt(req.params.id);
+    const { caption } = req.body;
+    const data = db('farewellPics');
+    const photo = data.photos.find(p => p.id === id);
+    
+    if (!photo) return res.status(404).json({ success: false, error: 'Not found' });
+    
+    // Photographers can only edit their own uploads
+    if (auth.user.role === 'photographer' && photo.uploaderId !== auth.user.id) {
+        return res.status(403).json({ success: false, error: 'Can only edit your own uploads' });
+    }
+
+    photo.caption = caption || '';
+    saveDb('farewellPics', data);
+    res.json({ success: true, photo });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }

@@ -41,6 +41,29 @@
         "bulk": true,
         "featured": true
       }
+    },
+    {
+      "id": "memopics",
+      "name": "Memo Pics Editing",
+      "role": "moderator",
+      "password": "memopics@2025",
+      "createdAt": "2026-03-18T04:02:39.170Z",
+      "updatedAt": "2026-03-18T04:02:57.130Z",
+      "disabled": false,
+      "permissions": {
+        "moderation": false,
+        "settings": false,
+        "theme": false,
+        "export": false,
+        "users": false,
+        "trash": false,
+        "replaceFile": false,
+        "editMemory": true,
+        "bulk": false,
+        "featured": false,
+        "teachers": false,
+        "timeline": false
+      }
     }
   ]
 }

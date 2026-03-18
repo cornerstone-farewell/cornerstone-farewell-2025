@@ -14813,22 +14813,25 @@ console.log('✅ Admin Security loaded');
   // ═══════════════════════════════════════════════════════════════════════════════
 // FAREWELL PICS (PUBLIC & ADMIN LOGIC)
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// FAREWELL PICS (PUBLIC & ADMIN LOGIC)
+// ═══════════════════════════════════════════════════════════════════════════════
 let fwPicsData = [];
 
-async function loadPublicFwPics() {
+window.loadPublicFwPics = async function() {
   try {
     const res = await fetch(apiUrl('/api/farewell-pics'));
     const data = await res.json();
     if (data.success) {
       fwPicsData = data.photos || [];
-      renderFwPicsPublic();
+      window.renderFwPicsPublic();
     }
   } catch (e) {
     console.error('Error loading farewell pics:', e);
   }
 }
 
-function renderFwPicsPublic() {
+window.renderFwPicsPublic = function() {
   const previewGrid = document.getElementById('fwPreviewGrid');
   const fullGrid = document.getElementById('fwFullGrid');
   if (!previewGrid || !fullGrid) return;
@@ -14839,12 +14842,13 @@ function renderFwPicsPublic() {
     return;
   }
 
-    // Inject Dedicated Lightbox HTML if it doesn't exist
+  // Inject Dedicated Lightbox HTML if it doesn't exist
   if (!document.getElementById('fwDedicatedLightbox')) {
     document.body.insertAdjacentHTML('beforeend', `
       <div id="fwDedicatedLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction:column;">
         <button onclick="document.getElementById('fwDedicatedLightbox').style.display='none'; document.body.style.overflow='';" style="position:absolute; top:20px; right:30px; background:none; border:none; color:#fff; font-size:2rem; cursor:pointer;">✕</button>
-        <img id="fwLightboxImg" src="" style="max-width:90vw; max-height:80vh; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.5); object-fit:contain;">
+        <img id="fwLightboxImg" src="" style="max-width:90vw; max-height:75vh; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.5); object-fit:contain;">
+        <div id="fwLightboxCaption" style="color:white; margin-top:15px; font-size:1.1rem; text-align:center; max-width:80%;"></div>
         <div style="margin-top:20px; display:flex; gap:15px;">
           <a id="fwLightboxDownload" href="#" target="_blank" class="btn btn-primary">Download High-Res</a>
         </div>
@@ -14852,23 +14856,24 @@ function renderFwPicsPublic() {
     `);
   }
 
-  // Bind the custom lightbox to the images
-  window.openFwStandaloneViewer = function(url) {
+  window.openFwStandaloneViewer = function(url, caption) {
     const lb = document.getElementById('fwDedicatedLightbox');
     document.getElementById('fwLightboxImg').src = url;
     document.getElementById('fwLightboxDownload').href = url;
+    document.getElementById('fwLightboxCaption').textContent = caption || '';
     lb.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   };
 
   const generateHTML = (photos) => photos.map(p => `
-    <div class="fw-item" onclick="openFwStandaloneViewer('${mediaUrl(p.file_url)}')">
+    <div class="fw-item" onclick="window.openFwStandaloneViewer('${mediaUrl(p.file_url)}', '${escHtml(p.caption || '')}')">
       <img src="${mediaUrl(p.file_url)}" loading="lazy" alt="Event Photo">
       <div class="fw-overlay" onclick="event.stopPropagation()">
-        <button class="fw-like-btn" onclick="reactFwPic(${p.id}, this)">
+        <div style="color:white; font-size:0.85rem; flex:1; margin-right:10px; text-shadow:0 1px 3px rgba(0,0,0,0.8);">${escHtml(p.caption || '')}</div>
+        <button class="fw-like-btn" onclick="window.reactFwPic(${p.id}, this)">
           <span>🤍</span> <span>${p.likes || 0}</span>
         </button>
-        <button class="btn btn-primary" style="padding: 5px 12px; font-size: 0.8rem;" onclick="window.open('${mediaUrl(p.file_url)}', '_blank')">Download</button>
+        <button class="btn btn-primary" style="padding: 5px 12px; font-size: 0.8rem; margin-left:10px;" onclick="window.open('${mediaUrl(p.file_url)}', '_blank')">⬇</button>
       </div>
     </div>
   `).join('');
@@ -14877,7 +14882,7 @@ function renderFwPicsPublic() {
   fullGrid.innerHTML = generateHTML(fwPicsData);
 }
 
-function openFwFullGallery() {
+window.openFwFullGallery = function() {
   const overlay = document.getElementById('fwFullOverlay');
   if (overlay) {
     overlay.classList.add('active');
@@ -14885,7 +14890,7 @@ function openFwFullGallery() {
   }
 }
 
-function closeFwFullGallery() {
+window.closeFwFullGallery = function() {
   const overlay = document.getElementById('fwFullOverlay');
   if (overlay) {
     overlay.classList.remove('active');
@@ -14893,7 +14898,7 @@ function closeFwFullGallery() {
   }
 }
 
-async function reactFwPic(id, btn) {
+window.reactFwPic = async function(id, btn) {
   try {
     const res = await fetch(apiUrl(`/api/farewell-pics/${id}/react`), { method: 'POST' });
     const data = await res.json();
@@ -14906,7 +14911,7 @@ async function reactFwPic(id, btn) {
 }
 
 // ── Admin Logic ──
-function initFarewellPicsPanelContent() {
+window.initFarewellPicsPanelContent = function() {
   const panel = document.getElementById('panelFarewellPics');
   if (!panel) return;
   panel.innerHTML = `
@@ -14915,19 +14920,19 @@ function initFarewellPicsPanelContent() {
         <h3 style="font-family:var(--font-display); color:var(--primary-gold); font-size:1.4rem;">📷 Event Gallery Admin</h3>
         <label class="btn btn-primary" style="cursor:pointer;">
           Upload Photos
-          <input type="file" multiple accept="image/*" style="display:none;" onchange="uploadFwPics(this)">
+          <input type="file" multiple accept="image/*" style="position:absolute; opacity:0; width:1px; height:1px;" onchange="window.uploadFwPics(this)">
         </label>
       </div>
-      <p style="color:var(--text-muted); margin-top:10px;">Upload professional event photos here. Photographers can only delete their own uploads.</p>
+      <p style="color:var(--text-muted); margin-top:10px;">Upload professional event photos here. Click "Edit" to add captions.</p>
     </div>
     <div id="fwAdminUploadStatus" style="color: var(--success-green); margin-bottom: 15px;"></div>
     <div class="fw-masonry" id="fwAdminGrid"></div>
   `;
   panel.dataset.initialized = 'true';
-  loadPublicFwPics().then(renderFwPicsAdmin);
+  window.loadPublicFwPics().then(window.renderFwPicsAdmin);
 }
 
-function renderFwPicsAdmin() {
+window.renderFwPicsAdmin = function() {
   const grid = document.getElementById('fwAdminGrid');
   if (!grid) return;
   
@@ -14940,21 +14945,27 @@ function renderFwPicsAdmin() {
   const role = state.adminUser?.role;
 
   grid.innerHTML = fwPicsData.map(p => {
-    // Photographers can only delete their own; superadmin can delete all
-    const canDelete = role === 'superadmin' || p.uploaderId === userId;
+    // Photographers can only edit/delete their own; superadmin can do all
+    const canEdit = role === 'superadmin' || p.uploaderId === userId;
     
     return `
     <div class="fw-item">
       <img src="${mediaUrl(p.file_url)}">
       <div style="padding: 10px; background: rgba(0,0,0,0.5);">
         <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 5px;">Likes: ${p.likes || 0}</div>
-        ${canDelete ? `<button class="btn btn-danger" style="width:100%; padding: 8px;" onclick="deleteFwPic(${p.id})">Delete</button>` : `<div style="font-size:0.8rem; color:#888;">Uploaded by another</div>`}
+        <div style="font-size:0.85rem; color:var(--text-light); margin-bottom: 10px;">${escHtml(p.caption || 'No caption')}</div>
+        ${canEdit ? `
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-secondary" style="flex:1; padding: 6px;" onclick="window.editFwPic(${p.id}, '${escHtml(p.caption || '')}')">Edit</button>
+            <button class="btn btn-danger" style="flex:1; padding: 6px;" onclick="window.deleteFwPic(${p.id})">Delete</button>
+          </div>
+        ` : `<div style="font-size:0.8rem; color:#888;">Uploaded by another</div>`}
       </div>
     </div>
   `}).join('');
 }
 
-async function uploadFwPics(input) {
+window.uploadFwPics = async function(input) {
   const files = input.files;
   if (!files || files.length === 0) return;
   
@@ -14975,17 +14986,20 @@ async function uploadFwPics(input) {
     const data = await res.json();
     if (data.success) {
       if (status) status.textContent = `Successfully uploaded ${data.count} photos!`;
-      await loadPublicFwPics();
-      renderFwPicsAdmin();
+      await window.loadPublicFwPics();
+      window.renderFwPicsAdmin();
     } else {
       if (status) status.textContent = `Upload failed: ${data.error}`;
     }
   } catch (e) {
     if (status) status.textContent = `Upload error: ${e.message}`;
   }
+  
+  // Reset input so they can upload the same file again if needed
+  input.value = '';
 }
 
-async function deleteFwPic(id) {
+window.deleteFwPic = async function(id) {
   if (!confirm('Delete this event photo?')) return;
   try {
     const res = await fetch(apiUrl(`/api/admin/farewell-pics/${id}`), {
@@ -14994,8 +15008,8 @@ async function deleteFwPic(id) {
     });
     const data = await res.json();
     if (data.success) {
-      await loadPublicFwPics();
-      renderFwPicsAdmin();
+      await window.loadPublicFwPics();
+      window.renderFwPicsAdmin();
     } else {
       alert(data.error);
     }
@@ -15004,8 +15018,30 @@ async function deleteFwPic(id) {
   }
 }
 
-// Ensure the new tab triggers the init function globally
-window.initFarewellPicsPanelContent = initFarewellPicsPanelContent;
+window.editFwPic = async function(id, currentCaption) {
+  const newCaption = prompt('Enter a caption for this photo:', currentCaption);
+  if (newCaption === null) return; // User cancelled
+  
+  try {
+    const res = await fetch(apiUrl(`/api/admin/farewell-pics/${id}/edit`), {
+      method: 'POST',
+      headers: { 
+        'Authorization': 'Bearer ' + state.adminToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ caption: newCaption })
+    });
+    const data = await res.json();
+    if (data.success) {
+      await window.loadPublicFwPics();
+      window.renderFwPicsAdmin();
+    } else {
+      alert(data.error);
+    }
+  } catch (e) {
+    alert(e.message);
+  }
+}
 
  // ---------- Boot hooks ----------
  document.addEventListener('DOMContentLoaded', function(){

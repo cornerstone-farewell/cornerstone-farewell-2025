@@ -9371,7 +9371,39 @@
       "action": "login",
       "meta": {},
       "createdAt": "2026-03-18T03:55:29.531Z"
+    },
+    {
+      "id": 1147,
+      "userId": "super",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-18T04:01:07.255Z"
+    },
+    {
+      "id": 1148,
+      "userId": "super",
+      "action": "create-user",
+      "meta": {
+        "id": "memopics"
+      },
+      "createdAt": "2026-03-18T04:02:39.172Z"
+    },
+    {
+      "id": 1149,
+      "userId": "super",
+      "action": "update-user",
+      "meta": {
+        "id": "memopics"
+      },
+      "createdAt": "2026-03-18T04:02:57.131Z"
+    },
+    {
+      "id": 1150,
+      "userId": "memopics",
+      "action": "login",
+      "meta": {},
+      "createdAt": "2026-03-18T04:03:15.408Z"
     }
   ],
-  "nextId": 1147
+  "nextId": 1151
 }
