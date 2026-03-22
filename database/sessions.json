@@ -1,132 +1,20 @@
 {
   "sessions": [
     {
-      "token": "admin-1773759975664-c0bad4b67b949383df3c5b28754af4bb",
-      "userId": "super",
-      "expiresAt": "2026-03-18T15:06:15.664Z",
-      "createdAt": "2026-03-17T15:06:15.665Z",
-      "ip": "2405:201:c00a:aac4:dda1:13ee:8136:639e",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773805405089-105d159245b5a14f641fd2aca8a06a0a",
-      "userId": "super",
-      "expiresAt": "2026-03-19T03:43:25.089Z",
-      "createdAt": "2026-03-18T03:43:25.090Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773806129527-8778dd841a4ea6b069116c995643eed3",
-      "userId": "super",
-      "expiresAt": "2026-03-19T03:55:29.527Z",
-      "createdAt": "2026-03-18T03:55:29.527Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773806467252-f7a85088cad6802da5113e36365b2f4d",
-      "userId": "super",
-      "expiresAt": "2026-03-19T04:01:07.252Z",
-      "createdAt": "2026-03-18T04:01:07.252Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773806595406-8f03611ffbe5ec6f884d209d1e35a0c4",
-      "userId": "memopics",
-      "expiresAt": "2026-03-19T04:03:15.406Z",
-      "createdAt": "2026-03-18T04:03:15.406Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773807365087-da36c5738b7baaf8440b0f16c683bbcd",
-      "userId": "memopics",
-      "expiresAt": "2026-03-19T04:16:05.088Z",
-      "createdAt": "2026-03-18T04:16:05.088Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773807448411-127133a32526f82325a69e5c14a285a4",
-      "userId": "memopics",
-      "expiresAt": "2026-03-19T04:17:28.411Z",
-      "createdAt": "2026-03-18T04:17:28.412Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773807712759-b0ea0d0af966e98c12aacc3c98a4d7ce",
-      "userId": "memopics",
-      "expiresAt": "2026-03-19T04:21:52.759Z",
-      "createdAt": "2026-03-18T04:21:52.760Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773808085877-7984518dc41e1a153ad6179bb494273b",
-      "userId": "memopics",
-      "expiresAt": "2026-03-19T04:28:05.877Z",
-      "createdAt": "2026-03-18T04:28:05.877Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773808623344-7fa67d146093d58d18924991066e4787",
-      "userId": "super",
-      "expiresAt": "2026-03-19T04:37:03.344Z",
-      "createdAt": "2026-03-18T04:37:03.344Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773808760747-fdc49964f19fe580e71bbda4e2abef46",
-      "userId": "super",
-      "expiresAt": "2026-03-19T04:39:20.747Z",
-      "createdAt": "2026-03-18T04:39:20.747Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773808847198-103e78025587a6c164f9e99ee01dc01b",
-      "userId": "super",
-      "expiresAt": "2026-03-19T04:40:47.198Z",
-      "createdAt": "2026-03-18T04:40:47.198Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773809059991-93994d022e8033fe17832df3340351f5",
-      "userId": "super",
-      "expiresAt": "2026-03-19T04:44:19.991Z",
-      "createdAt": "2026-03-18T04:44:19.991Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773809129240-f4c3ce6a0a1a8249272ea59e0eef4f65",
-      "userId": "super",
-      "expiresAt": "2026-03-19T04:45:29.240Z",
-      "createdAt": "2026-03-18T04:45:29.240Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773809465698-0feeacb4268d8aa64172bc3db680dbba",
-      "userId": "memopics",
-      "expiresAt": "2026-03-19T04:51:05.698Z",
-      "createdAt": "2026-03-18T04:51:05.700Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-    },
-    {
       "token": "admin-1773817799072-21dd7ab2d44bc45bee9a949e9379c446",
       "userId": "super",
       "expiresAt": "2026-03-19T07:09:59.096Z",
       "createdAt": "2026-03-18T07:09:59.097Z",
       "ip": "183.82.115.234",
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+    },
+    {
+      "token": "admin-1773900407289-028a1f95570441ed48f2b22109f2ca28",
+      "userId": "super",
+      "expiresAt": "2026-03-20T06:06:47.290Z",
+      "createdAt": "2026-03-19T06:06:47.290Z",
+      "ip": "2401:4900:97c0:c004:70fa:7e5:5f53:afc9",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
     }
   ]
 }

@@ -41,7 +41,7 @@
       "batch": "2025",
       "category": "exams",
       "text": "Comparing scores with everyone can increase pressure. Focus on improving your own performance instead.",
-      "likes": 1,
+      "likes": 2,
       "featured": false,
       "createdAt": "2026-03-14T09:09:51.363Z",
       "deletedAt": null
@@ -52,7 +52,7 @@
       "batch": "2025",
       "category": "life",
       "text": "School days may feel long now, but later you’ll realize these years pass very quickly, so make good memories.",
-      "likes": 1,
+      "likes": 3,
       "featured": false,
       "createdAt": "2026-03-14T09:10:23.698Z",
       "deletedAt": null
@@ -74,7 +74,7 @@
       "batch": "2025",
       "category": "regrets",
       "text": "In school, many people feel like they must know exactly what they want to do in life. It’s completely normal to still be exploring.",
-      "likes": 1,
+      "likes": 3,
       "featured": false,
       "createdAt": "2026-03-14T09:12:06.195Z",
       "deletedAt": null

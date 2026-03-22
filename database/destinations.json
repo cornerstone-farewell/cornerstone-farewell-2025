@@ -277,8 +277,38 @@
       "approved": true,
       "deletedAt": null,
       "createdAt": "2026-03-18T04:45:03.536Z"
+    },
+    {
+      "id": 20,
+      "name": "Jeffrey epstein",
+      "school": "Bhavani Nagar",
+      "city": "Greater Hyderabad Municipal Corporation South Zone",
+      "country": "Hyderabad",
+      "lat": 17.347361339308165,
+      "lng": 78.48495483398438,
+      "type": "school",
+      "emoji": "🎓",
+      "note": "Ward 35 Gowlipura, Greater Hyderabad Municipal Corporation South Zone, Hyderabad",
+      "approved": true,
+      "deletedAt": null,
+      "createdAt": "2026-03-18T15:11:29.909Z"
+    },
+    {
+      "id": 21,
+      "name": "Jeffrey epstein",
+      "school": "Contant",
+      "city": "Contant",
+      "country": "United States Virgin Islands",
+      "lat": 18.329687358598164,
+      "lng": -64.80738401412965,
+      "type": "university",
+      "emoji": "🎓",
+      "note": "Cruz Bay, Saint Thomas - Saint John District, United States Virgin Islands",
+      "approved": true,
+      "deletedAt": null,
+      "createdAt": "2026-03-18T15:11:30.011Z"
     }
   ],
   "submissions": [],
-  "nextId": 20
+  "nextId": 22
 }
