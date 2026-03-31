@@ -74,8 +74,8 @@
       "batch": "2025",
       "category": "regrets",
       "text": "In school, many people feel like they must know exactly what they want to do in life. It’s completely normal to still be exploring.",
-      "likes": 3,
-      "featured": false,
+      "likes": 4,
+      "featured": true,
       "createdAt": "2026-03-14T09:12:06.195Z",
       "deletedAt": null
     }

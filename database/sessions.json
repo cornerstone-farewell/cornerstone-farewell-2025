@@ -1,20 +1,12 @@
 {
   "sessions": [
     {
-      "token": "admin-1773817799072-21dd7ab2d44bc45bee9a949e9379c446",
+      "token": "admin-1774883707557-fbb2a3e700c1c50f84ff94295baa26cb",
       "userId": "super",
-      "expiresAt": "2026-03-19T07:09:59.096Z",
-      "createdAt": "2026-03-18T07:09:59.097Z",
-      "ip": "183.82.115.234",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
-    },
-    {
-      "token": "admin-1773900407289-028a1f95570441ed48f2b22109f2ca28",
-      "userId": "super",
-      "expiresAt": "2026-03-20T06:06:47.290Z",
-      "createdAt": "2026-03-19T06:06:47.290Z",
-      "ip": "2401:4900:97c0:c004:70fa:7e5:5f53:afc9",
-      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+      "expiresAt": "2026-03-31T15:15:07.559Z",
+      "createdAt": "2026-03-30T15:15:07.560Z",
+      "ip": "2405:201:c00a:aac4:6854:e1d:1c59:a4f",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
     }
   ]
 }

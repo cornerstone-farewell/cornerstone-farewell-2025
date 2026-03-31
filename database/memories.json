@@ -4153,10 +4153,10 @@
       "approved": 0,
       "featured": 0,
       "likes": 0,
-      "deletedAt": null,
+      "deletedAt": "2026-03-22T16:15:30.213Z",
       "purgedAt": null,
       "created_at": "2026-03-18T16:12:10.112Z",
-      "updated_at": "2026-03-18T16:12:10.112Z"
+      "updated_at": "2026-03-22T16:15:30.213Z"
     },
     {
       "id": 236,
@@ -4168,13 +4168,13 @@
       "file_type": "image",
       "file_size": 3146675,
       "sha256": "8549612207e862fee4c379ed03684f330c82eeaacf52138df8de44fe0a31c6c7",
-      "approved": 0,
+      "approved": 1,
       "featured": 0,
       "likes": 0,
       "deletedAt": null,
       "purgedAt": null,
       "created_at": "2026-03-18T18:00:18.871Z",
-      "updated_at": "2026-03-18T18:00:18.871Z"
+      "updated_at": "2026-03-22T16:15:20.247Z"
     }
   ],
   "nextId": 237
